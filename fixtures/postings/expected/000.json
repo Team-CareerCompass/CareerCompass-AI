@@ -1,0 +1,20 @@
+{
+  "type": "recruit",
+  "organization": "OO기업",
+  "dueDate": "2026-05-25",
+  "dueDateRaw": "5월 25일(월) 23:59까지",
+  "keywords": ["Java", "Kotlin", "백엔드", "안드로이드", "RDB"],
+  "qualifications": { "year": "2학년 이상", "gpa": null, "major": null },
+  "preferences": [
+    "Java / Kotlin 기반 서버 개발 경험",
+    "RDB 설계 및 운영 경험 1년 이상",
+    "개인 프로젝트 또는 오픈소스 기여 경험"
+  ],
+  "workType": "인턴",
+  "formQuestions": [
+    { "order": 1, "question": "지원 동기를 작성해 주세요.", "maxChars": 500 },
+    { "order": 2, "question": "본인의 강점과 약점을 사례를 들어 서술해 주세요.", "maxChars": 400 },
+    { "order": 3, "question": "입사 후 이루고 싶은 목표를 작성해 주세요.", "maxChars": 300 }
+  ],
+  "note": "연도가 본문에 없어 dueDate 의 2026 은 collectedAt 기준 추론. 근무 조건이 탭으로 뭉개진 표."
+}
