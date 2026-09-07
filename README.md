@@ -10,7 +10,42 @@
 
 ## 현재 상태
 
-**코드 없음.** 착수 시점의 빈 저장소이고, 해야 할 일은 전부 이슈로 등록해 뒀다. 총 **30건**, 마일스톤 7개(A0~A6).
+**골격까지 섰다.** 계약([`docs/AI_CONTRACT_v0.1.md`](docs/AI_CONTRACT_v0.1.md))대로의 엔드포인트 6개가 **더미 응답**을 낸다. 모델은 아직 부르지 않는다.
+
+해야 할 일은 이슈로 등록해 뒀다. 총 **31건**, 마일스톤 7개(A0~A6).
+
+### 띄우기
+
+```bash
+python -m venv .venv && .venv/bin/pip install -e ".[dev]"   # Windows: .venv\Scripts\pip
+uvicorn app.main:app --reload
+curl localhost:8000/health
+```
+
+또는 `docker compose up --build`.
+
+호출에는 `X-Internal-Token` 헤더가 필요하다(`/health` 는 예외). 기본값은 `.env.example` 참고.
+
+```bash
+curl -X POST localhost:8000/v1/parse-posting \
+  -H 'Content-Type: application/json' -H 'X-Internal-Token: dev-token' \
+  -d '{"postingId":101,"title":"테스트","rawContent":"..."}'
+```
+
+### 더미 응답을 고르는 법
+
+고정 응답만 내려주면 BE 가 실패 화면을 짤 수 없다. `postingId` 로 시나리오를 고른다.
+
+| postingId | 결과 |
+| --- | --- |
+| 999001 | `status: partial` — 마감일·양식 없음 |
+| 999002 | `PARSING_FAILED` / `NO_KEYWORDS` |
+| 999003 | `PARSING_FAILED` / `IMAGE_ONLY` |
+| 999004 | `PARSING_FAILED` / `NOT_A_POSTING` |
+| 999005 | `PARSING_FAILED` / `EMPTY` |
+| 그 밖 | `status: ok` |
+
+타임아웃 처리를 시험하려면 `?delay=15000` (밀리초).
 
 ## 이 서비스가 맡는 것
 
