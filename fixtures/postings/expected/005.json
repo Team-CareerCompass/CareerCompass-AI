@@ -1,0 +1,5 @@
+{
+  "status": "failed",
+  "reason": "IMAGE_ONLY",
+  "note": "본문이 이미지 한 장이다. 멀티모달 경로(#33)가 붙으면 정답을 채운다."
+}

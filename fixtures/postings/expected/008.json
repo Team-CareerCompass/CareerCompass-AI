@@ -1,0 +1,8 @@
+{
+  "type": "activity",
+  "organization": "LG전자",
+  "dueDate": "2026-09-11",
+  "dueDateRaw": "8/24(월) ~ 9/11(금)",
+  "formQuestions": [],
+  "note": "연도가 없어 collectedAt 기준 추론이다. 줄바꿈이 거의 없이 이모지로 구분된 한 덩어리 텍스트."
+}

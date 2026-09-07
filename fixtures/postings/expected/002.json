@@ -1,0 +1,12 @@
+{
+  "type": "scholarship",
+  "organization": "금신장학재단",
+  "dueDate": "2026-09-21",
+  "dueDateRaw": "2026. 9. 15. (화) ~ 2026. 9. 21. (월)",
+  "qualifications": {
+    "gpa": "직전학기 4.5만점 기준 3.5 이상",
+    "credits": "직전학기 12학점 이상"
+  },
+  "formQuestions": [],
+  "note": "소득분위 조건이 있다. 적합도 자격 축의 시험 대상."
+}
