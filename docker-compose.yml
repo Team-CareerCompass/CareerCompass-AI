@@ -1,0 +1,24 @@
+# BE 와 함께 로컬에서 띄우기 위한 구성 (#1).
+#
+#   docker compose up --build
+#   curl localhost:8000/health
+#
+# BE 저장소의 compose 와 같은 네트워크에 두면 `http://ai:8000` 으로 부를 수 있다.
+
+services:
+  ai:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      CC_INTERNAL_TOKEN: ${CC_INTERNAL_TOKEN:-dev-token}
+      CC_STUB_MODE: "true"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 3s
+      start_period: 5s
+
+networks:
+  default:
+    name: careercompass
