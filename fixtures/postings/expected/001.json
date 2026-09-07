@@ -1,0 +1,12 @@
+{
+  "type": "scholarship",
+  "organization": "(재)용복장학회",
+  "dueDate": "2026-09-15",
+  "dueDateRaw": "2026년 9월 1일 (화) ~ 2026년 9월 15일(화)",
+  "qualifications": {
+    "gpa": "직전 학기 3.7/4.5 이상",
+    "credits": "직전 학기 12학점 이상"
+  },
+  "formQuestions": [],
+  "note": "접수기간이 범위 표현이다. 앞의 9월 1일을 마감일로 집으면 틀린다."
+}
