@@ -211,6 +211,67 @@ def test_generate_reports_fact_check(client: TestClient) -> None:
 # --------------------------------------------------------------------------
 
 
+def test_extract_text_returns_paragraphs(client: TestClient) -> None:
+    """줄바꿈이 사라지면 §4.2 가 항목 경계를 못 찾는다 (#21)."""
+    res = client.post(
+        "/v1/extract-text",
+        data={"pastApplicationId": 7},
+        files={"file": ("자소서.txt", b"...", "text/plain")},
+        headers=HEADERS,
+    )
+
+    assert res.status_code == 200
+    data = res.json()["data"]
+    assert data["format"] == "txt"
+    assert data["charCount"] == len(data["text"])
+    assert data["text"].strip(), "빈 문자열을 성공으로 내보내지 않는다"
+    assert "\n\n" in data["text"], "문단 구분이 살아 있어야 한다"
+
+
+def test_extract_text_rejects_unsupported_format(client: TestClient) -> None:
+    res = client.post(
+        "/v1/extract-text",
+        data={"pastApplicationId": 7},
+        files={"file": ("자소서.hwp", b"...", "application/octet-stream")},
+        headers=HEADERS,
+    )
+
+    assert res.status_code == 400
+    assert res.json()["error"]["code"] == "INVALID_INPUT"
+
+
+def test_extract_text_rejects_oversized_file(client: TestClient) -> None:
+    res = client.post(
+        "/v1/extract-text",
+        data={"pastApplicationId": 7},
+        files={"file": ("자소서.pdf", b"x" * (10 * 1024 * 1024 + 1), "application/pdf")},
+        headers=HEADERS,
+    )
+
+    assert res.status_code == 400
+    assert res.json()["error"]["code"] == "INVALID_INPUT"
+
+
+@pytest.mark.parametrize(
+    ("past_application_id", "reason"),
+    [(999002, "SCANNED_PDF"), (999003, "EMPTY")],
+)
+def test_extract_text_failure_reasons(
+    client: TestClient, past_application_id: int, reason: str
+) -> None:
+    """파일 문제와 모델 문제는 다르다. BE 가 구분할 수 있어야 한다."""
+    res = client.post(
+        "/v1/extract-text",
+        data={"pastApplicationId": past_application_id},
+        files={"file": ("자소서.pdf", b"...", "application/pdf")},
+        headers=HEADERS,
+    )
+
+    assert res.status_code == 422
+    assert res.json()["error"]["code"] == "PARSING_FAILED"
+    assert res.json()["error"]["detail"]["reason"] == reason
+
+
 def test_classify_returns_known_categories(client: TestClient) -> None:
     allowed = {"motivation", "background", "experience", "competency", "aspiration", "other"}
     body = {"pastApplicationId": 7, "text": "첫 문단입니다.\n\n두 번째 문단입니다."}

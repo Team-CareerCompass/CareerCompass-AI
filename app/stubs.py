@@ -16,14 +16,18 @@
 | 그 밖 | `status: ok` |
 """
 
+import pathlib
+
 from app.contract import ErrorCode, FailReason, ServiceError
 from app.schemas import (
     Axis,
     ClassifiedItem,
     ClassifyRequest,
     ClassifyResult,
+    DocFormat,
     EmbedRequest,
     EmbedResult,
+    ExtractTextResult,
     FactCheck,
     FormQuestion,
     GenerateRequest,
@@ -53,6 +57,7 @@ FAIL_MESSAGES: dict[FailReason, str] = {
     FailReason.IMAGE_ONLY: "본문이 이미지뿐입니다",
     FailReason.NOT_A_POSTING: "지원할 수 있는 공고가 아닙니다",
     FailReason.EMPTY: "본문이 비어 있습니다",
+    FailReason.SCANNED_PDF: "텍스트 레이어가 없어 내용을 읽지 못했습니다",
 }
 
 
@@ -199,6 +204,58 @@ def generate(req: GenerateRequest) -> GenerateResult:
 # --------------------------------------------------------------------------
 # §4 문서 분류
 # --------------------------------------------------------------------------
+
+
+MAX_UPLOAD_BYTES = 10 * 1024 * 1024
+"""명세서 F1-4. 10MB 이하."""
+
+SUPPORTED_FORMATS: dict[str, DocFormat] = {
+    ".pdf": DocFormat.PDF,
+    ".docx": DocFormat.DOCX,
+    ".txt": DocFormat.TXT,
+}
+
+EXTRACT_FAIL_SCENARIOS: dict[int, FailReason] = {
+    999002: FailReason.SCANNED_PDF,
+    999003: FailReason.EMPTY,
+}
+
+_STUB_DOCUMENT = (
+    "저는 사용자의 불편을 빠르게 확인하고 도구로 만들어 검증하는 것을 좋아합니다.\n\n"
+    "학부 3학년 때 팀 프로젝트에서 백엔드를 맡아 API 설계와 배포를 담당했습니다.\n\n"
+    "입사 후에는 데이터 파이프라인 영역에서 기여하고 싶습니다."
+)
+
+
+def extract_text(past_application_id: int, filename: str, size: int) -> ExtractTextResult:
+    """§4.3. 형식·크기 위반은 INVALID_INPUT, 읽기 실패는 PARSING_FAILED 다."""
+    suffix = pathlib.Path(filename).suffix.lower()
+
+    if (fmt := SUPPORTED_FORMATS.get(suffix)) is None:
+        raise ServiceError(
+            ErrorCode.INVALID_INPUT,
+            "PDF·DOCX·TXT 만 지원합니다",
+            {"filename": filename},
+        )
+
+    if size > MAX_UPLOAD_BYTES:
+        raise ServiceError(
+            ErrorCode.INVALID_INPUT,
+            "10MB 이하만 올릴 수 있습니다",
+            {"size": size, "limit": MAX_UPLOAD_BYTES},
+        )
+
+    if (reason := EXTRACT_FAIL_SCENARIOS.get(past_application_id)) is not None:
+        raise _fail(reason)
+
+    return ExtractTextResult(
+        past_application_id=past_application_id,
+        format=fmt,
+        text=_STUB_DOCUMENT,
+        char_count=len(_STUB_DOCUMENT),
+        ocr_used=False,
+        meta=_meta(model="local", prompt_version="-"),
+    )
 
 
 def classify(req: ClassifyRequest) -> ClassifyResult:

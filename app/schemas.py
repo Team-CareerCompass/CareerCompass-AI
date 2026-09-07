@@ -210,6 +210,23 @@ class ClassifyResult(Base):
     meta: Meta | None = None
 
 
+class DocFormat(StrEnum):
+    PDF = "pdf"
+    DOCX = "docx"
+    TXT = "txt"
+
+
+class ExtractTextResult(Base):
+    """§4.3. 외부로 나가는 호출이 없다 — 추출과 OCR 을 전부 로컬에서 한다."""
+
+    past_application_id: int
+    format: DocFormat
+    text: str
+    char_count: int
+    ocr_used: bool = False
+    meta: Meta | None = None
+
+
 # --------------------------------------------------------------------------
 # §5 임베딩
 # --------------------------------------------------------------------------

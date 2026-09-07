@@ -27,13 +27,20 @@ HTTP_STATUS: dict[ErrorCode, int] = {
 
 
 class FailReason(StrEnum):
-    """계약 §1.3. `failed` 의 사유 — BE 가 사용자에게 다른 말을 해야 해서 구분한다."""
+    """`PARSING_FAILED` 의 사유 — BE 가 사용자에게 다른 말을 해야 해서 구분한다."""
 
+    # 계약 §1.3 — 공고 파싱
     NOT_A_POSTING = "NOT_A_POSTING"
     """지원할 수 있는 공고가 아니다. BE 는 이것만 목록에서 제외한다."""
 
     NO_KEYWORDS = "NO_KEYWORDS"
     IMAGE_ONLY = "IMAGE_ONLY"
+
+    # 계약 §4.3 — 텍스트 추출
+    SCANNED_PDF = "SCANNED_PDF"
+    """텍스트 레이어가 없고 OCR 도 실패했다. 명세서 UC-04 E3."""
+
+    # 양쪽에서 쓴다
     EMPTY = "EMPTY"
 
 

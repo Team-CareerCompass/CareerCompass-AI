@@ -6,7 +6,7 @@
 import asyncio
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, File, Form, Query, UploadFile
 
 from app import stubs
 from app.config import settings
@@ -57,9 +57,21 @@ async def generate_item(req: GenerateRequest, delay: Delay = 0) -> dict[str, Any
 
 @router.post("/classify-document")
 async def classify_document(req: ClassifyRequest, delay: Delay = 0) -> dict[str, Any]:
-    """§4 과거 지원서 항목 분류 6종."""
+    """§4.2 과거 지원서 항목 분류 6종."""
     await _sleep(delay)
     return ok(_dump(stubs.classify(req)))
+
+
+@router.post("/extract-text")
+async def extract_text(
+    past_application_id: Annotated[int, Form(alias="pastApplicationId")],
+    file: Annotated[UploadFile, File()],
+    delay: Delay = 0,
+) -> dict[str, Any]:
+    """§4.3 텍스트 추출 — 외부로 나가는 호출이 없다. 전부 로컬에서 한다."""
+    await _sleep(delay)
+    size = len(await file.read())
+    return ok(_dump(stubs.extract_text(past_application_id, file.filename or "", size)))
 
 
 @router.post("/embed")
