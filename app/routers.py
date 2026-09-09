@@ -1,28 +1,26 @@
-"""계약 §1~§6 의 엔드포인트.
+"""계약 v0.2 §1~§4 의 엔드포인트.
 
-이 서비스는 상태를 갖지 않는다 (계약 D1). 큐·재시도·SSE 는 BE 가 한다.
+엔드포인트는 셋뿐이다. 적합도 산출·문서 분류·텍스트 추출·유사 공고·추천은 BE #51 이 구현했다.
+
+이 서비스는 상태를 갖지 않는다 — 큐·캐시·재시도·SSE 는 전부 BE 가 한다.
 """
 
 import asyncio
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Header, Query
 
 from app import stubs
 from app.config import settings
-from app.contract import ok
-from app.schemas import (
-    ClassifyRequest,
-    EmbedRequest,
-    GenerateRequest,
-    ParseRequest,
-    ScoreRequest,
-)
+from app.schemas import CommentsRequest, DraftRequest, ParseRequest
 
 router = APIRouter(prefix="/v1")
 
 # BE 가 타임아웃 처리를 검증할 수 있게 지연을 흉내 낸다. 스텁 전용.
 Delay = Annotated[int, Query(ge=0, le=60_000, description="응답을 늦출 밀리초 (스텁 전용)")]
+
+# BE 가 보내는 프롬프트 버전. 로그와 usage 에 그대로 남긴다 — BE 가 재파싱 판단에 쓴다.
+PromptVersion = Annotated[str, Header(alias="X-Prompt-Version")]
 
 
 async def _sleep(delay_ms: int) -> None:
@@ -31,42 +29,44 @@ async def _sleep(delay_ms: int) -> None:
 
 
 def _dump(model: Any) -> dict[str, Any]:
+    """봉투 없이 최상위에 필드를 놓는다 — BE 가 node.path(...) 로 바로 읽는다."""
     return model.model_dump(by_alias=True, mode="json")
 
 
 @router.post("/parse-posting")
-async def parse_posting(req: ParseRequest, delay: Delay = 0) -> dict[str, Any]:
-    """§1 공고 구조화 파싱 — 지원서 양식 인식(F4-1)도 여기서 함께 한다."""
+async def parse_posting(
+    req: ParseRequest,
+    x_prompt_version: PromptVersion = "v1",
+    delay: Delay = 0,
+) -> dict[str, Any]:
+    """§1 공고 구조화 파싱 — 지원서 양식 인식(F4-1)도 여기서 함께 한다.
+
+    파싱 실패도 200 이다. 4xx 로 내면 BE 가 서버 장애로 오인한다.
+    """
     await _sleep(delay)
-    return ok(_dump(stubs.parse(req)))
+    return _dump(stubs.parse_posting(req, x_prompt_version))
 
 
-@router.post("/score")
-async def score(req: ScoreRequest, delay: Delay = 0) -> dict[str, Any]:
-    """§2 적합도 4축 산출과 강점·약점 코멘트."""
+@router.post("/comments")
+async def comments(
+    req: CommentsRequest,
+    x_prompt_version: PromptVersion = "v1",
+    delay: Delay = 0,
+) -> dict[str, Any]:
+    """§2 강점·약점 코멘트 — 점수는 BE 가 낸다. 받은 근거 안에서만 쓴다."""
     await _sleep(delay)
-    return ok(_dump(stubs.score(req)))
+    return _dump(stubs.comments(req, x_prompt_version))
 
 
-@router.post("/generate-item")
-async def generate_item(req: GenerateRequest, delay: Delay = 0) -> dict[str, Any]:
-    """§3 지원서 초안 — 항목 1개당 1회 호출. 재생성도 같은 엔드포인트다."""
+@router.post("/draft-answer")
+async def draft_answer(
+    req: DraftRequest,
+    x_prompt_version: PromptVersion = "v1",
+    delay: Delay = 0,
+) -> dict[str, Any]:
+    """§3 지원서 초안 — 항목 하나에 호출 하나. 재생성도 같은 경로다."""
     await _sleep(delay)
-    return ok(_dump(stubs.generate(req)))
-
-
-@router.post("/classify-document")
-async def classify_document(req: ClassifyRequest, delay: Delay = 0) -> dict[str, Any]:
-    """§4 과거 지원서 항목 분류 6종."""
-    await _sleep(delay)
-    return ok(_dump(stubs.classify(req)))
-
-
-@router.post("/embed")
-async def embed(req: EmbedRequest, delay: Delay = 0) -> dict[str, Any]:
-    """§5 임베딩 — D2 에 따라 MVP 에서는 쓰지 않는다. 인터페이스만 고정해 둔다."""
-    await _sleep(delay)
-    return ok(_dump(stubs.embed(req)))
+    return _dump(stubs.draft_answer(req, x_prompt_version))
 
 
 health_router = APIRouter()
@@ -74,11 +74,5 @@ health_router = APIRouter()
 
 @health_router.get("/health")
 async def health() -> dict[str, Any]:
-    """§6. 프로바이더를 실제로 호출하지는 않는다 (비용)."""
-    return ok(
-        {
-            "version": settings.version,
-            "stubMode": settings.stub_mode,
-            "providers": {"stub": "up"},
-        }
-    )
+    """§4. 프로바이더를 실제로 호출하지는 않는다 (비용)."""
+    return {"status": "up", "version": settings.version, "stubMode": settings.stub_mode}
