@@ -1,77 +1,53 @@
-"""계약대로의 더미 응답.
+"""계약 v0.2 대로의 더미 응답.
 
-#1 의 완료 조건은 「BE 가 이 서비스를 호출해 더미 응답을 받을 수 있다」이다.
 모델은 아직 부르지 않는다. 여기 있는 것은 전부 고정값이다.
 
-**시나리오 스위치** — 고정 응답만 내려주면 BE 가 실패 화면을 짤 수 없다.
-`postingId` 로 응답을 골라 낼 수 있게 해 둔다.
+**시나리오 스위치** — 고정 응답만 내려주면 BE 가 실패 경로를 짤 수 없다. BE 는 `postingId` 를
+보내지 않으므로 **제목에 표식을 넣어** 고른다.
 
-| postingId | 결과 |
+    {"title": "[stub:NO_KEYWORDS] 아무거나", "rawContent": "..."}
+
+| 표식 | 결과 |
 | --- | --- |
-| 999001 | `status: partial` (마감일·양식 없음) |
-| 999002 | `PARSING_FAILED` / `NO_KEYWORDS` |
-| 999003 | `PARSING_FAILED` / `IMAGE_ONLY` |
-| 999004 | `PARSING_FAILED` / `NOT_A_POSTING` |
-| 999005 | `PARSING_FAILED` / `EMPTY` |
-| 그 밖 | `status: ok` |
+| `[stub:NO_KEYWORDS]` | 파싱 실패 — 키워드 부족 |
+| `[stub:IMAGE_ONLY]` | 파싱 실패 — 본문이 이미지뿐 |
+| `[stub:EMPTY]` | 파싱 실패 — 본문이 비어 있음 |
+| `[stub:NOT_A_POSTING]` | 파싱 실패 — 공고가 아님 |
+| `[stub:PARTIAL]` | 성공하되 마감일·양식이 없음 |
+| 표식 없음 | 정상 |
 """
 
-from app.contract import ErrorCode, FailReason, ServiceError
+import re
+
+from app.contract import FAIL_MESSAGES, ParseFailReason
 from app.schemas import (
-    Axis,
-    ClassifiedItem,
-    ClassifyRequest,
-    ClassifyResult,
-    EmbedRequest,
-    EmbedResult,
+    CommentsRequest,
+    CommentsResult,
+    DraftRequest,
+    DraftResult,
     FactCheck,
     FormQuestion,
-    GenerateRequest,
-    GenerateResult,
-    ItemCategory,
-    Meta,
+    ParseFailure,
     ParseRequest,
     ParseResult,
-    ParseStatus,
     PostingType,
-    Qualifications,
-    ScoreRequest,
-    ScoreResult,
+    Usage,
 )
 
-FAIL_SCENARIOS: dict[int, FailReason] = {
-    999002: FailReason.NO_KEYWORDS,
-    999003: FailReason.IMAGE_ONLY,
-    999004: FailReason.NOT_A_POSTING,
-    999005: FailReason.EMPTY,
-}
+MAX_RAW_CONTENT_CHARS = 40_000
+DEFAULT_MIN_CHARS = 400
+DEFAULT_MAX_CHARS = 600
 
-PARTIAL_SCENARIO = 999001
-
-FAIL_MESSAGES: dict[FailReason, str] = {
-    FailReason.NO_KEYWORDS: "핵심 키워드를 3개 이상 뽑지 못했습니다",
-    FailReason.IMAGE_ONLY: "본문이 이미지뿐입니다",
-    FailReason.NOT_A_POSTING: "지원할 수 있는 공고가 아닙니다",
-    FailReason.EMPTY: "본문이 비어 있습니다",
-}
+_MARKER = re.compile(r"\[stub:([A-Z_]+)\]")
 
 
-def _meta(model: str = "stub", prompt_version: str = "stub@0", latency_ms: int = 0) -> Meta:
-    return Meta(
-        provider="stub",
-        model=model,
-        prompt_version=prompt_version,
-        latency_ms=latency_ms,
-        cost_krw=0.0,
-    )
+def _usage(model: str = "stub", prompt_version: str = "v1") -> Usage:
+    return Usage(provider="stub", model=model, prompt_version=prompt_version)
 
 
-def _fail(reason: FailReason) -> ServiceError:
-    return ServiceError(
-        ErrorCode.PARSING_FAILED,
-        FAIL_MESSAGES[reason],
-        {"reason": str(reason)},
-    )
+def _marker(title: str) -> str | None:
+    match = _MARKER.search(title)
+    return match.group(1) if match else None
 
 
 # --------------------------------------------------------------------------
@@ -79,150 +55,98 @@ def _fail(reason: FailReason) -> ServiceError:
 # --------------------------------------------------------------------------
 
 
-def parse(req: ParseRequest) -> ParseResult:
-    if (reason := FAIL_SCENARIOS.get(req.posting_id)) is not None:
-        raise _fail(reason)
+def parse_posting(req: ParseRequest, prompt_version: str = "v1") -> ParseResult | ParseFailure:
+    marker = _marker(req.title)
 
-    truncated = len(req.raw_content) > 40_000
+    if marker is not None and marker in ParseFailReason.__members__:
+        reason = ParseFailReason[marker]
+        return ParseFailure(
+            reason=FAIL_MESSAGES[reason],
+            reason_code=str(reason),
+            usage=_usage(prompt_version=prompt_version),
+        )
 
-    if req.posting_id == PARTIAL_SCENARIO:
+    truncated = len(req.raw_content) > MAX_RAW_CONTENT_CHARS
+
+    if marker == "PARTIAL":
         return ParseResult(
-            posting_id=req.posting_id,
-            status=ParseStatus.PARTIAL,
-            truncated=truncated,
-            missing=["dueDate", "formQuestions"],
             type=PostingType.SCHOLARSHIP,
-            organization="건국대학교",
+            keywords=["장학금", "성적우수", "재학생"],
+            qualification_year="3학년 이상",
+            qualification_gpa="3.5 이상",
+            preferences=[],
             due_date=None,
             due_date_raw=None,
-            keywords=["장학금", "성적우수", "재학생"],
-            qualifications=Qualifications(year="3학년 이상", gpa="3.5 이상", major=None),
-            preferences=[],
-            work_type=None,
             form_questions=[],
-            meta=_meta(),
+            truncated=truncated,
+            usage=_usage(prompt_version=prompt_version),
         )
 
     return ParseResult(
-        posting_id=req.posting_id,
-        status=ParseStatus.OK,
-        truncated=truncated,
         type=PostingType.RECRUIT,
-        organization="OO기업",
+        keywords=["Spring", "Kotlin", "Redis", "백엔드"],
+        qualification_year="2학년 이상",
+        qualification_gpa=None,
+        qualification_major=None,
+        preferences=["Java/Kotlin 백엔드 경험", "RDB 1년+"],
         due_date="2026-05-25",
         due_date_raw="5월 25일(월) 23:59까지",
-        keywords=["Spring", "Kotlin", "Redis", "백엔드"],
-        qualifications=Qualifications(year="2학년 이상", gpa=None, major=None),
-        preferences=["Java/Kotlin 백엔드 경험", "RDB 1년+"],
-        work_type="인턴",
         form_questions=[
             FormQuestion(order=1, question="지원 동기를 작성해 주세요.", max_chars=500),
             FormQuestion(order=2, question="본인의 강점과 약점을 서술해 주세요.", max_chars=400),
         ],
-        meta=_meta(),
+        truncated=truncated,
+        usage=_usage(prompt_version=prompt_version),
     )
 
 
 # --------------------------------------------------------------------------
-# §2 적합도
+# §2 코멘트
 # --------------------------------------------------------------------------
 
 
-def score(req: ScoreRequest) -> ScoreResult:
-    has_interests = bool(req.profile.job_interests or req.profile.tags)
-    has_experiences = bool(req.experiences)
+def comments(req: CommentsRequest, prompt_version: str = "v1") -> CommentsResult:
+    has_ground = bool(req.matched_keywords or req.matched_preferences)
 
-    if not has_interests and not has_experiences:
-        raise ServiceError(
-            ErrorCode.PROFILE_INCOMPLETE,
-            "관심 분야 또는 경험 카드가 최소 1개 필요합니다",
-            {"missing": ["jobInterests", "experiences"]},
-        )
+    if not has_ground and not req.missing_qualifications:
+        # 근거가 비면 빈말을 만들지 않는다. BE 는 코멘트 null 을 허용한다.
+        return CommentsResult(usage=_usage(prompt_version=prompt_version))
 
-    cited = [req.experiences[0].id] if has_experiences else []
-
-    # 경쟁 강도는 근거가 없으면 null 이고, 그만큼 나머지 축에 가중치를 배분한다 (#12).
-    breakdown = [
-        Axis(
-            axis="field_similarity",
-            score=95,
-            weight=44,
-            basis="관심분야 ↔ 공고 키워드 매칭 (더미)",
-        ),
-        Axis(axis="qualification", score=88, weight=33, basis="자격 조건 충족 (더미)"),
-        Axis(
-            axis="preference",
-            score=78 if has_experiences else 0,
-            weight=23,
-            basis=f"우대 조건 일치 (경험 {cited})" if has_experiences else "경험 카드 없음",
-        ),
-        Axis(axis="competition", score=None, weight=10, basis=None),
-    ]
-
-    return ScoreResult(
-        score=88 if has_experiences else 62,
-        label="very_suitable" if has_experiences else "suitable",
-        provisional=not has_experiences,
-        reweighted=True,
-        breakdown=breakdown,
-        strength_comment="(더미) 보유 경험이 공고 우대 조건과 맞습니다.",
-        weakness_comment="(더미) 일부 우대 조건을 확인할 경험이 없습니다.",
-        cited_experience_ids=cited,
-        meta=_meta(),
+    strength = (
+        f"(더미) {', '.join(req.matched_keywords[:2])} 경험이 이 공고의 조건과 맞습니다."
+        if has_ground
+        else None
+    )
+    weakness = (
+        f"(더미) {req.missing_qualifications[0]} 을(를) 확인할 수 있는 경험이 없습니다."
+        if req.missing_qualifications
+        else None
+    )
+    return CommentsResult(
+        strength=strength, weakness=weakness, usage=_usage(prompt_version=prompt_version)
     )
 
 
 # --------------------------------------------------------------------------
-# §3 초안 생성
+# §3 초안
 # --------------------------------------------------------------------------
 
 _SENTENCE = "(더미 응답) 지원 분야와 맞닿은 경험을 바탕으로 기여하고자 합니다. "
 
 
-def generate(req: GenerateRequest) -> GenerateResult:
-    limit = req.max_chars if req.max_chars is not None else 500
+def draft_answer(req: DraftRequest, prompt_version: str = "v1") -> DraftResult:
+    # maxChars 가 0 이면 제한 없음이다 — BE 가 null 을 0 으로 바꿔 보낸다.
+    limit = req.max_chars if req.max_chars > 0 else DEFAULT_MAX_CHARS
 
     body = _SENTENCE * (limit // len(_SENTENCE) + 1)
     answer = body[:limit].rstrip()
 
-    used = req.emphasize_experience_ids or [e.id for e in req.experiences[:1]]
+    used = list(range(min(2, len(req.experience_summaries))))
 
-    return GenerateResult(
+    return DraftResult(
         answer=answer,
         char_count=len(answer),
-        used_experience_ids=used,
+        used_indexes=used,
         fact_check=FactCheck(passed=True, unverified=[]),
-        meta=_meta(),
+        usage=_usage(prompt_version=prompt_version),
     )
-
-
-# --------------------------------------------------------------------------
-# §4 문서 분류
-# --------------------------------------------------------------------------
-
-
-def classify(req: ClassifyRequest) -> ClassifyResult:
-    paragraphs = [p.strip() for p in req.text.split("\n\n") if p.strip()] or [req.text]
-
-    items = [
-        ClassifiedItem(
-            order=i + 1,
-            category=ItemCategory.MOTIVATION if i == 0 else ItemCategory.OTHER,
-            content=p,
-            confident=i == 0,
-        )
-        for i, p in enumerate(paragraphs)
-    ]
-    return ClassifyResult(items=items, meta=_meta())
-
-
-# --------------------------------------------------------------------------
-# §5 임베딩
-# --------------------------------------------------------------------------
-
-_DIM = 1024
-
-
-def embed(req: EmbedRequest) -> EmbedResult:
-    vectors = [[0.0] * _DIM for _ in req.texts]
-    return EmbedResult(vectors=vectors, dim=_DIM, model="stub")
