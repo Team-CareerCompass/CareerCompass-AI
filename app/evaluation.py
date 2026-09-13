@@ -21,7 +21,7 @@ def run_rules(fx: Fixture) -> dict[str, Any]:
     """규칙 전용 파이프라인. LLM 이 붙기 전의 기준선이다."""
     pre = preprocess(fx.body)
     due = rules.extract_due_date(pre.text, fx.collected_at)
-    signals = rules.posting_signals(pre.text, due)
+    signals = rules.posting_signals(pre.text, due, fx.title)
 
     return {
         "dueDate": due.iso,
@@ -62,6 +62,20 @@ def grade_type(expected: dict[str, Any], actual: dict[str, Any]) -> str:
     return "correct" if actual["type"] == expected["type"] else "wrong"
 
 
+def grade_posting(expected: dict[str, Any], actual: dict[str, Any]) -> str:
+    """「애초에 공고가 아닌 글」을 거르는가 (계약 §1.3 NOT_A_POSTING).
+
+    학사공지를 통째로 등록하면 수강신청 안내가 함께 수집된다. 공고로 오인하는 것(false_positive)과
+    진짜 공고를 걸러 버리는 것(false_negative)은 비용이 다르다 — 후자가 더 나쁘다. 안 들어온 것은
+    존재를 모른다.
+    """
+    if expected.get("reason") == "NOT_A_POSTING":
+        return "correct" if not actual["likelyPosting"] else "false_positive"
+    if expected.get("status") == "failed" or expected.get("type") is None:
+        return "skip"
+    return "correct" if actual["likelyPosting"] else "false_negative"
+
+
 def grade_questions(expected: dict[str, Any], actual: dict[str, Any]) -> str:
     """개수만 본다. 문항 내용 일치는 표본이 쌓인 뒤에 본다."""
     if expected.get("status") == "failed" or "formQuestions" not in expected:
@@ -78,6 +92,7 @@ class Report:
     due_date: Counter[str] = field(default_factory=Counter)
     type: Counter[str] = field(default_factory=Counter)
     form_questions: Counter[str] = field(default_factory=Counter)
+    posting: Counter[str] = field(default_factory=Counter)
     rows: list[dict[str, Any]] = field(default_factory=list)
 
     @staticmethod
@@ -98,6 +113,10 @@ class Report:
         return self._rate(self.form_questions, "correct")
 
     @property
+    def posting_accuracy(self) -> float | None:
+        return self._rate(self.posting, "correct")
+
+    @property
     def hallucinated(self) -> int:
         """날조한 마감일의 수. **이것은 0 이어야 한다.**"""
         return self.due_date["hallucinated"]
@@ -108,9 +127,11 @@ class Report:
             "dueDate": dict(self.due_date),
             "type": dict(self.type),
             "formQuestions": dict(self.form_questions),
+            "posting": dict(self.posting),
             "dueAccuracy": self.due_accuracy,
             "typeAccuracy": self.type_accuracy,
             "questionAccuracy": self.question_accuracy,
+            "postingAccuracy": self.posting_accuracy,
             "rows": self.rows,
         }
 
@@ -124,10 +145,12 @@ def evaluate(fixtures: list[Fixture] | None = None) -> Report:
             "dueGrade": grade_due_date(fx.expected, actual),
             "typeGrade": grade_type(fx.expected, actual),
             "questionGrade": grade_questions(fx.expected, actual),
+            "postingGrade": grade_posting(fx.expected, actual),
         }
         report.due_date[grades["dueGrade"]] += 1
         report.type[grades["typeGrade"]] += 1
         report.form_questions[grades["questionGrade"]] += 1
+        report.posting[grades["postingGrade"]] += 1
         report.rows.append({"id": fx.id, **grades, **actual})
 
     return report

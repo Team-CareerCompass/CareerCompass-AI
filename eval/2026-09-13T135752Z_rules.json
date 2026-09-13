@@ -1,0 +1,334 @@
+{
+  "ranAt": "2026-09-13T135752Z",
+  "pipeline": "rules-only",
+  "dueDate": {
+    "correct": 8,
+    "skip": 3,
+    "correct_null": 2
+  },
+  "type": {
+    "correct": 10,
+    "skip": 3
+  },
+  "formQuestions": {
+    "correct": 10,
+    "skip": 3
+  },
+  "posting": {
+    "correct": 12,
+    "skip": 1
+  },
+  "dueAccuracy": 1.0,
+  "typeAccuracy": 1.0,
+  "questionAccuracy": 1.0,
+  "postingAccuracy": 1.0,
+  "rows": [
+    {
+      "id": "001",
+      "dueGrade": "correct",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "dueDate": "2026-09-15",
+      "dueDateRaw": "접수기한 : 2026년 9월 1일 (화) ~ 2026년 9월 15일(화)",
+      "yearInferred": false,
+      "dueReason": null,
+      "type": "scholarship",
+      "formQuestions": [],
+      "qualifications": {
+        "year": null,
+        "gpa": "학점 3.7/",
+        "major": null
+      },
+      "preferences": [],
+      "likelyPosting": true,
+      "truncated": false,
+      "maskedContacts": 1,
+      "imageOnly": false
+    },
+    {
+      "id": "002",
+      "dueGrade": "correct",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "dueDate": "2026-09-21",
+      "dueDateRaw": "신청기간 및 방법\n - 기간 : 2026. 9. 15. (화) ~ 2026. 9. 21. (월)\n - 방법 : 금신장학재단 홈페이지(www.ke",
+      "yearInferred": false,
+      "dueReason": null,
+      "type": "scholarship",
+      "formQuestions": [],
+      "qualifications": {
+        "year": null,
+        "gpa": "학점이상 이수 및 성적 4.5만점",
+        "major": null
+      },
+      "preferences": [],
+      "likelyPosting": true,
+      "truncated": false,
+      "maskedContacts": 0,
+      "imageOnly": false
+    },
+    {
+      "id": "003",
+      "dueGrade": "correct",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "dueDate": "2026-09-18",
+      "dueDateRaw": "신청기간: 2026. 9. 7.(월) 18:00 ~ 2026. 9. 18.(금) 09:00",
+      "yearInferred": false,
+      "dueReason": null,
+      "type": "scholarship",
+      "formQuestions": [],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "preferences": [],
+      "likelyPosting": true,
+      "truncated": false,
+      "maskedContacts": 1,
+      "imageOnly": false
+    },
+    {
+      "id": "004",
+      "dueGrade": "correct",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "dueDate": "2026-09-14",
+      "dueDateRaw": "모집기간]26.09.01(화) 9시 ~ 09.14(월) 17시까지 (KST)[지원대상]학/석사 학위를 기 취득하셨거나 '27년 2월 이내 졸업 ",
+      "yearInferred": false,
+      "dueReason": null,
+      "type": "recruit",
+      "formQuestions": [],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "preferences": [],
+      "likelyPosting": true,
+      "truncated": false,
+      "maskedContacts": 0,
+      "imageOnly": false
+    },
+    {
+      "id": "005",
+      "dueGrade": "skip",
+      "typeGrade": "skip",
+      "questionGrade": "skip",
+      "postingGrade": "skip",
+      "dueDate": null,
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": "not_found",
+      "type": "recruit",
+      "formQuestions": [],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "preferences": [],
+      "likelyPosting": false,
+      "truncated": false,
+      "maskedContacts": 0,
+      "imageOnly": true
+    },
+    {
+      "id": "006",
+      "dueGrade": "correct",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "dueDate": "2026-09-21",
+      "dueDateRaw": "접수기간\n- 2026. 8. 24(월) 12시~ 9. 21(월) 18시까지(※접수기한 엄수)",
+      "yearInferred": false,
+      "dueReason": null,
+      "type": "contest",
+      "formQuestions": [],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "preferences": [],
+      "likelyPosting": true,
+      "truncated": false,
+      "maskedContacts": 2,
+      "imageOnly": false
+    },
+    {
+      "id": "007",
+      "dueGrade": "correct_null",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "dueDate": null,
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": "not_found",
+      "type": "contest",
+      "formQuestions": [],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "preferences": [],
+      "likelyPosting": true,
+      "truncated": false,
+      "maskedContacts": 0,
+      "imageOnly": false
+    },
+    {
+      "id": "008",
+      "dueGrade": "correct",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "dueDate": "2026-09-11",
+      "dueDateRaw": "모집기간: 8/24(월) ~ 9/11(금)지원 링크(구글폼) 👉https://forms.gle/5jLKr1c7sMfKiL8ZA 문의 사항(인스타",
+      "yearInferred": true,
+      "dueReason": null,
+      "type": "activity",
+      "formQuestions": [],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "preferences": [],
+      "likelyPosting": true,
+      "truncated": false,
+      "maskedContacts": 0,
+      "imageOnly": false
+    },
+    {
+      "id": "009",
+      "dueGrade": "correct",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "dueDate": "2026-09-21",
+      "dueDateRaw": "접수기간 : 2026년 9월 1일(화)~2026년 9월 21일(월) 18:00\n* 접수방법 : 채용홈페이지 커리어두산(https://career",
+      "yearInferred": false,
+      "dueReason": null,
+      "type": "recruit",
+      "formQuestions": [
+        {
+          "order": 1,
+          "question": "지원하는 회사와 분야(직무)에 대한 지원 동기를 자유롭게 기술하세요.",
+          "maxChars": 400
+        }
+      ],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": "이공계열"
+      },
+      "preferences": [],
+      "likelyPosting": true,
+      "truncated": false,
+      "maskedContacts": 0,
+      "imageOnly": false
+    },
+    {
+      "id": "010",
+      "dueGrade": "skip",
+      "typeGrade": "skip",
+      "questionGrade": "skip",
+      "postingGrade": "correct",
+      "dueDate": "2026-10-11",
+      "dueDateRaw": "신청기간: 2026. 9. 14.(월) 10:00 ~ 10. 11.(일) 23:59까지",
+      "yearInferred": false,
+      "dueReason": null,
+      "type": null,
+      "formQuestions": [],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "preferences": [],
+      "likelyPosting": false,
+      "truncated": false,
+      "maskedContacts": 2,
+      "imageOnly": false
+    },
+    {
+      "id": "011",
+      "dueGrade": "correct",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "dueDate": "2026-09-13",
+      "dueDateRaw": "모집 기간: 26.09.03(목) ~ 26.09.13(일)",
+      "yearInferred": false,
+      "dueReason": null,
+      "type": "activity",
+      "formQuestions": [],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "preferences": [
+        "인스타그램, 틱톡 등 숏폼 채널"
+      ],
+      "likelyPosting": true,
+      "truncated": false,
+      "maskedContacts": 1,
+      "imageOnly": false
+    },
+    {
+      "id": "013",
+      "dueGrade": "correct_null",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "dueDate": null,
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": "no_deadline",
+      "type": "recruit",
+      "formQuestions": [],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "preferences": [],
+      "likelyPosting": true,
+      "truncated": false,
+      "maskedContacts": 0,
+      "imageOnly": false
+    },
+    {
+      "id": "014",
+      "dueGrade": "skip",
+      "typeGrade": "skip",
+      "questionGrade": "skip",
+      "postingGrade": "correct",
+      "dueDate": null,
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": "not_found",
+      "type": null,
+      "formQuestions": [],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "preferences": [],
+      "likelyPosting": false,
+      "truncated": false,
+      "maskedContacts": 0,
+      "imageOnly": false
+    }
+  ]
+}

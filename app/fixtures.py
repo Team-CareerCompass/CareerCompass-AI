@@ -80,5 +80,7 @@ def load_all(root: Path = FIXTURE_ROOT, *, skip_example: bool = True) -> list[Fi
     return [
         load(p)
         for p in paths
-        if p.name not in {"README.md"} and not (skip_example and p.stem.startswith("000"))
+        if p.name not in {"README.md"}
+        and not (skip_example and p.stem.startswith("000"))
+        and p.stat().st_size > 0  # 저장 안 된 빈 파일은 건너뛴다
     ]

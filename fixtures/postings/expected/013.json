@@ -1,0 +1,15 @@
+{
+  "type": "recruit",
+  "organization": "대한항공",
+  "dueDate": null,
+  "dueDateRaw": "상시채용",
+  "dueReason": "no_deadline",
+  "preferences": [
+    "C/C++, C#(WPF), Python, Java 활용 능력",
+    "딥러닝/AI 기반 통신 응용 프로젝트 개발 경험",
+    "AI 응용 프로젝트 개발 경험",
+    "분산처리 및 클라우드 환경 개발 경험"
+  ],
+  "formQuestions": [],
+  "note": "상시채용 — dueDate null 이 정답이고 사유는 no_deadline 이다. 우대사항이 줄바꿈 없이 [대괄호] 섹션으로 뭉쳐 있다. 짧은 공고(378자)라 BE 휴리스틱은 키워드 3개 미달로 실패할 가능성."
+}
