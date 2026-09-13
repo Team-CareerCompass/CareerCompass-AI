@@ -87,3 +87,21 @@ def test_preprocess_pipeline() -> None:
     assert "010-1234-5678" not in out.text
     assert len(out.masked) == 1
     assert out.truncated is False
+
+
+def test_strip_board_meta_line() -> None:
+    """「작성자 ○○ 조회수 1362 등록일 2026.09.04」 — 학교 게시판 메타줄.
+
+    014 에서 등록일 2026.07.13 이 마감일로 잡혔다. 마감일 라벨 「신청」이 제목에 있어서
+    윈도우가 다음 줄의 등록일까지 삼켰기 때문이다.
+    """
+    text = (
+        "2026학년도 2학기 수강바구니(수강신청) 일정 안내\n"
+        "작성자 문과대학 행정실 조회수 13063 등록일 2026.07.13\n"
+        "일정을 다음과 같이 안내드립니다."
+    )
+    out = pp.strip_boilerplate(text)
+
+    assert "등록일" not in out
+    assert "2026.07.13" not in out
+    assert "일정을 다음과 같이" in out

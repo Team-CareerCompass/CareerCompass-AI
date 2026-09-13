@@ -209,3 +209,74 @@ def test_real_posting_passes() -> None:
     due = rules.extract_due_date(text, COLLECTED)
 
     assert rules.posting_signals(text, due).likely_posting is True
+
+
+# --------------------------------------------------------------------------
+# 학사공지 — 규칙 신호가 다 있어도 공고가 아니다
+# --------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "title",
+    [
+        "2026-2 기초교양 이수의무 면제 신청 안내(9.14.~10.11.)",  # 010
+        "2026학년도 2학기 수강바구니(수강신청) 일정 및 유의사항 안내",  # 014
+        "2026학년도 2학기 등록금 납부 안내",
+        "졸업요건 변경 공지",
+    ],
+)
+def test_academic_admin_title_overrides_signals(title: str) -> None:
+    """010 은 「신청기간: 2026. 9. 14. ~ 10. 11. 23:59」·대상·마감이 다 있다.
+
+    규칙 신호만으로는 공고와 구분이 안 된다. 제목의 학사 행정 어휘가 결정한다.
+    """
+    body = "2. 신청기간: 2026. 9. 14.(월) 10:00 ~ 10. 11.(일) 23:59까지\n3. 신청 대상: 재학생"
+    due = rules.extract_due_date(body, COLLECTED)
+
+    signals = rules.posting_signals(body, due, title)
+    assert signals.academic_admin is True
+    assert signals.likely_posting is False
+
+
+def test_scholarship_notice_is_still_a_posting() -> None:
+    """장학금 공지도 학교 게시판에 올라온다. 학사 어휘 필터가 그것까지 걸러내면 안 된다."""
+    title = "[교외] 2026학년도 금신장학재단 금신사랑장학생 선발 안내"
+    body = "3.신청자격조건\n- 기간 : 2026. 9. 15. (화) ~ 2026. 9. 21. (월)"
+    due = rules.extract_due_date(body, COLLECTED)
+
+    assert rules.posting_signals(body, due, title).likely_posting is True
+
+
+def test_creator_recruitment_is_activity() -> None:
+    """011 — 「숏폼 크리에이터 모집」을 유형 없음으로 냈었다."""
+    assert rules.guess_type("프리메라 숏폼 크리에이터 모집", "") == "activity"
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("50자 이상 400자 이내 입력", 400),  # 009 두산 — 최소·최대 함께
+        ("100자 이상", None),  # 하한만 있으면 상한은 없다
+        ("최소 200자, 최대 800자 이내", 800),
+    ],
+)
+def test_max_chars_prefers_upper_bound(text: str, expected: int | None) -> None:
+    """009 에서 「50자 이상 400자 이내」의 첫 매치 50 을 집었다. 최대를 집어야 한다."""
+    assert rules.extract_max_chars(text) == expected
+
+
+def test_form_questions_reject_declarative_notice() -> None:
+    """009 — 「지원서 작성 내용이 사실과 다르거나 … 취소됩니다」가 「작성」 힌트에 걸렸다.
+
+    문항은 끝이 요청형이다. 문장 중간에 작성·기술이 있어도 끝이 「~됩니다」면 안내문이다.
+    """
+    text = (
+        "- 지원서 작성 내용이 사실과 다르거나 증빙할 수 없을 경우, 합격(입사)이 취소됩니다.\n"
+        "1. 지원하는 회사와 분야(직무)에 대한 지원 동기를 자유롭게 기술하세요."
+        "(50자 이상 400자 이내 입력)\n"
+    )
+    questions = rules.extract_form_questions(text)
+
+    assert len(questions) == 1
+    assert questions[0].question.startswith("지원하는 회사")
+    assert questions[0].max_chars == 400

@@ -54,11 +54,16 @@ def main() -> int:
         ("마감일", report.due_accuracy, report.due_date),
         ("유형  ", report.type_accuracy, report.type),
         ("문항  ", report.question_accuracy, report.form_questions),
+        ("공고판별", report.posting_accuracy, report.posting),
     ):
         total = sum(v for k, v in counter.items() if k != "skip")
         rate = f"({accuracy:.0%})" if accuracy is not None else ""
         hits = counter["correct"] + counter.get("correct_null", 0)
-        print(f"{label}  정답 {hits}/{total} {rate}")
+        extra = ""
+        if counter.get("false_positive") or counter.get("false_negative"):
+            fp, fn = counter.get("false_positive", 0), counter.get("false_negative", 0)
+            extra = f"  · 공고오인 {fp} · 공고누락 {fn}"
+        print(f"{label}  정답 {hits}/{total} {rate}{extra}")
 
     print(
         f"        마감일 틀림 {report.due_date['wrong']} · "

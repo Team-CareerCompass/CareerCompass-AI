@@ -126,13 +126,19 @@ def extract_due_date(text: str, collected_at: date | None = None) -> DueDate:
 # --------------------------------------------------------------------------
 
 _MAX_CHARS = re.compile(
-    r"(?:띄어쓰기\s?포함\s?)?(\d{2,5})\s*자\s*(?:이내|이하|내외|정도|미만)?", re.IGNORECASE
+    r"(?:띄어쓰기\s?포함\s?)?(?P<n>\d{2,5})\s*자\s*(?P<bound>이내|이하|내외|정도|미만|이상)?",
+    re.IGNORECASE,
 )
 _QUESTION_LINE = re.compile(
     r"^\s*(?:[-•*]|\d+[.)]|[①-⑩])\s*(?P<q>.{6,120}?)\s*(?:\((?P<limit>[^)]*자[^)]*)\))?\s*$",
     re.MULTILINE,
 )
-_QUESTION_HINT = re.compile(r"(?:해\s?주세요|하시오|서술|작성|기술하|기재|적어|설명해)")
+# 문항은 **끝이 요청형**이다. 「~하세요」·「~해 주세요」·「~하시오」·「~까?」.
+# 「지원서 작성 내용이 … 취소됩니다」처럼 문장 중간에 작성·기술이 나오는 안내문은 문항이 아니다
+# (009 에서 실제로 잡혔다).
+_QUESTION_HINT = re.compile(
+    r"(?:하세요|해\s?주세요|하시오|하십시오|주십시오|주세요|바랍니다|까\??)\s*[.!?]?\s*$"
+)
 
 # 흔한 오탐 — 문의처·제출 방법 안내문이 질문형 어미를 쓴다 (#10).
 #   「궁금한 사항을 메일로 문의해 주세요」 · 「작성한 서류를 구글폼에 업로드하여 제출」
@@ -150,9 +156,22 @@ class FormQuestion:
 
 
 def extract_max_chars(text: str) -> int | None:
-    """「500자 이내」·「띄어쓰기 포함 800자」. 정규식이 거의 100% 맞는 자리다."""
-    m = _MAX_CHARS.search(text)
-    return int(m.group(1)) if m else None
+    """「500자 이내」·「띄어쓰기 포함 800자」. 정규식이 거의 100% 맞는 자리다.
+
+    **「50자 이상 400자 이내」에서는 400 이다.** 최소·최대가 같이 오면 최대를 집는다 —
+    009(두산)에서 첫 매치를 집어 50 을 냈었다. 「이상」만 있는 값은 하한이라 버린다.
+    """
+    upper: int | None = None
+    bare: int | None = None
+    for m in _MAX_CHARS.finditer(text):
+        n, bound = int(m.group("n")), m.group("bound")
+        if bound == "이상":
+            continue
+        if bound is not None:
+            upper = upper if upper is not None else n
+        elif bare is None:
+            bare = n
+    return upper if upper is not None else bare
 
 
 def extract_form_questions(text: str) -> list[FormQuestion]:
@@ -231,7 +250,12 @@ def extract_preferences(text: str) -> list[str]:
 _TYPE_HINTS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("scholarship", re.compile(r"장학(?:금|생|재단|회)|등록금\s?지원|생활비\s?지원")),
     ("contest", re.compile(r"공모전|경진\s?대회|해커톤|아이디어\s?공모|콘테스트")),
-    ("activity", re.compile(r"서포터즈|기자단|대외\s?활동|앰배서더|체험단|봉사단")),
+    (
+        "activity",
+        re.compile(
+            r"서포터즈|기자단|대외\s?활동|앰배서더|체험단|봉사단|크리에이터|인플루언서|홍보\s?대사|멘토단"
+        ),
+    ),
     ("recruit", re.compile(r"채용|신입\s?사원|인턴|모집\s?부문|경력\s?사원|입사")),
 )
 
@@ -251,6 +275,13 @@ def guess_type(title: str, text: str) -> str | None:
 # --------------------------------------------------------------------------
 
 _APPLICABLE = re.compile(r"모집|선발|접수|신청|지원\s?(?:자격|대상|방법)|응모|참가\s?신청")
+
+# 학사 행정 어휘 — 제목에 있으면 공고가 아니다. 「신청·기간·대상」이 다 있어도 그렇다.
+# 010(이수의무 면제 신청)·014(수강바구니) 가 규칙 신호만으로는 공고로 보였다.
+_ACADEMIC_ADMIN = re.compile(
+    r"수강\s?신청|수강\s?바구니|이수\s?의무|이수\s?면제|졸업\s?요건|졸업\s?사정|등록금\s?납부|"
+    r"휴학|복학|성적\s?(?:정정|열람|공시)|학사\s?일정|계절\s?학기|수강\s?정정|시험\s?시간표"
+)
 _ELIGIBILITY = re.compile(r"자격|대상|요건|조건")
 
 
@@ -259,6 +290,9 @@ class PostingSignals:
     applicable: bool = False
     has_eligibility: bool = False
     has_deadline: bool = False
+    academic_admin: bool = False
+    """제목에 학사 행정 어휘가 있다. 다른 신호와 무관하게 공고가 아니다."""
+
     hits: list[str] = field(default_factory=list)
 
     @property
@@ -272,16 +306,20 @@ class PostingSignals:
         애매하면 공고로 본다 — 잘못 들어온 것은 눈으로 넘기면 되지만,
         안 들어온 것은 존재를 모른다 (계약 §1.3).
         """
-        return self.score >= 2
+        return not self.academic_admin and self.score >= 2
 
 
-def posting_signals(text: str, due: DueDate | None = None) -> PostingSignals:
+def posting_signals(text: str, due: DueDate | None = None, title: str = "") -> PostingSignals:
     """「애초에 공고가 아닌 글」을 1차로 거른다.
 
     사용자가 학사공지를 통째로 등록하면(F2-1) 「수강신청 안내」·「졸업요건 변경」이
     함께 수집된다. 최종 판정은 LLM 이 하되, 여기서 확실한 것은 먼저 거른다.
     """
     signals = PostingSignals()
+    if (m := _ACADEMIC_ADMIN.search(title)) is not None:
+        signals.academic_admin = True
+        signals.hits.append(m.group())
+        return signals
     if (m := _APPLICABLE.search(text)) is not None:
         signals.applicable = True
         signals.hits.append(m.group())

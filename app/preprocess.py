@@ -36,6 +36,14 @@ _BOILERPLATE_LINE = re.compile(
     re.IGNORECASE,
 )
 
+# 게시판 메타줄 — 「작성자 ○○ 조회수 1362 등록일 2026.09.04」. 학교 게시판에 흔하다.
+# 등록일이 마감일로 잡히는 것을 막는다 (014 에서 실제로 잡혔다).
+_COLON = "[:：]"  # noqa: RUF001 — 반각·전각 콜론 둘 다. 학교 게시판이 전각을 쓴다
+_BOARD_META_LINE = re.compile(
+    r"^\s*(?:작성자|작성일|등록일|조회\s?수|게시일|첨부)\s*" + _COLON + r"?\s*\S.*"
+    r"(?:조회\s?수|등록일|작성일|게시일)\s*" + _COLON + r"?\s*[\d.\-\s]+\s*$"
+)
+
 # 링커리어 등 수집처가 본문 끝에 붙이는 자기 홍보.
 _TRAILER = re.compile(
     r"\n?\s*대학생\s*대외활동\s*공모전\s*채용\s*사이트.*$|\n?\s*https?://linkareer\.com/?\s*$",
@@ -66,7 +74,11 @@ def normalize(text: str) -> str:
 
 def strip_boilerplate(text: str) -> str:
     """게시판 공통 요소를 걷어낸다. 본문 안에 섞인 것은 건드리지 않는다."""
-    kept = [line for line in text.split("\n") if not _BOILERPLATE_LINE.match(line)]
+    kept = [
+        line
+        for line in text.split("\n")
+        if not _BOILERPLATE_LINE.match(line) and not _BOARD_META_LINE.match(line)
+    ]
     return _TRAILER.sub("", "\n".join(kept)).strip()
 
 
