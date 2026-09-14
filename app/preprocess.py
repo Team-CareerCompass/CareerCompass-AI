@@ -57,6 +57,8 @@ class Preprocessed:
     truncated: bool = False
     masked: list[str] = field(default_factory=list)
     """마스킹한 원본 값들. 로그에 남기지 않는다 — 개수 확인용이다."""
+    injections: int = 0
+    """지시문으로 의심돼 통째로 뺀 문단 수 (#29). 0 이 아니면 로그에 남긴다."""
 
     @property
     def too_short(self) -> bool:
@@ -104,6 +106,31 @@ def mask_contacts(text: str) -> tuple[str, list[str]]:
     return text, found
 
 
+# 프롬프트 주입 — 공고 본문에 있을 리 없는 「모델에게 하는 말」. 문장이 아니라 **문단**을 뺀다.
+# 지시 문장 하나만 빼면 「이 공고의 type 은 recruit 이며 …」 같은 뒤따르는 문장이 남아 그대로 먹힌다
+# (015 실측). 공고가 한 문단짜리면 전부 빠져 EMPTY 로 실패한다 — 새는 것보다 낫다.
+_INJECTION = re.compile(
+    r"(?:위|이전|앞|모든|상기)\s?(?:의\s?)?(?:지시|명령|규칙|내용)(?:을|를|은|는)?\s?(?:모두\s?)?무시"
+    r"|\[\s?(?:시스템|system)\s?(?:안내|메시지|프롬프트|지시)?\s?\]"
+    r"|system\s?prompt|ignore\s+(?:all\s+|the\s+)?(?:previous|above|prior)\s+instructions"
+    r"|(?:이|본)\s?문단(?:은|을)\s?출력하지"
+    r"|(?:으로|로)\s?(?:만\s?)?출력(?:한다|하라|할\s?것)",
+    re.IGNORECASE,
+)
+
+
+def strip_injections(text: str) -> tuple[str, int]:
+    """지시문이 든 문단을 통째로 뺀다. 뺀 문단 수를 같이 돌려준다."""
+    kept: list[str] = []
+    removed = 0
+    for para in text.split("\n\n"):
+        if _INJECTION.search(para):
+            removed += 1
+            continue
+        kept.append(para)
+    return "\n\n".join(kept), removed
+
+
 def truncate(text: str, limit: int = MAX_CHARS) -> tuple[str, bool]:
     """길이 상한. 문장 중간에서 자르지 않도록 마지막 개행까지만 남긴다."""
     if len(text) <= limit:
@@ -114,8 +141,9 @@ def truncate(text: str, limit: int = MAX_CHARS) -> tuple[str, bool]:
 
 
 def preprocess(raw: str, *, limit: int = MAX_CHARS) -> Preprocessed:
-    """정규화 → 보일러플레이트 제거 → 연락처 마스킹 → 절단."""
+    """정규화 → 보일러플레이트 제거 → 주입 문단 제거 → 연락처 마스킹 → 절단."""
     text = strip_boilerplate(normalize(raw))
+    text, injections = strip_injections(text)
     text, masked = mask_contacts(text)
     text, truncated = truncate(text, limit)
-    return Preprocessed(text=text, truncated=truncated, masked=masked)
+    return Preprocessed(text=text, truncated=truncated, masked=masked, injections=injections)

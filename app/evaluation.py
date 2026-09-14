@@ -44,6 +44,7 @@ def run_rules(fx: Fixture) -> dict[str, Any]:
         "likelyPosting": signals.likely_posting,
         "truncated": pre.truncated,
         "maskedContacts": len(pre.masked),
+        "injectionsStripped": pre.injections,
         "imageOnly": fx.image_only,
     }
 
@@ -69,6 +70,7 @@ def run_llm(fx: Fixture, gateway: Any) -> dict[str, Any]:
         "qualifications": vars(rules.extract_qualifications(pre.text)),
         "truncated": pre.truncated,
         "maskedContacts": len(pre.masked),
+        "injectionsStripped": pre.injections,
         "imageOnly": fx.image_only,
     }
     if isinstance(res, ParseFailure):

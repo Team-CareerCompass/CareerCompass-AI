@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from datetime import date
 from typing import Any, TypeVar
 
@@ -201,6 +202,11 @@ class Gateway:
                 reason=FAIL_MESSAGES[reason], reason_code=str(reason), usage=empty_usage
             )
 
+        if pre.injections:
+            logger.warning(
+                "지시문 의심 문단 %d개 제거 (postingId=%s)", pre.injections, req.posting_id
+            )
+
         # 모델을 부르기 전에 규칙이 거를 수 있는 것은 거른다 — 비용이 0 이다.
         if pre.too_short:
             return fail(ParseFailReason.IMAGE_ONLY if req.images else ParseFailReason.EMPTY)
@@ -231,10 +237,12 @@ class Gateway:
             failure.usage = self._usage(prompt_version, completions)
             return failure
 
-        # 합치기 — 규칙이 낸 값이 우선이다.
+        # 합치기 — 규칙이 낸 값이 우선이다. LLM 문항은 민감정보 요구를 거른다 (#29).
         questions = rule_questions or [
             rules.FormQuestion(order=i + 1, question=q.question.strip(), max_chars=q.maxChars)
-            for i, q in enumerate(llm.formQuestions)
+            for i, q in enumerate(
+                q for q in llm.formQuestions if not rules.SENSITIVE_QUESTION.search(q.question)
+            )
         ]
         return ParseResult(
             type=_posting_type(rule_type) or _posting_type(llm.type),
@@ -352,8 +360,11 @@ class Gateway:
 
         n = len(req.experience_summaries)
         used = sorted({i for i in llm.usedIndexes if 0 <= i < n})
+        # 근거는 **사용자의 경험**이다. 공고 키워드는 근거가 아니다 — 첫 실측에서 keywords 의
+        # Redis 를 「사용해 본 경험」으로 쓴 초안이 통과했다(#29). 공고 제목·질문은 회사명·주제가
+        # 답에 나오는 것이 당연하므로 남긴다.
         unverified = fact_check(
-            answer, [*req.experience_summaries, *req.keywords, req.posting_title, req.question]
+            answer, [*req.experience_summaries, req.posting_title, req.question]
         )
         return DraftResult(
             answer=answer,
@@ -384,12 +395,31 @@ def _posting_type(value: str | None) -> PostingType | None:
         return None
 
 
+_TOKEN = re.compile(r"[A-Za-z0-9+#.]{2,}|[가-힣]{2,}")
+
+
+def _cites(text: str, ground: str) -> bool:
+    """근거 하나를 문장이 지목했는가.
+
+    글자 그대로 포함이면 물론이고, 근거의 **토큰 절반 이상**이 나와도 지목으로 본다 —
+    「RDB 1년 이상」을 모델이 「RDB 경력 1년」이라고 바꿔 쓴 것까지 버리면 weakness 가
+    거의 항상 null 이 된다(첫 실측 #14). 두 글자 미만 토큰은 세지 않는다.
+    """
+    compact, g = text.replace(" ", "").lower(), ground.replace(" ", "").lower()
+    if g and g in compact:
+        return True
+    tokens = [t.lower() for t in _TOKEN.findall(ground)]
+    if not tokens:
+        return False
+    hits = sum(t in compact for t in tokens)
+    return hits * 2 >= len(tokens)
+
+
 def _keep_if_cites(sentence: str | None, grounds: list[str]) -> str | None:
-    """문장이 근거 중 하나라도 **글자 그대로** 담고 있어야 살린다. 최대 3줄."""
+    """문장이 근거 중 하나라도 지목해야 살린다. 최대 3줄."""
     if not sentence or not sentence.strip():
         return None
     text = "\n".join(sentence.strip().splitlines()[:3])
-    compact = text.replace(" ", "").lower()
-    if any(g and g.replace(" ", "").lower() in compact for g in grounds):
+    if any(_cites(text, g) for g in grounds if g):
         return text
     return None
