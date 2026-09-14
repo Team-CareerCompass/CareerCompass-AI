@@ -65,10 +65,24 @@ def _to_iso(year: int | None, month: int, day: int, fallback_year: int) -> str |
         return None
 
 
+_ROUND_BEFORE = re.compile(r"\d\s*차\s*$")
+
+_NOT_A_DATE_CONTEXT = re.compile(r"배수|배율|경쟁률|점수|학점|평점|GPA|%")
+"""「모집 인원의 1.2~1.3 배수」를 1월 3일로 읽었다 (023). 주변에 이런 말이 있으면 날짜가 아니다."""
+
+
 def _window(text: str, start: int) -> str:
-    """라벨 뒤 한 조각. 문단이 끝나거나 마감일이 아닌 날짜가 나오면 거기서 끊는다."""
+    """라벨 뒤 한 조각. 문단이 끝나거나 마감일이 아닌 날짜가 나오면 거기서 끊는다.
+
+    라벨 줄에 숫자가 없으면 **다음 블록까지** 본다 — 표를 텍스트로 옮긴 페이지(사람인·잡알리오)는
+    「마감일\\n\\n2026.06.21」처럼 라벨과 값이 빈 줄로 갈라져 있다 (016~018).
+    """
     chunk = text[start : start + _WINDOW_CHARS]
-    if (para := chunk.find("\n\n")) > 0:
+    para = chunk.find("\n\n")
+    if para > 0 and not re.search(r"\d", chunk[:para]):
+        nxt = chunk.find("\n\n", para + 2)
+        para = nxt if nxt > 0 else -1
+    if para > 0:
         chunk = chunk[:para]
     if (stop := _WINDOW_END.search(chunk, 1)) is not None:
         chunk = chunk[: stop.start()]
@@ -86,6 +100,7 @@ def extract_due_date(text: str, collected_at: date | None = None) -> DueDate:
 
     for group in _DEADLINE_LABELS:
         for label in group:
+            candidates: list[DueDate] = []
             for hit in re.finditer(re.escape(label), text):
                 chunk = _window(text, hit.start())
 
@@ -93,6 +108,8 @@ def extract_due_date(text: str, collected_at: date | None = None) -> DueDate:
                 for m in _DATE.finditer(chunk):
                     month, day = int(m.group("month")), int(m.group("day"))
                     if not (1 <= month <= 12 and 1 <= day <= 31):
+                        continue
+                    if _NOT_A_DATE_CONTEXT.search(chunk[max(0, m.start() - 12) : m.end() + 6]):
                         continue
                     found.append((m.group("year"), month, day, m.end()))
 
@@ -116,12 +133,21 @@ def extract_due_date(text: str, collected_at: date | None = None) -> DueDate:
                 if iso is None or date.fromisoformat(iso) > base + _MAX_AHEAD:
                     continue
 
-                return DueDate(
-                    iso=iso,
-                    raw=chunk.strip()[:80],
-                    year_inferred=inferred,
-                    has_time=_TIME.search(chunk[end : end + 12]) is not None,
+                candidates.append(
+                    DueDate(
+                        iso=iso,
+                        raw=chunk.strip()[:80],
+                        year_inferred=inferred,
+                        has_time=_TIME.search(chunk[end : end + 12]) is not None,
+                    )
                 )
+                # 「1차 접수 기간 … 2차 접수 기간」처럼 차수가 붙은 라벨은 끝까지 모아
+                # 마지막 차수를 집는다 (021). 차수가 없으면 첫 매치가 답이다.
+                if not _ROUND_BEFORE.search(text[max(0, hit.start() - 8) : hit.start()]):
+                    break
+
+            if candidates:
+                return max(candidates, key=lambda d: d.iso or "")
 
     if _NO_DEADLINE.search(text):
         return DueDate(reason="no_deadline")
@@ -295,7 +321,9 @@ _APPLICABLE = re.compile(r"모집|선발|접수|신청|지원\s?(?:자격|대상
 # 010(이수의무 면제 신청)·014(수강바구니) 가 규칙 신호만으로는 공고로 보였다.
 _ACADEMIC_ADMIN = re.compile(
     r"수강\s?신청|수강\s?바구니|이수\s?의무|이수\s?면제|졸업\s?요건|졸업\s?사정|등록금\s?납부|"
-    r"휴학|복학|성적\s?(?:정정|열람|공시)|학사\s?일정|계절\s?학기|수강\s?정정|시험\s?시간표"
+    r"휴학|복학|성적\s?(?:정정|열람|공시)|학사\s?일정|계절\s?학기|수강\s?정정|시험\s?시간표|"
+    # 022 등록일정 · 024 군e러닝 교과목 안내 — 기간·대상이 있어도 지원 공고가 아니다
+    r"등록\s?일정|등록\s?기간|\[등록\]|교과목\s?(?:안내|개설|홍보)|e러닝|취득학점\s?포기"
 )
 _ELIGIBILITY = re.compile(r"자격|대상|요건|조건")
 
