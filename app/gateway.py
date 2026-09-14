@@ -20,6 +20,7 @@ from typing import Any, TypeVar
 from pydantic import BaseModel, Field, ValidationError, field_validator
 
 from app import rules
+from app.budget import Budget, BudgetExceeded
 from app.cache import CacheMiss, ReplayCache
 from app.config import settings
 from app.contract import FAIL_MESSAGES, ErrorCode, ParseFailReason, ServiceError
@@ -105,10 +106,20 @@ class _LlmDraft(BaseModel):
 # --------------------------------------------------------------------------
 
 
+TOKENS_PER_CHAR = 1.0
+"""비용 추정용. HCX 실측은 한국어 1자당 0.6~0.8 토큰이라 이 값은 넉넉하다 — 상한은 보수적으로."""
+
+
 class Gateway:
-    def __init__(self, provider: Provider, cache: ReplayCache | None = None) -> None:
+    def __init__(
+        self,
+        provider: Provider,
+        cache: ReplayCache | None = None,
+        budget: Budget | None = None,
+    ) -> None:
         self.provider = provider
         self.cache = cache or ReplayCache()
+        self.budget = budget
 
     # ---- 공통 ------------------------------------------------------------
 
@@ -132,6 +143,17 @@ class Gateway:
             ) from exc
         if hit is not None:
             return hit
+        if self.budget is not None:
+            # 호출 전에 막는다 — 이 호출이 최대로 쓸 수 있는 돈으로 (#31)
+            estimate = (
+                (len(prompt.system) + len(user)) * TOKENS_PER_CHAR * self.provider.price_in_krw
+                + max_tokens * self.provider.price_out_krw
+            )
+            try:
+                self.budget.check(estimate)
+            except BudgetExceeded as exc:
+                logger.error("예산 차단 (%s): %s", prompt.name, exc)
+                raise ServiceError(ErrorCode.LLM_UNAVAILABLE, str(exc)) from exc
         try:
             completion = await complete_with_retry(
                 self.provider, prompt.system, user, max_tokens=max_tokens, temperature=temperature
@@ -142,6 +164,8 @@ class Gateway:
             logger.warning("프로바이더 실패 (%s): %s", prompt.name, exc)
             raise ServiceError(ErrorCode.LLM_UNAVAILABLE, str(exc)) from exc
         self.cache.put(key, completion, note=f"{prompt.name}.{prompt.version}")
+        if self.budget is not None:
+            self.budget.record(cost_krw(self.provider, completion))
         return completion
 
     async def _complete_json(

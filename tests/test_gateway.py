@@ -487,7 +487,7 @@ def test_router_uses_gateway_when_stub_mode_off(monkeypatch: pytest.MonkeyPatch)
 
     provider = FakeProvider(PARSE_OK)
     monkeypatch.setattr(service.settings, "stub_mode", False)
-    monkeypatch.setattr(service, "gateway", lambda: Gateway(provider))
+    monkeypatch.setattr(service, "gateway", lambda *_: Gateway(provider))
 
     res = TestClient(app).post(
         "/v1/parse-posting",
@@ -510,7 +510,7 @@ def test_router_maps_provider_failure_to_503(monkeypatch: pytest.MonkeyPatch) ->
 
     provider = FakeProvider(TransientError("x"), TransientError("y"))
     monkeypatch.setattr(service.settings, "stub_mode", False)
-    monkeypatch.setattr(service, "gateway", lambda: Gateway(provider))
+    monkeypatch.setattr(service, "gateway", lambda *_: Gateway(provider))
 
     res = TestClient(app).post(
         "/v1/draft-answer", json={"question": "q", "experienceSummaries": ["e"]}
@@ -568,3 +568,67 @@ def test_parse_strips_injection_before_it_reaches_the_model() -> None:
     provider = FakeProvider(PARSE_OK)
     _run(Gateway(provider).parse_posting(ParseRequest(title="두산", raw_content=body)))
     assert "무시" not in provider.calls[0]["user"]
+
+
+# --------------------------------------------------------------------------
+# #31 비용 상한 — 호출 전에 막는다
+# --------------------------------------------------------------------------
+
+
+def test_budget_blocks_before_calling_when_limit_would_be_exceeded(tmp_path: Path) -> None:
+    from app.budget import Budget
+
+    provider = FakeProvider(PARSE_OK)  # price_in 0.001 · price_out 0.002 → 한 호출 최대 수 원
+    budget = Budget(tmp_path / "b.json", daily_krw=1.0, monthly_krw=100.0)
+    with pytest.raises(ServiceError) as exc:
+        _run(
+            Gateway(provider, budget=budget).parse_posting(
+                ParseRequest(title="두산", raw_content=POSTING)
+            )
+        )
+    assert exc.value.status_code == 503
+    assert "예산 초과" in exc.value.message
+    assert provider.calls == []  # 모델을 부르지 않았다
+
+
+def test_budget_records_actual_cost_and_survives_restart(tmp_path: Path) -> None:
+    from app.budget import Budget
+
+    ledger = tmp_path / "b.json"
+    provider = FakeProvider(PARSE_OK)
+    _run(
+        Gateway(provider, budget=Budget(ledger, daily_krw=100, monthly_krw=1000)).parse_posting(
+            ParseRequest(title="두산", raw_content=POSTING)
+        )
+    )
+    # 100 in x 0.001 + 20 out x 0.002 = 0.14
+    assert Budget(ledger, daily_krw=100, monthly_krw=1000).status().today_krw == pytest.approx(0.14)
+
+
+def test_budget_cache_hit_costs_nothing(tmp_path: Path) -> None:
+    from app.budget import Budget
+
+    ledger = tmp_path / "b.json"
+    cache = ReplayCache(tmp_path / "c", "record")
+    req = ParseRequest(title="두산", raw_content=POSTING)
+    generous = Budget(ledger, daily_krw=100, monthly_krw=1000)
+    _run(Gateway(FakeProvider(PARSE_OK), cache, generous).parse_posting(req))
+    before = generous.status().today_krw
+    assert before > 0
+    # 두 번째는 캐시 히트 — 예산이 바닥이어도 통과하고 장부도 그대로
+    empty = Budget(ledger, daily_krw=0.01, monthly_krw=0.01)
+    _run(Gateway(FakeProvider(), cache, empty).parse_posting(req))
+    assert empty.status().today_krw == before
+
+
+def test_budget_monthly_limit_counts_all_days(tmp_path: Path) -> None:
+    import json
+
+    from app.budget import Budget, BudgetExceeded
+
+    ledger = tmp_path / "b.json"
+    ledger.write_text(json.dumps({"2026-09-01": 600.0, "2026-09-02": 399.0}), encoding="utf-8")
+    b = Budget(ledger, daily_krw=100, monthly_krw=1000)
+    with pytest.raises(BudgetExceeded) as exc:
+        b.check(2.0)
+    assert exc.value.scope == "월간"
