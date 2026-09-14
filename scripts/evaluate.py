@@ -42,7 +42,10 @@ def main() -> int:
         print("픽스처가 없다. fixtures/postings/ 를 채운다.")
         return 1
 
-    print(f"파이프라인: {report.pipeline}")
+    header = f"파이프라인: {report.pipeline}"
+    if report.prompt_version:
+        header += f" · 프롬프트 {report.prompt_version} · 모델 {report.model}"
+    print(header)
     print(
         f"{'id':<5} {'유형':<12} {'마감일':<12} {'판정':<14} {'문항':>4} {'우대':>4}  근거 / 키워드"
     )
@@ -53,7 +56,9 @@ def main() -> int:
         if row.get("failReason"):
             tail = f"실패 {row['failReason']}"
         elif row.get("keywords"):
-            tail = ", ".join(row["keywords"])[:60]
+            kw = row.get("keywordGrade") or {}
+            mark = f"[{kw.get('hit', 0)}/{kw.get('gold', 0)}] " if kw else ""
+            tail = mark + ", ".join(row["keywords"])[:56]
         print(
             f"{row['id']:<5} {row['type']!s:<12} {row['dueDate']!s:<12}"
             f"{inferred}{_MARKS[row['dueGrade']]:<13} {len(row['formQuestions']):>4} "
@@ -80,6 +85,19 @@ def main() -> int:
         f"        마감일 틀림 {report.due_date['wrong']} · "
         f"못읽음 {report.due_date['missed']} · **날조 {report.hallucinated}**"
     )
+    for label, recall, precision, counter in (
+        ("키워드", report.keyword_recall, report.keyword_precision, report.keywords),
+        ("우대  ", report.preference_recall, report.preference_precision, report.preferences),
+    ):
+        if counter["gold"] == 0 and counter["pred"] == 0:
+            continue
+        r = f"{recall:.0%}" if recall is not None else "-"
+        p_ = f"{precision:.0%}" if precision is not None else "-"
+        print(
+            f"{label}  재현율 {counter['hit']}/{counter['gold']} ({r}) · "
+            f"정밀도 {counter['predHit']}/{counter['pred']} ({p_})"
+            + (f" · **금지어 {counter['forbidden']}**" if counter["forbidden"] else "")
+        )
 
     if report.pipeline == "llm":
         # 규칙이 먼저 거른 것(EMPTY·NOT_A_POSTING)은 토큰 0 — 호출이 아니다
@@ -96,7 +114,10 @@ def main() -> int:
     if args.save:
         EVAL_ROOT.mkdir(exist_ok=True)
         stamp = datetime.now(UTC).strftime("%Y-%m-%dT%H%M%SZ")
-        out = EVAL_ROOT / f"{stamp}_{report.pipeline}.json"
+        tag = report.pipeline
+        if report.prompt_version:
+            tag += f"-{report.prompt_version}-{report.model}"
+        out = EVAL_ROOT / f"{stamp}_{tag}.json"
         payload = {"ranAt": stamp, **report.as_dict()}
         out.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
         print(f"\n기록: {out.relative_to(EVAL_ROOT.parent)}")

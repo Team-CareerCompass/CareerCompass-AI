@@ -415,9 +415,25 @@ def test_cache_requires_root_unless_off(tmp_path: Path) -> None:
 @pytest.mark.parametrize("name", ["parse_posting", "comments", "draft_answer"])
 def test_prompts_load_with_version(name: str) -> None:
     p = load_prompt(name)
-    assert p.version == "v1"
+    assert p.version.startswith("v")
     assert p.system and p.user_template
     assert "JSON" in p.system
+
+
+def test_parse_prompt_is_pinned_by_evaluation_not_by_number() -> None:
+    """가장 높은 번호가 아니라 평가로 고른 버전을 쓴다 (`app/prompts/README.md`)."""
+    from app.config import settings
+
+    pinned = load_prompt("parse_posting", settings.parse_prompt_version)
+    latest = load_prompt("parse_posting")
+    assert pinned.version == "v1"
+    assert int(latest.version[1:]) >= int(pinned.version[1:])
+
+
+def test_parse_uses_pinned_prompt_version() -> None:
+    provider = FakeProvider(PARSE_OK)
+    _run(Gateway(provider).parse_posting(ParseRequest(title="두산", raw_content=POSTING)))
+    assert provider.calls[0]["system"] == load_prompt("parse_posting", "v1").system
 
 
 def test_prompt_render_rejects_missing_variable() -> None:
