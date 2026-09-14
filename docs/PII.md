@@ -1,0 +1,41 @@
+# 프로바이더로 무엇이 나가는가 (#6)
+
+이 서비스가 외부 LLM 프로바이더에 보내는 것을 **항목 단위로** 적는다. 개인정보 처리방침의 근거다.
+
+## 프로바이더
+
+| | 값 |
+| --- | --- |
+| 프로바이더 | 네이버클라우드 CLOVA Studio (HyperCLOVA X) |
+| 모델 | `HCX-DASH-002` (`CC_HCX_MODEL`) |
+| 처리 위치 | **국내.** 국외이전 아님 |
+| 학습 활용 | CLOVA Studio 이용약관상 API 입력은 모델 학습에 쓰이지 않는다 — **테스트 앱 키 기준. 서비스 앱 전환 시 다시 확인한다** |
+| 엔드포인트 | `https://clovastudio.stream.ntruss.com/v3/chat-completions/{model}` |
+
+Bedrock(AWS) 은 쓰지 않는다. 서울 리전에 최신 Anthropic 모델이 인리전으로 없고, `global.*` 프로파일은 미국을 포함해 개인정보 기능에 못 쓴다 (README 「콘솔 함정」). 공고 파싱만이라도 쓰려면 아래 표의 「공고 본문」 행만 해당한다.
+
+## 엔드포인트별로 나가는 것
+
+| 엔드포인트 | 나가는 것 | 개인정보인가 | 나가기 전 처리 |
+| --- | --- | --- | --- |
+| `/v1/parse-posting` | 공고 제목 · 공고 본문 (최대 16,000자) | **아니다** — 공개 게시물. 단 본문에 담당자 연락처가 섞일 수 있다 | `app/preprocess.py`: 이메일·유선·휴대폰 마스킹(`mask_contacts`), 보일러플레이트·지시문 문단 제거, 40,000자 절단 |
+| `/v1/comments` | `matchedKeywords` · `matchedPreferences` · `missingQualifications` · `topExperienceTitle` | **개인의 이력 단서** — 이름은 없지만 경험 카드 제목이 있다 | BE `PrivacyMasker` 가 먼저 마스킹. 이쪽은 받은 그대로 보낸다 |
+| `/v1/draft-answer` | `question` · `postingTitle` · `keywords` · `experienceSummaries` (경험 요약 문자열) | **개인정보** — 경험 이력 | BE `PrivacyMasker` 가 이름·연락처를 지운 뒤 보낸다 (계약 §3.1). 이쪽은 다시 지우지 않는다 |
+
+**보내지 않는 것**: 사용자 id · 이름 · 학교 · 학번 · 학점 · 연락처 · 과거 자소서 전문 · 프로필 전체. BE 가 계약 v0.2 에서 필요한 필드만 추려 보내고, 이 서비스는 그 이상을 요구하지 않는다.
+
+## 로그
+
+- 프롬프트 원문은 **남기지 않는다.** 로그는 엔드포인트·상태·지연·토큰 수·프롬프트 버전뿐 (`app/main.py` `observe`).
+- 마스킹된 연락처 원본은 개수만 센다 (`Preprocessed.masked` — 로그 금지 주석).
+- 리플레이 캐시(`.cache/llm/`)는 요청·응답 원문을 파일로 둔다. **개발 전용, gitignore.** 운영에서는 `CC_LLM_CACHE=off`.
+- 평가 기록(`eval/*.json`)에는 픽스처(공개 공고)의 결과만 들어간다. 경험 요약·코멘트 근거는 평가셋에 없다.
+
+## 저장
+
+이 서비스는 상태를 갖지 않는다. DB 도 파일도 없다 (캐시 제외). 응답을 저장하는 것은 BE 다.
+
+## 아직 확인 안 한 것
+
+- CLOVA Studio **서비스 앱**(테스트 앱이 아닌) 의 데이터 보관 기간·학습 활용 조항 — 전환 시점에 확인
+- BE `PrivacyMasker` 가 경험 요약 안의 **회사명·학교명**까지 지우는지 — 지우지 않으면 식별 가능성이 남는다. BE `docs/privacy.md` 와 대조
