@@ -91,7 +91,7 @@ uvicorn app.main:app --reload
 curl localhost:8000/health
 ```
 
-또는 `docker compose up --build`.
+또는 `docker compose up --build`. main 에 머지되면 CI 가 `ghcr.io/team-careercompass/careercompass-ai:latest` 를 올린다 — 운영 인스턴스는 빌드하지 않고 당겨 쓴다. 비루트 유저, 비밀은 전부 환경변수, 예산 장부·캐시는 `/srv/.cache` 볼륨.
 
 **실제 모델을 부르려면** `.env` 에 `CC_STUB_MODE=false` 와 `CC_HCX_API_KEY` 를 넣는다. 모델은 `CC_HCX_MODEL`(기본 `HCX-DASH-002`, 제일 싸다), 기능별로 `CC_HCX_MODEL_PARSE` 등으로 덮어쓴다. Bedrock 은 서울 리전 할당량이 풀리지 않아 어댑터를 넣지 않았다 — `app/providers/` 에 파일 하나 추가하면 된다.
 
