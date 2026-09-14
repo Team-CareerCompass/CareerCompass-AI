@@ -90,7 +90,9 @@ curl localhost:8000/health
 
 또는 `docker compose up --build`.
 
-**실제 모델을 부르려면** `.env` 에 `CC_STUB_MODE=false` 와 `CC_HCX_API_KEY` 를 넣는다. 모델은 `CC_HCX_MODEL`(기본 `HCX-DASH-002`, 제일 싸다). Bedrock 은 서울 리전 할당량이 풀리지 않아 어댑터를 넣지 않았다 — `app/providers/` 에 파일 하나 추가하면 된다.
+**실제 모델을 부르려면** `.env` 에 `CC_STUB_MODE=false` 와 `CC_HCX_API_KEY` 를 넣는다. 모델은 `CC_HCX_MODEL`(기본 `HCX-DASH-002`, 제일 싸다), 기능별로 `CC_HCX_MODEL_PARSE` 등으로 덮어쓴다. Bedrock 은 서울 리전 할당량이 풀리지 않아 어댑터를 넣지 않았다 — `app/providers/` 에 파일 하나 추가하면 된다.
+
+**비용 상한이 기본으로 걸려 있다** — 일 100원 · 월 1,000원 (`CC_BUDGET_*_KRW`). 넘으면 모델을 부르기 전에 503. [`docs/COST.md`](docs/COST.md) 「상한」.
 
 **인증 헤더는 필요 없다.** BE 가 토큰을 보내지 않으므로 기본값이 꺼짐이고, 운영에서는 네트워크 경계로 막는다(#31).
 

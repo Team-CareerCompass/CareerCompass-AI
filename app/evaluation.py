@@ -294,7 +294,7 @@ def evaluate(
         if pipeline == "llm":
             from app.service import gateway  # 지연 임포트 — 키 없는 환경에서 rules 만 돌리려고
 
-            gw = gateway()
+            gw = gateway("parse")
 
             def run(fx: Fixture) -> dict[str, Any]:
                 return run_llm(fx, gw)
@@ -307,7 +307,7 @@ def evaluate(
         from app.prompts import load_prompt
 
         report.prompt_version = load_prompt("parse_posting", settings.parse_prompt_version).version
-        report.model = settings.hcx_model
+        report.model = settings.hcx_model_parse or settings.hcx_model
 
     for fx in fixtures if fixtures is not None else load_all():
         actual = run(fx)
