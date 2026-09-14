@@ -24,7 +24,14 @@ from app.budget import Budget, BudgetExceeded
 from app.cache import CacheMiss, ReplayCache
 from app.config import settings
 from app.contract import FAIL_MESSAGES, ErrorCode, ParseFailReason, ServiceError
-from app.guard import extract_json, fact_check, trim_to_limit
+from app.guard import (
+    drop_sentences_with,
+    extract_json,
+    fact_check,
+    safe_draft,
+    scrub_pii,
+    trim_to_limit,
+)
 from app.preprocess import preprocess
 from app.prompts import Prompt, load_prompt
 from app.providers.base import (
@@ -255,7 +262,10 @@ class Gateway:
             logger.warning("파싱 스키마 최종 실패: %s", exc)
             return fail(ParseFailReason.NO_KEYWORDS)
 
-        keywords = _dedupe(k.strip() for k in llm.keywords if k and k.strip())[:MAX_KEYWORDS]
+        # 40자 넘는 「키워드」는 문장이다 — 주입된 지시문이 키워드 자리로 새는 길을 막는다
+        keywords = _dedupe(
+            k.strip() for k in llm.keywords if k and k.strip() and len(k.strip()) <= 40
+        )[:MAX_KEYWORDS]
         if len(keywords) < MIN_KEYWORDS:
             failure = fail(ParseFailReason.NO_KEYWORDS)
             failure.usage = self._usage(prompt_version, completions)
@@ -322,6 +332,8 @@ class Gateway:
         # 근거 자체가 의심스러운데, 근거조차 안 나오는 문장은 확실히 빈말이다.
         strength = _keep_if_cites(llm.strength, grounds)
         weakness = _keep_if_cites(llm.weakness, req.missing_qualifications)
+        strength = scrub_pii(strength)[0] if strength else None
+        weakness = scrub_pii(weakness)[0] if weakness else None
         return CommentsResult(
             strength=strength, weakness=weakness, usage=self._usage(prompt_version, completions)
         )
@@ -354,15 +366,21 @@ class Gateway:
         )
         # HCX 토큰 ≈ 한국어 1자 안팎. 상한의 두 배를 준다 — 문장 중간에서 끊기지 않게.
         max_tokens = max(400, (limit or DEFAULT_DRAFT_CHARS) * 2)
+        sources = [*req.experience_summaries, req.posting_title, req.question]
+        fallback = False
         try:
             llm, completions = await self._complete_json(
                 prompt, user, _LlmDraft, max_tokens=max_tokens, temperature=0.7
             )
+            answer = llm.answer.strip()
+            used_raw = llm.usedIndexes
         except SchemaViolation as exc:
-            raise ServiceError(ErrorCode.LLM_UNAVAILABLE, f"초안 형식 오류: {exc}") from exc
+            # 모델이 두 번 다 형식을 어겼다. 503 으로 BE 재시도를 부르는 대신 안전 초안을 낸다 —
+            # 재시도해도 같은 모델이 같은 짓을 한다.
+            logger.warning("초안 형식 최종 실패 → 안전 초안: %s", exc)
+            answer, used_raw, completions, fallback = "", [], [], True
 
-        answer = llm.answer.strip()
-        if limit and len(answer) > limit:
+        if answer and limit and len(answer) > limit:
             # 프롬프트로 부탁한 것을 실측으로 강제한다 (#16).
             # 1회 단축 재요청 → 그래도 넘으면 문장 경계에서 자른다.
             shorten_user = (
@@ -374,27 +392,65 @@ class Gateway:
                 )
                 completions.extend(more)
                 if len(shorter.answer.strip()) <= len(answer):
-                    answer, llm = shorter.answer.strip(), shorter
+                    answer, used_raw = shorter.answer.strip(), shorter.usedIndexes
             except SchemaViolation:
                 pass
             answer = trim_to_limit(answer, limit)
 
-        if not answer:
-            raise ServiceError(ErrorCode.LLM_UNAVAILABLE, "초안이 비었다")
-
-        n = len(req.experience_summaries)
-        used = sorted({i for i in llm.usedIndexes if 0 <= i < n})
         # 근거는 **사용자의 경험**이다. 공고 키워드는 근거가 아니다 — 첫 실측에서 keywords 의
         # Redis 를 「사용해 본 경험」으로 쓴 초안이 통과했다(#29). 공고 제목·질문은 회사명·주제가
         # 답에 나오는 것이 당연하므로 남긴다.
-        unverified = fact_check(
-            answer, [*req.experience_summaries, req.posting_title, req.question]
-        )
+        unverified = fact_check(answer, sources) if answer else []
+        if unverified:
+            # ① 1회 재요청 — 무엇이 근거에 없는지 짚어서
+            retry_user = (
+                f"{user}\n\n(직전 초안에 근거에 없는 표현이 있었다: {', '.join(unverified)}. "
+                "이것들을 빼고, 경험 요약에 있는 사실만으로 다시 쓴다.)"
+            )
+            try:
+                redo, more = await self._complete_json(
+                    prompt, retry_user, _LlmDraft, max_tokens=max_tokens, temperature=0.5
+                )
+                completions.extend(more)
+                candidate = redo.answer.strip()
+                if limit:
+                    candidate = trim_to_limit(candidate, limit)
+                if len(fact_check(candidate, sources)) < len(unverified):
+                    answer, used_raw = candidate, redo.usedIndexes
+                    unverified = fact_check(answer, sources)
+            except SchemaViolation:
+                pass
+        if unverified:
+            # ② 규칙으로 해당 문장을 통째로 뺀다. 표현만 지우면 문장이 거짓말로 남는다
+            stripped = drop_sentences_with(answer, unverified)
+            if len(stripped) >= max(40, len(answer) // 3):
+                answer = stripped
+                unverified = fact_check(answer, sources)
+        if unverified or not answer:
+            # ③ 그래도 남으면 모델 출력을 버리고 입력 문자열만으로 만든 초안을 낸다.
+            #    빤하지만 거짓이 없다. 사용자가 고쳐 쓰는 출발점.
+            logger.warning("초안 사실검증 최종 실패 → 안전 초안: %s", unverified)
+            answer = safe_draft(
+                req.question,
+                req.posting_title,
+                req.experience_summaries,
+                tone=req.tone,
+                limit=limit,
+            )
+            used_raw = list(range(min(3, len(req.experience_summaries))))
+            unverified, fallback = [], True
+
+        answer, pii_hits = scrub_pii(answer)
+        if pii_hits:
+            logger.warning("초안 출력에서 개인정보 모양 %d건 제거", pii_hits)
+
+        n = len(req.experience_summaries)
+        used = sorted({i for i in used_raw if 0 <= i < n})
         return DraftResult(
             answer=answer,
             char_count=len(answer),
             used_indexes=used,
-            fact_check=FactCheck(passed=not unverified, unverified=unverified),
+            fact_check=FactCheck(passed=not unverified, unverified=unverified, fallback=fallback),
             usage=self._usage(prompt_version, completions),
         )
 

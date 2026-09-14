@@ -117,6 +117,8 @@ class CommentsResult(Base):
 class FactCheck(Base):
     passed: bool
     unverified: list[str] = Field(default_factory=list)
+    fallback: bool = False
+    """모델 출력을 버리고 입력 문자열만으로 만든 안전 초안이다 (#29). BE 는 무시해도 된다."""
 
 
 class DraftRequest(Base):
