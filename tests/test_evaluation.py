@@ -14,7 +14,7 @@ MIN_TYPE_ACCURACY = 0.70
 
 def test_fixtures_exist() -> None:
     """평가셋이 비면 그 뒤 테스트가 전부 조용히 통과한다."""
-    assert len(load_all()) >= 8
+    assert len(load_all()) >= 30
 
 
 def test_never_hallucinates_a_deadline() -> None:
@@ -57,7 +57,7 @@ def test_contacts_are_masked_before_leaving() -> None:
 def test_fixtures_have_keyword_labels() -> None:
     """정답 라벨이 없으면 키워드 정확도가 「측정 안 됨」으로 조용히 넘어간다."""
     labeled = [fx for fx in load_all() if "keywords" in fx.expected]
-    assert len(labeled) >= 10
+    assert len(labeled) >= 25
 
 
 def test_grade_list_counts_overlap_not_exact_match() -> None:
