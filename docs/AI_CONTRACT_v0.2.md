@@ -290,8 +290,10 @@ BE 는 `answer` 만 읽는다. 나머지는 이쪽의 품질 추적용이고 BE 
 
 - **`charCount` 는 `maxChars` 를 넘지 않는다.** 프롬프트로 부탁하는 것이 아니라 생성 후 실측해서, 초과하면 문장 단위로 줄이거나 다시 만든다(#16).
 - `usedIndexes` — `experienceSummaries` 의 **몇 번째를 인용했는지.** BE 는 id 를 보내지 않으므로 인덱스로 답한다. BE 가 원하면 자기 배열로 되돌릴 수 있다.
-- `factCheck.unverified` — 생성물에 나왔는데 입력(`experienceSummaries` · `keywords` · `postingTitle`)에서 확인되지 않은 고유명사·수치·기간(#29). **LLM 이 아니라 문자열 대조 규칙으로 판정한다.**
-- `answer` 가 비면 안 된다. BE 는 빈 문자열을 `LLM_UNAVAILABLE` 로 본다.
+- `factCheck.unverified` — 생성물에 나왔는데 입력(`experienceSummaries` · `postingTitle` · `question`)에서 확인되지 않은 수치·영문 토큰(#29). **LLM 이 아니라 문자열 대조 규칙으로 판정한다.** `keywords` 는 근거가 아니다 — 공고의 요구 기술을 「해 본 경험」으로 쓰면 날조다.
+- **검증에 걸린 답은 나가지 않는다.** ① 1회 재요청 → ② 걸린 문장을 규칙으로 제거 → ③ 그래도 남으면 모델 출력을 버리고 **입력 문자열만으로 만든 안전 초안**을 낸다. 그때 `factCheck.fallback: true`. 모델이 형식을 두 번 어기거나 빈 답을 내도 같은 안전 초안이다 — 503 이 아니다. BE 는 `fallback` 을 무시해도 되지만, FE 가 「AI 가 쓴 초안이 아니라 출발점」이라고 표시하고 싶으면 이 값을 쓴다.
+- 출력에 이메일·전화·주민번호 모양이 있으면 `[삭제]` 로 지운다.
+- `answer` 가 비면 안 된다. BE 는 빈 문자열을 `LLM_UNAVAILABLE` 로 본다. 위 안전 초안 덕에 비는 경우가 없다.
 
 ---
 

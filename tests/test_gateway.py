@@ -307,13 +307,20 @@ def test_draft_counts_chars_and_indexes() -> None:
     assert res.fact_check is not None and res.fact_check.passed
 
 
-def test_draft_flags_numbers_not_in_input() -> None:
-    answer = "Spring 으로 응답 속도를 40% 줄이고 MAU 3000명을 달성했습니다."
-    provider = FakeProvider(_j(answer=answer))
+def test_draft_unverified_sentence_is_dropped_and_rest_kept() -> None:
+    """근거에 없는 수치가 든 문장만 빠지고 나머지는 살아남는다 — fallback 이 아니다."""
+    answer = (
+        "CareerCompass 에서 Spring 백엔드를 맡아 공고 분석 서비스를 만들었습니다. "
+        "응답 속도를 40% 줄이고 MAU 3000명을 달성했습니다. "
+        "학과 스터디 운영으로 협업을 배웠습니다."
+    )
+    provider = FakeProvider(_j(answer=answer), _j(answer=answer))  # 재요청도 같은 답
     res = _run(Gateway(provider).draft_answer(_draft_req()))
-    assert res.fact_check is not None and not res.fact_check.passed
-    assert "40%" in res.fact_check.unverified
-    assert "MAU" in res.fact_check.unverified
+    assert res.fact_check is not None and res.fact_check.passed
+    assert not res.fact_check.fallback
+    assert "40%" not in res.answer and "MAU" not in res.answer
+    assert "Spring 백엔드" in res.answer and "스터디" in res.answer
+    assert len(provider.calls) == 2  # 원래 + 사실검증 재요청 1회
 
 
 def test_draft_enforces_max_chars_with_one_shorten_retry() -> None:
@@ -352,12 +359,14 @@ def test_draft_casual_tone_changes_prompt_only() -> None:
     assert "~합니다" in provider.calls[1]["user"]
 
 
-def test_draft_empty_answer_is_503() -> None:
-    """BE 는 빈 answer 를 LLM_UNAVAILABLE 로 본다 — 이쪽이 먼저 503 을 낸다."""
+def test_draft_empty_answer_becomes_safe_fallback() -> None:
+    """빈 답이면 503 대신 입력 문자열만으로 만든 초안 — BE 는 빈 answer 를 장애로 본다."""
     provider = FakeProvider(_j(answer="   "), _j(answer="   "))
-    with pytest.raises(ServiceError) as exc:
-        _run(Gateway(provider).draft_answer(_draft_req()))
-    assert exc.value.status_code == 503
+    res = _run(Gateway(provider).draft_answer(_draft_req()))
+    assert res.answer
+    assert res.fact_check is not None and res.fact_check.fallback
+    assert "CareerCompass" in res.answer  # 경험 요약 그대로
+    assert "카카오 인턴십" in res.answer
 
 
 # --------------------------------------------------------------------------
@@ -524,13 +533,53 @@ def test_router_maps_provider_failure_to_503(monkeypatch: pytest.MonkeyPatch) ->
 # --------------------------------------------------------------------------
 
 
-def test_draft_keywords_are_not_evidence() -> None:
-    """공고 키워드에 있는 Redis 를 「사용해 본 경험」으로 쓰면 날조다 — 경험 요약에 없다."""
-    provider = FakeProvider(_j(answer="Spring 과 Redis 를 사용해 본 경험이 있습니다."))
+def test_draft_keywords_are_not_evidence_and_single_lie_falls_back() -> None:
+    """공고 키워드의 Redis 를 「사용해 본 경험」으로 쓰면 날조다.
+
+    한 문장짜리 답이라 문장을 빼면 아무것도 안 남는다 → 안전 초안.
+    """
+    lie = "Spring 과 Redis 를 사용해 본 경험이 있습니다."
+    provider = FakeProvider(_j(answer=lie), _j(answer=lie))
     res = _run(Gateway(provider).draft_answer(_draft_req()))  # keywords=[Spring, Kotlin]
-    assert res.fact_check is not None
-    assert "Redis" in res.fact_check.unverified
-    assert "Spring" not in res.fact_check.unverified  # 경험 요약에 있다
+    assert "Redis" not in res.answer
+    assert res.fact_check is not None and res.fact_check.fallback and res.fact_check.passed
+    assert res.char_count == len(res.answer) > 0
+
+
+def test_draft_retry_that_fixes_the_lie_is_accepted() -> None:
+    provider = FakeProvider(
+        _j(answer="Spring 과 Redis 를 사용해 본 경험이 있습니다."),
+        _j(answer="Spring 백엔드를 맡아 공고 분석 서비스를 만든 경험이 있습니다."),
+    )
+    res = _run(Gateway(provider).draft_answer(_draft_req()))
+    assert res.fact_check is not None and res.fact_check.passed and not res.fact_check.fallback
+    assert "Redis" not in res.answer
+    assert "근거에 없는 표현" in provider.calls[1]["user"]
+
+
+def test_draft_output_pii_is_scrubbed() -> None:
+    leak = "Spring 백엔드 경험이 있습니다. 연락은 010-1234-5678 로 주세요."
+    provider = FakeProvider(_j(answer=leak), _j(answer=leak))
+    res = _run(Gateway(provider).draft_answer(_draft_req()))
+    assert "010-1234-5678" not in res.answer  # 사실검증(수치)에 걸려 문장이 빠지거나, 스크럽된다
+
+
+def test_draft_schema_failure_twice_becomes_safe_fallback_not_503() -> None:
+    provider = FakeProvider("잡담", "또 잡담")
+    res = _run(Gateway(provider).draft_answer(_draft_req(max_chars=120)))
+    assert res.fact_check is not None and res.fact_check.fallback
+    assert 0 < res.char_count <= 120
+
+
+def test_safe_draft_uses_only_input_strings() -> None:
+    from app.guard import fact_check, safe_draft
+
+    exp = ["CareerCompass — Spring 백엔드, 공고 분석 서비스", "학과 스터디 운영"]
+    for tone in ("formal", "casual"):
+        d = safe_draft("지원 동기", "카카오 인턴십", exp, tone=tone)
+        assert fact_check(d, [*exp, "카카오 인턴십", "지원 동기"]) == []
+    assert "해요" in safe_draft("q", "t", exp, tone="casual")
+    assert "합니다" in safe_draft("q", "t", exp, tone="formal")
 
 
 def test_comments_keep_paraphrased_citation() -> None:
@@ -632,3 +681,10 @@ def test_budget_monthly_limit_counts_all_days(tmp_path: Path) -> None:
     with pytest.raises(BudgetExceeded) as exc:
         b.check(2.0)
     assert exc.value.scope == "월간"
+
+
+def test_scrub_pii_masks_email_phone_rrn() -> None:
+    from app.guard import scrub_pii
+
+    out, n = scrub_pii("문의 a@b.com, 010-1234-5678, 900101-1234567 로")
+    assert n == 3 and "a@b.com" not in out and "1234567" not in out
