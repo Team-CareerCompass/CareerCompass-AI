@@ -16,10 +16,11 @@ import logging
 from datetime import date
 from typing import Any, TypeVar
 
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field, ValidationError, field_validator
 
 from app import rules
 from app.cache import CacheMiss, ReplayCache
+from app.config import settings
 from app.contract import FAIL_MESSAGES, ErrorCode, ParseFailReason, ServiceError
 from app.guard import extract_json, fact_check, trim_to_limit
 from app.preprocess import preprocess
@@ -72,10 +73,22 @@ class _LlmQuestion(BaseModel):
 
 
 class _LlmParse(BaseModel):
+    """목록 길이는 여기서 막지 않는다 — 모델이 44개를 내면 위반이 아니라 앞 10개를 쓴다.
+
+    첫 v2 실측에서 두산(직무 44개)이 `max_length=30` 에 걸려 재요청까지 실패했고, 규칙이 뽑은
+    마감일·문항까지 같이 버려졌다. 너무 많이 낸 것은 자르면 되지만, 실패시키면 전부 잃는다.
+    """
+
     type: str | None = None
-    keywords: list[str] = Field(default_factory=list, max_length=30)
-    preferences: list[str] = Field(default_factory=list, max_length=30)
-    formQuestions: list[_LlmQuestion] = Field(default_factory=list, max_length=30)
+    keywords: list[str] = Field(default_factory=list)
+    preferences: list[str] = Field(default_factory=list)
+    formQuestions: list[_LlmQuestion] = Field(default_factory=list)
+
+    @field_validator("keywords", "preferences", "formQuestions", mode="before")
+    @classmethod
+    def _null_is_empty(cls, v: Any) -> Any:
+        """모델이 「없음」을 `null` 로 내는 것은 위반이 아니다 — 빈 배열로 읽는다 (v5 실측)."""
+        return [] if v is None else v
 
 
 class _LlmComments(BaseModel):
@@ -202,7 +215,7 @@ class Gateway:
         quals = rules.extract_qualifications(pre.text)
         rule_prefs = rules.extract_preferences(pre.text)
 
-        prompt = load_prompt("parse_posting")
+        prompt = load_prompt("parse_posting", settings.parse_prompt_version)
         user = prompt.render(title=req.title, body=pre.text[:LLM_BODY_CHARS])
         try:
             llm, completions = await self._complete_json(

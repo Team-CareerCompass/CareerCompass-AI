@@ -47,3 +47,43 @@ def test_contacts_are_masked_before_leaving() -> None:
     assert any(row["maskedContacts"] > 0 for row in evaluate().rows), (
         "픽스처에 연락처가 든 공고가 있어야 마스킹이 도는지 확인된다"
     )
+
+
+# --------------------------------------------------------------------------
+# 키워드·우대 채점 (#7) — 순서 없는 목록의 겹침
+# --------------------------------------------------------------------------
+
+
+def test_fixtures_have_keyword_labels() -> None:
+    """정답 라벨이 없으면 키워드 정확도가 「측정 안 됨」으로 조용히 넘어간다."""
+    labeled = [fx for fx in load_all() if "keywords" in fx.expected]
+    assert len(labeled) >= 10
+
+
+def test_grade_list_counts_overlap_not_exact_match() -> None:
+    from app.evaluation import grade_list
+
+    g = grade_list(
+        gold=["SW 개발", "두산에너빌리티", "원자력"],
+        predicted=["SW개발", "두산에너빌리티 플랜트", "채용", "원자력/SMR 설계"],
+        forbidden=["채용", "신입"],
+    )
+    assert g == {"gold": 3, "hit": 3, "pred": 4, "predHit": 3, "forbidden": 1}
+
+
+def test_grade_list_short_tokens_need_exact_match() -> None:
+    """「AI」가 「AI 반도체」에 포함된다고 맞힌 것으로 치면 두 글자 토큰은 다 맞는다."""
+    from app.evaluation import grade_list
+
+    assert grade_list(["X"], ["X, 블로그"], [])["hit"] == 0
+    assert grade_list(["AI"], ["AI 반도체"], [])["hit"] == 1  # 두 글자부터는 포함 허용
+
+
+def test_rules_pipeline_extracts_no_keywords() -> None:
+    """규칙은 키워드를 못 낸다 — LLM 비교의 0 기준선이다.
+
+    규칙이 키워드를 내기 시작하면 비교표를 다시 그린다.
+    """
+    report = evaluate()
+    assert report.keyword_recall == 0.0
+    assert report.keyword_forbidden == 0

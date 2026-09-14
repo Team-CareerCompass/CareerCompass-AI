@@ -3,6 +3,20 @@
   "organization": "LG전자",
   "dueDate": "2026-09-11",
   "dueDateRaw": "8/24(월) ~ 9/11(금)",
+  "keywords": [
+    "LG 마이컵",
+    "서포터즈",
+    "텀블러",
+    "SNS 콘텐츠 제작",
+    "LG전자"
+  ],
+  "keywordsNot": [
+    "활동비",
+    "수료증",
+    "스타터 키트"
+  ],
+  "preferences": [],
   "formQuestions": [],
-  "note": "연도가 없어 collectedAt 기준 추론이다. 줄바꿈이 거의 없이 이모지로 구분된 한 덩어리 텍스트."
+  "note": "연도가 없어 collectedAt 기준 추론이다. 줄바꿈이 거의 없이 이모지로 구분된 한 덩어리 텍스트.",
+  "labelNote": "「혜택」(활동비·수료증·시상)은 우대 조건이 아니다. 첫 실측에서 LLM 이 preferences 로 냈다."
 }

@@ -2,6 +2,16 @@
   "type": "contest",
   "dueDate": null,
   "dueDateRaw": null,
+  "keywords": [
+    "제조데이터",
+    "인공지능",
+    "빅데이터",
+    "KAMP",
+    "분석 모델",
+    "Python"
+  ],
+  "keywordsNot": [],
+  "preferences": [],
   "formQuestions": [],
   "note": "본문에 접수기간이 없다. dueDate 가 null 인 것이 정답이다 (#8)."
 }
