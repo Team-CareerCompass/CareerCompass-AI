@@ -1,0 +1,61 @@
+# main 에 머지되면 이미지를 GHCR 에 올린다 (#31).
+#
+#   ghcr.io/team-careercompass/careercompass-ai:latest
+#   ghcr.io/team-careercompass/careercompass-ai:sha-<7자리>
+#
+# 운영 인스턴스(BE #7)는 이 이미지를 당겨 쓴다. 키·프롬프트 버전·예산은 환경변수로 넣는다 —
+# 이미지에는 아무 비밀도 없다.
+
+name: Publish image
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/team-careercompass/careercompass-ai
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,prefix=sha-
+            type=ref,event=tag
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: 이미지가 뜨고 /health 가 답하는지
+        run: |
+          docker run -d --name ai -p 8000:8000 -e CC_STUB_MODE=true \
+            ghcr.io/team-careercompass/careercompass-ai:sha-$(git rev-parse --short=7 HEAD)
+          for i in $(seq 1 20); do
+            curl -fsS localhost:8000/health && exit 0
+            sleep 1
+          done
+          docker logs ai
+          exit 1
