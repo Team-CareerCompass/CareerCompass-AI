@@ -3,18 +3,23 @@
 프롬프트나 규칙을 고쳤을 때 **좋아졌는지 나빠졌는지를 숫자로** 답하기 위한 것이다.
 눈으로 두세 개 보고 넘어가면 다른 유형에서 조용히 나빠진다.
 
-지금은 규칙 전용 파이프라인만 돈다. LLM 이 붙으면 `run` 을 갈아 끼워
-**규칙 / LLM / 하이브리드**를 같은 픽스처로 비교한다 — BE 의 `HeuristicLlmGateway` 가
-그대로 기준선이라, 「규칙 대비 LLM 이 얼마나 나은가」가 정량적으로 나온다.
+파이프라인은 둘이다 — `rules`(규칙 전용, 기준선) 와 `llm`(게이트웨이 = 규칙 + LLM 병합).
+같은 픽스처·같은 채점기라 「규칙 대비 LLM 이 얼마나 나은가」가 숫자로 나온다.
+BE 의 `HeuristicLlmGateway` 가 그 아래 기준선이다.
+
+`llm` 은 실제로 모델을 부른다 — `CC_LLM_CACHE=record` 로 한 번 녹화해 두면 그 뒤는 공짜다.
 """
 
+import asyncio
 from collections import Counter
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
 from app import rules
 from app.fixtures import Fixture, load_all
 from app.preprocess import preprocess
+from app.schemas import Image, ParseFailure, ParseRequest
 
 
 def run_rules(fx: Fixture) -> dict[str, Any]:
@@ -39,6 +44,54 @@ def run_rules(fx: Fixture) -> dict[str, Any]:
         "truncated": pre.truncated,
         "maskedContacts": len(pre.masked),
         "imageOnly": fx.image_only,
+    }
+
+
+def run_llm(fx: Fixture, gateway: Any) -> dict[str, Any]:
+    """게이트웨이 파이프라인 — 규칙이 뽑은 것 위에 LLM 이 키워드·유형·문항을 보탠다.
+
+    `run_rules` 와 같은 키를 낸다. 채점기가 둘을 구분하지 않는다.
+    """
+    req = ParseRequest(
+        title=fx.title,
+        raw_content=fx.body,
+        collected_at=fx.collected_at.isoformat() if fx.collected_at else None,
+        images=[Image(url=name, order=i + 1) for i, name in enumerate(fx.images)],
+    )
+    res = asyncio.run(gateway.parse_posting(req))
+    pre = preprocess(fx.body)
+    due = rules.extract_due_date(pre.text, fx.collected_at)
+    base = {
+        "dueDateRaw": due.raw,
+        "yearInferred": due.year_inferred,
+        "dueReason": due.reason,
+        "qualifications": vars(rules.extract_qualifications(pre.text)),
+        "truncated": pre.truncated,
+        "maskedContacts": len(pre.masked),
+        "imageOnly": fx.image_only,
+    }
+    if isinstance(res, ParseFailure):
+        return {
+            **base,
+            "dueDate": None,
+            "type": None,
+            "formQuestions": [],
+            "preferences": [],
+            "keywords": [],
+            "likelyPosting": res.reason_code != "NOT_A_POSTING",
+            "failReason": res.reason_code,
+            "usage": res.usage.model_dump(by_alias=True) if res.usage else None,
+        }
+    return {
+        **base,
+        "dueDate": res.due_date,
+        "type": str(res.type) if res.type else None,
+        "formQuestions": [q.model_dump(by_alias=True) for q in res.form_questions],
+        "preferences": res.preferences,
+        "keywords": res.keywords,
+        "likelyPosting": True,
+        "failReason": None,
+        "usage": res.usage.model_dump(by_alias=True) if res.usage else None,
     }
 
 
@@ -136,11 +189,28 @@ class Report:
         }
 
 
-def evaluate(fixtures: list[Fixture] | None = None) -> Report:
-    report = Report(pipeline="rules-only")
+def evaluate(
+    fixtures: list[Fixture] | None = None,
+    *,
+    pipeline: str = "rules",
+    run: Callable[[Fixture], dict[str, Any]] | None = None,
+) -> Report:
+    """`run` 을 주면 그것으로, 아니면 `pipeline` 이름으로 고른다 (`rules` | `llm`)."""
+    if run is None:
+        if pipeline == "llm":
+            from app.service import gateway  # 지연 임포트 — 키 없는 환경에서 rules 만 돌리려고
+
+            gw = gateway()
+
+            def run(fx: Fixture) -> dict[str, Any]:
+                return run_llm(fx, gw)
+
+        else:
+            run = run_rules
+    report = Report(pipeline=pipeline)
 
     for fx in fixtures if fixtures is not None else load_all():
-        actual = run_rules(fx)
+        actual = run(fx)
         grades = {
             "dueGrade": grade_due_date(fx.expected, actual),
             "typeGrade": grade_type(fx.expected, actual),

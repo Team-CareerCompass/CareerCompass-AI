@@ -3,6 +3,7 @@
 엔드포인트는 셋뿐이다. 적합도 산출·문서 분류·텍스트 추출·유사 공고·추천은 BE #51 이 구현했다.
 
 이 서비스는 상태를 갖지 않는다 — 큐·캐시·재시도·SSE 는 전부 BE 가 한다.
+실제 처리는 `app/service.py` → `app/gateway.py`. 여기는 HTTP 모양만 다룬다.
 """
 
 import asyncio
@@ -10,7 +11,7 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, Header, Query
 
-from app import stubs
+from app import service
 from app.config import settings
 from app.schemas import CommentsRequest, DraftRequest, ParseRequest
 
@@ -44,7 +45,7 @@ async def parse_posting(
     파싱 실패도 200 이다. 4xx 로 내면 BE 가 서버 장애로 오인한다.
     """
     await _sleep(delay)
-    return _dump(stubs.parse_posting(req, x_prompt_version))
+    return _dump(await service.parse_posting(req, x_prompt_version))
 
 
 @router.post("/comments")
@@ -55,7 +56,7 @@ async def comments(
 ) -> dict[str, Any]:
     """§2 강점·약점 코멘트 — 점수는 BE 가 낸다. 받은 근거 안에서만 쓴다."""
     await _sleep(delay)
-    return _dump(stubs.comments(req, x_prompt_version))
+    return _dump(await service.comments(req, x_prompt_version))
 
 
 @router.post("/draft-answer")
@@ -66,7 +67,7 @@ async def draft_answer(
 ) -> dict[str, Any]:
     """§3 지원서 초안 — 항목 하나에 호출 하나. 재생성도 같은 경로다."""
     await _sleep(delay)
-    return _dump(stubs.draft_answer(req, x_prompt_version))
+    return _dump(await service.draft_answer(req, x_prompt_version))
 
 
 health_router = APIRouter()
@@ -74,5 +75,11 @@ health_router = APIRouter()
 
 @health_router.get("/health")
 async def health() -> dict[str, Any]:
-    """§4. 프로바이더를 실제로 호출하지는 않는다 (비용)."""
-    return {"status": "up", "version": settings.version, "stubMode": settings.stub_mode}
+    """§4. 프로바이더를 실제로 호출하지는 않는다 (비용). 키 존재만 본다."""
+    return {
+        "status": "up",
+        "version": settings.version,
+        "stubMode": settings.stub_mode,
+        "provider": "stub" if settings.stub_mode else f"hcx/{settings.hcx_model}",
+        "providerKeyPresent": bool(settings.hcx_api_key),
+    }
