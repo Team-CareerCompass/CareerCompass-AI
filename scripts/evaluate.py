@@ -3,6 +3,7 @@
     python scripts/evaluate.py                    # 규칙 전용, 표만
     python scripts/evaluate.py --save             # eval/ 에 결과 기록
     python scripts/evaluate.py --pipeline llm     # 게이트웨이(규칙+LLM). 모델을 부른다
+    python scripts/evaluate.py --shape flat       # BE 모양(한 줄)으로 접어서 — 실서버 회귀
     CC_LLM_CACHE=record python scripts/evaluate.py --pipeline llm --save   # 녹화하며
 
 **규칙이나 프롬프트를 고치면 이것을 돌린다.** 결과를 저장소에 남겨 두면
@@ -35,9 +36,15 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--save", action="store_true", help="eval/ 에 결과를 기록한다")
     parser.add_argument("--pipeline", choices=["rules", "llm"], default="rules")
+    parser.add_argument(
+        "--shape",
+        choices=["lines", "flat"],
+        default="lines",
+        help="flat = BE 가 보내는 모양(Jsoup text(), 줄바꿈 없음)으로 접어서 돌린다",
+    )
     args = parser.parse_args()
 
-    report = evaluate(pipeline=args.pipeline)
+    report = evaluate(pipeline=args.pipeline, shape=args.shape)
     if not report.rows:
         print("픽스처가 없다. fixtures/postings/ 를 채운다.")
         return 1

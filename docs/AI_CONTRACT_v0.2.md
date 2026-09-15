@@ -149,6 +149,7 @@ BE 는 이 둘만 보낸다. 아래는 **선택 필드**로 받되 없어도 동
 | `postingId` | 로그 상관관계용 |
 
 - `rawContent` 는 HTML 이 아니라 **텍스트**다. HTML→텍스트 변환과 보일러플레이트 제거는 BE 수집 단계의 몫이다.
+- **실제 모양은 Jsoup `body().text()` 다** (BE `CrawlService.fetchDetailText`) — 줄바꿈이 전부 공백으로 접히고 메뉴·푸터·게시판 목록까지 body 전체가 한 줄로 온다. 이쪽은 줄이 거의 없으면 불릿·번호·「라벨:」 앞에서 줄을 다시 세운다(`preprocess.resegment`). 평가는 `--shape flat` 으로 이 모양도 같이 잰다. 본문 영역만 추출하는 것(메뉴 제거)은 BE 몫으로 남아 있다.
 - 길이 상한 40,000자. 초과분은 잘라내고 `truncated: true` 로 알린다.
 
 ### 1.2 성공 응답
