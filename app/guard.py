@@ -118,6 +118,7 @@ def safe_draft(
     빤하다 — 사용자가 고쳐 쓰라고 에디터에 올리는 출발점이지 완성본이 아니다.
     """
     casual = tone == "casual"
+    confident = tone == "confident"
     if posting_title:
         head = f"{posting_title}에 지원해요." if casual else f"{posting_title}에 지원합니다."
     else:
@@ -128,10 +129,11 @@ def safe_draft(
         )
     suffix = "경험이 있어요." if casual else "경험이 있습니다."
     body = [f"{s.strip().rstrip('.')} {suffix}" for s in experiences[:3] if s.strip()]
-    tail = (
-        "이 경험을 바탕으로 맡은 일을 성실히 해내고 싶어요."
-        if casual
-        else "이 경험을 바탕으로 맡은 역할을 성실히 수행하겠습니다."
-    )
+    if casual:
+        tail = "이 경험을 바탕으로 맡은 일을 성실히 해내고 싶어요."
+    elif confident:
+        tail = "이 경험으로 맡은 역할을 해낼 수 있습니다."
+    else:
+        tail = "이 경험을 바탕으로 맡은 역할을 성실히 수행하겠습니다."
     draft = " ".join([head, *body, tail])
     return trim_to_limit(draft, limit) if limit else draft

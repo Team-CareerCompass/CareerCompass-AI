@@ -67,6 +67,18 @@ LLM_BODY_CHARS = 16_000
 """LLM 에 넣는 본문 상한. 계약의 40,000 은 받는 상한이고, 이건 비용 상한이다."""
 DEFAULT_DRAFT_CHARS = 600
 
+PAST_EXCERPT_PREFIX = "과거 자소서 발췌:"
+"""BE 가 experienceSummaries 끝에 붙이는 항목의 접두어 (`DraftContextBuilder.pastExcerpt`)."""
+
+TONE_RULES = {
+    "formal": "격식 있는 문체. 「~합니다」체. 지원서에 바로 쓸 수 있는 정중한 어조",
+    "casual": "친근한 문체. 「~해요」체. 딱딱한 격식 표현을 피한다",
+    # BE `ApplicationService.TONES` 는 셋이다 — FE 는 둘만 보내지만 API 로는 올 수 있다
+    "confident": "자신감 있는 문체. 「~합니다」체이되 단정적으로 — 「~할 수 있습니다」"
+    "「~해냈습니다」. 겸손한 완곡 표현(「부족하지만」「감히」)은 쓰지 않는다. "
+    "사실은 경험 요약 그대로",
+}
+
 _T = TypeVar("_T", bound=BaseModel)
 
 
@@ -343,16 +355,27 @@ class Gateway:
     async def draft_answer(self, req: DraftRequest, prompt_version: str = "v1") -> DraftResult:
         limit = req.max_chars if req.max_chars > 0 else 0
         length_rule = f"{limit}자 이내" if limit else "400~600자"
-        tone_rule = (
-            "친근한 문체. 「~해요」체. 딱딱한 격식 표현을 피한다"
-            if req.tone == "casual"
-            else "격식 있는 문체. 「~합니다」체. 지원서에 바로 쓸 수 있는 정중한 어조"
-        )
-        experiences = "\n".join(f"[{i}] {s}" for i, s in enumerate(req.experience_summaries))
+        tone_rule = TONE_RULES.get(req.tone, TONE_RULES["formal"])
+        # BE `DraftContextBuilder.summariesFor` 는 경험 카드 최대 3개 뒤에 「과거 자소서 발췌: …」를
+        # 붙인다 (BE #51). 경험이 아니라 **문체 참고**다 — 사실 근거로도, 안전 초안의 「경험」으로도
+        # 쓰지 않는다. 인덱스는 원래 배열 기준으로 유지한다 (BE 가 usedIndexes 를 그 배열로 읽는다).
+        cards = [
+            (i, x)
+            for i, x in enumerate(req.experience_summaries)
+            if not x.startswith(PAST_EXCERPT_PREFIX)
+        ]
+        excerpts = [x for x in req.experience_summaries if x.startswith(PAST_EXCERPT_PREFIX)]
+        experiences = "\n".join(f"[{i}] {x}" for i, x in cards)
         if not experiences:
             experiences = (
                 "(없음 — 경험 요약이 비어 있다. "
                 "질문에 대한 일반적 태도만 쓰고 사실은 만들지 않는다)"
+            )
+        if excerpts:
+            experiences += (
+                "\n\n(아래는 지원자가 예전에 쓴 자소서 일부다. 문체만 참고하고, "
+                "거기 적힌 사실을 이 답에 옮기지 않는다)\n"
+                + "\n".join(x.removeprefix(PAST_EXCERPT_PREFIX).strip() for x in excerpts)
             )
 
         prompt = load_prompt("draft_answer")
@@ -366,7 +389,7 @@ class Gateway:
         )
         # HCX 토큰 ≈ 한국어 1자 안팎. 상한의 두 배를 준다 — 문장 중간에서 끊기지 않게.
         max_tokens = max(400, (limit or DEFAULT_DRAFT_CHARS) * 2)
-        sources = [*req.experience_summaries, req.posting_title, req.question]
+        sources = [x for _, x in cards] + [req.posting_title, req.question]
         fallback = False
         try:
             llm, completions = await self._complete_json(
@@ -433,19 +456,20 @@ class Gateway:
             answer = safe_draft(
                 req.question,
                 req.posting_title,
-                req.experience_summaries,
+                [x for _, x in cards],
                 tone=req.tone,
                 limit=limit,
             )
-            used_raw = list(range(min(3, len(req.experience_summaries))))
+            used_raw = [i for i, _ in cards[:3]]
             unverified, fallback = [], True
 
         answer, pii_hits = scrub_pii(answer)
         if pii_hits:
             logger.warning("초안 출력에서 개인정보 모양 %d건 제거", pii_hits)
 
-        n = len(req.experience_summaries)
-        used = sorted({i for i in used_raw if 0 <= i < n})
+        # 발췌 항목의 인덱스는 「인용한 경험」이 아니다
+        valid = {i for i, _ in cards}
+        used = sorted(set(used_raw) & valid)
         return DraftResult(
             answer=answer,
             char_count=len(answer),

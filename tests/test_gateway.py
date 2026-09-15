@@ -688,3 +688,48 @@ def test_scrub_pii_masks_email_phone_rrn() -> None:
 
     out, n = scrub_pii("문의 a@b.com, 010-1234-5678, 900101-1234567 로")
     assert n == 3 and "a@b.com" not in out and "1234567" not in out
+
+
+# --------------------------------------------------------------------------
+# BE #51 대조에서 나온 것 — tone 셋 · 과거 자소서 발췌
+# --------------------------------------------------------------------------
+
+
+def test_draft_confident_tone_is_a_third_tone_not_formal() -> None:
+    provider = FakeProvider(_j(answer="Spring 백엔드를 해냈습니다."))
+    _run(Gateway(provider).draft_answer(_draft_req().model_copy(update={"tone": "confident"})))
+    assert "자신감" in provider.calls[0]["user"]
+
+
+def test_draft_unknown_tone_falls_back_to_formal() -> None:
+    provider = FakeProvider(_j(answer="Spring 백엔드를 맡았습니다."))
+    _run(Gateway(provider).draft_answer(_draft_req().model_copy(update={"tone": "weird"})))
+    assert "~합니다" in provider.calls[0]["user"]
+
+
+def test_draft_past_excerpt_is_style_reference_not_experience() -> None:
+    """BE 가 붙이는 「과거 자소서 발췌: …」는 경험 카드가 아니다."""
+    req = _draft_req().model_copy(
+        update={
+            "experience_summaries": [
+                "CareerCompass — Spring 백엔드, 공고 분석 서비스",
+                "과거 자소서 발췌: 2019년 KAIST 캠프에서 처음 코딩을 배웠습니다",
+            ]
+        }
+    )
+    # 모델이 발췌의 사실(KAIST)을 옮겨 쓰면 근거 밖이다 → 문장 제거 → 짧아져 안전 초안
+    lie = "Spring 백엔드를 맡았습니다. KAIST 캠프가 제 꿈의 시작이었습니다."
+    provider = FakeProvider(_j(answer=lie, usedIndexes=[0, 1]), _j(answer=lie, usedIndexes=[0, 1]))
+    res = _run(Gateway(provider).draft_answer(req))
+    user = provider.calls[0]["user"]
+    assert "[1]" not in user and "문체만 참고" in user  # 경험 번호가 아니라 참고 블록으로
+    assert res.fact_check is not None and res.fact_check.fallback
+    assert "KAIST" not in res.answer  # 안전 초안도 발췌를 「경험」으로 쓰지 않는다
+    assert res.used_indexes == [0]
+
+
+def test_safe_draft_has_confident_variant() -> None:
+    from app.guard import safe_draft
+
+    d = safe_draft("q", "t", ["경험 A"], tone="confident")
+    assert "해낼 수 있습니다" in d and "성실히 수행" not in d

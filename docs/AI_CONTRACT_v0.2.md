@@ -99,6 +99,18 @@ BE 의 `callWithRetry` 는 **429 와 5xx 만 재시도**하고, 그 밖의 오�
 
 BE 는 `totalTokens` 만 읽는다. 나머지는 이쪽의 비용 집계(#28)용이고 BE 가 무시해도 무해하다.
 
+### BE 쪽 설정 — 어디에도 안 적혀 있다
+
+BE #51 의 `application*.yml` 에는 `app.ai.*` 가 **없다.** `HttpLlmGateway` 는 `@ConditionalOnProperty("app.ai.base-url")` 라 **환경변수 `APP_AI_BASE_URL` 을 주어야 켜진다.** 안 주면 `HeuristicLlmGateway` 가 조용히 돈다 — 실서버에서 AI 가 안 붙은 채로 점수가 나오는 것이 이 때문일 수 있다.
+
+| 환경변수 | 기본 (`AiProperties`) |
+| --- | --- |
+| `APP_AI_BASE_URL` | 없음 → 휴리스틱 |
+| `APP_AI_TIMEOUT` | `20s` |
+| `APP_AI_MAX_RETRIES` | `2` |
+| `APP_AI_PROMPT_VERSION` | `v1` — 헤더로 오고 BE 파싱 캐시 키에 들어간다. 이쪽 프롬프트를 v2 로 올려도 BE 가 이 값을 안 바꾸면 BE 인메모리 캐시는 안 지워진다(재시작 전까지) |
+| `APP_AI_DAILY_CALL_BUDGET` | `2000` 회 |
+
 ### 타임아웃
 
 BE 의 기본 읽기 타임아웃이 **20초**(`app.ai.timeout`)이고 재시도는 2회다. 이 서비스는 그 안에 반드시 응답한다 — 실패 응답이라도.
@@ -164,7 +176,7 @@ BE 의 `ParsedPosting` 레코드와 필드 이름이 1:1 이다. **자격 조건
 
 - `type` — `recruit` / `scholarship` / `contest` / `activity` / `other`. **재분류에 실패하면 `null`** 이고, 그러면 BE 가 게시판 등록 시 지정한 유형을 유지한다.
 - `keywords` — 최대 10개. **3개 미만이면 성공 응답이 아니라 §1.3 이다.** BE 도 3개 미만이면 실패로 다시 판정하므로 여기서 먼저 거른다.
-- `dueDate` — `YYYY-MM-DD`. **못 읽으면 `null`.** 「상시 모집」도 `null` 이다. 추측해서 채우지 않는다(#8).
+- `dueDate` — `YYYY-MM-DD`. **못 읽으면 `null`.** 「상시 모집」도 `null` 이다. 추측해서 채우지 않는다(#8). BE 는 `LocalDate.parse` 를 재시도 밖에서 부른다 — ISO 가 아니면 BE 가 500 이다. 이쪽은 `date.isoformat()` 으로만 낸다.
 - `dueDateRaw` — 원문 표현. BE 는 읽지 않지만 평가셋에서 사람이 검증할 때 쓴다.
 - `formQuestions[].maxChars` — 못 찾으면 `null`. 양식이 없으면 배열이 비어 있다. **「없음」과 「못 찾음」을 가른다**(#10).
 
@@ -270,8 +282,9 @@ BE 는 `reason` 을 사람이 읽는 문장으로 쓴다(`ParsingFailedException
 ```
 
 - **`maxChars` 가 `0` 이면 제한 없음이다.** BE 가 `null` 을 `0` 으로 바꿔 보낸다. 그때는 400~600자로 만든다.
-- `tone` — `formal` / `casual`. **문체만 달라지고 사실은 같아야 한다**(#18).
-- `experienceSummaries` — **매칭도 순으로 정렬되어 온다.** 우선순위 규칙은 BE 가 적용했다. 이쪽은 앞에서부터 쓴다.
+- `tone` — `formal` / `casual` / **`confident`**. BE `ApplicationService.TONES` 가 셋이다(FE 는 둘만 보낸다). 모르는 값은 `formal` 로 읽는다. **문체만 달라지고 사실은 같아야 한다**(#18).
+- `experienceSummaries` — **매칭도 순으로 정렬되어 온다.** 우선순위 규칙은 BE 가 적용했다. 이쪽은 앞에서부터 쓴다. 각 항목은 BE `DraftContextBuilder.cardText` 가 만든 「제목 summary role company …」 한 줄이다.
+- **마지막 항목이 `과거 자소서 발췌: …`(120자)일 수 있다** — BE `pastExcerpt` 가 질문 카테고리와 같은 과거 자소서 항목을 붙인다. 경험이 아니라 **문체 참고**다. 이쪽은 이 접두어를 보고 분리해서 사실 근거·안전 초안에서 뺀다. `usedIndexes` 는 원래 배열 인덱스 그대로다.
 - **이름·연락처는 이미 마스킹되어 온다**(BE `PrivacyMasker`). 이쪽에서 다시 지우지 않는다.
 
 ### 3.2 응답
