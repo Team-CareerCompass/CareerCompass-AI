@@ -43,10 +43,12 @@ class Settings(BaseSettings):
 
     # ---- 비용 상한 (#31) — 개발 중 실수 한 번이 청구서로 오지 않게 ---------------
 
-    budget_daily_krw: float = 100.0
-    """하루 상한(원). 넘으면 모델을 부르지 않고 503. DASH-002 파싱 약 250건."""
+    budget_daily_krw: float = 250.0
+    """하루 상한(원). 넘으면 모델을 부르지 않고 503. DASH-002 파싱 ≈600건, HCX-005 ≈120건.
+    100원은 005 를 섞어 평가셋 한 바퀴(60원)를 두 번 돌리면 끝이라 250 으로 올렸다 (09-15)."""
 
-    budget_monthly_krw: float = 1000.0
+    budget_monthly_krw: float = 5000.0
+    """한 달 상한. 일 250원 x 20일. 운영에서는 둘 다 올린다 — `docs/COST.md` 「상한」."""
     budget_ledger: Path = Path(".cache/budget.json")
 
     # ---- 리플레이 캐시 (#35) ---------------------------------------------------
