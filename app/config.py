@@ -9,8 +9,12 @@ class Settings(BaseSettings):
 
     version: str = "0.2.0"
 
-    stub_mode: bool = True
-    """True 면 모델을 부르지 않고 계약대로의 더미 응답을 낸다 (`app/stubs.py`)."""
+    stub_mode: bool = False
+    """True 면 모델을 부르지 않고 계약대로의 더미 응답을 낸다 (`app/stubs.py`).
+
+    기본은 **실호출**이다 — 09-15 까지 True 였는데, BE 가 서버를 붙여도 env 를 안 바꾸면 모든 공고에
+    Spring/Kotlin 더미가 가는 함정이었다. 키가 없으면 `service` 가 스텁으로 내려가며 크게 로그한다.
+    """
 
     require_internal_token: bool = False
     """BE 는 인증 헤더를 보내지 않는다 (계약 v0.2). 운영에서는 네트워크 경계로 막는다 (#31)."""
