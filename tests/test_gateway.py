@@ -489,13 +489,14 @@ def test_trim_to_limit_prefers_sentence_end() -> None:
 # --------------------------------------------------------------------------
 
 
-def test_router_uses_gateway_when_stub_mode_off(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_router_uses_gateway_when_stub_mode_off(
+    monkeypatch: pytest.MonkeyPatch, real_gateway: None
+) -> None:
     from fastapi.testclient import TestClient
 
     from app.main import app
 
     provider = FakeProvider(PARSE_OK)
-    monkeypatch.setattr(service.settings, "stub_mode", False)
     monkeypatch.setattr(service, "gateway", lambda *_: Gateway(provider))
 
     res = TestClient(app).post(
@@ -512,13 +513,14 @@ def test_router_uses_gateway_when_stub_mode_off(monkeypatch: pytest.MonkeyPatch)
     assert provider.calls
 
 
-def test_router_maps_provider_failure_to_503(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_router_maps_provider_failure_to_503(
+    monkeypatch: pytest.MonkeyPatch, real_gateway: None
+) -> None:
     from fastapi.testclient import TestClient
 
     from app.main import app
 
     provider = FakeProvider(TransientError("x"), TransientError("y"))
-    monkeypatch.setattr(service.settings, "stub_mode", False)
     monkeypatch.setattr(service, "gateway", lambda *_: Gateway(provider))
 
     res = TestClient(app).post(
@@ -733,3 +735,15 @@ def test_safe_draft_has_confident_variant() -> None:
 
     d = safe_draft("q", "t", ["경험 A"], tone="confident")
     assert "해낼 수 있습니다" in d and "성실히 수행" not in d
+
+
+def test_router_falls_back_to_stub_without_api_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    """실호출 모드인데 키가 없으면 401 대신 스텁 — /health 가 그 사실을 드러낸다."""
+    from fastapi.testclient import TestClient
+
+    from app.main import app
+
+    monkeypatch.setattr(service.settings, "stub_mode", False)
+    monkeypatch.setattr(service.settings, "hcx_api_key", "")
+    health = TestClient(app).get("/health").json()
+    assert health["stubMode"] is True and health["providerKeyPresent"] is False
