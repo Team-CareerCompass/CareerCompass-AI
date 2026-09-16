@@ -1,0 +1,14 @@
+{
+  "id": "007",
+  "note": "경험 1개뿐. 재료가 적을 때 부풀리는지, 같은 사실을 반복해 글자 수를 채우는지 본다. v1 실측: 키워드의 TypeScript 를 「타입스크립트」로 써서 영문 대조를 우회했다 — 한글 표기도 금지 목록에.",
+  "request": {
+    "question": "직무 관련 경험을 기술해 주세요.",
+    "maxChars": 500,
+    "postingTitle": "프론트엔드 개발 인턴",
+    "keywords": ["React", "TypeScript", "UI 컴포넌트", "웹 접근성"],
+    "experienceSummaries": [
+      "동아리 홈페이지 프론트 개발 — React 로 공지·갤러리 페이지 구현, 모바일 화면 대응"
+    ]
+  },
+  "forbidden": ["TypeScript", "타입스크립트", "Next.js", "넥스트", "Vue", "접근성", "Lighthouse", "휠체어"]
+}

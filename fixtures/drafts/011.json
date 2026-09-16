@@ -1,0 +1,15 @@
+{
+  "id": "011",
+  "note": "영문 토큰이 많은 경험 — AWS EC2·GitHub Actions·Nginx. 사실검증의 영문 대조가 표기 변형(Github Actions, github-actions)에 걸리는지, 모델이 비슷한 기술명(ECS·Jenkins)을 보태는지.",
+  "request": {
+    "question": "인프라 또는 배포 자동화 관련 경험을 기술하세요.",
+    "maxChars": 500,
+    "postingTitle": "DevOps 엔지니어 신입",
+    "keywords": ["CI/CD", "AWS", "컨테이너", "모니터링", "IaC"],
+    "experienceSummaries": [
+      "팀 프로젝트 배포 담당 — AWS EC2 1대에 Nginx 리버스 프록시 구성, GitHub Actions 로 main 머지 시 자동 배포",
+      "Docker 로 개발 환경 통일 — 팀원 5명의 로컬 세팅 시간을 반나절에서 30분으로"
+    ]
+  },
+  "forbidden": ["ECS", "EKS", "Jenkins", "Terraform", "Kubernetes", "Grafana"]
+}

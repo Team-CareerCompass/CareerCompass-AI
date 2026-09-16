@@ -359,6 +359,71 @@ def test_draft_casual_tone_changes_prompt_only() -> None:
     assert "~합니다" in provider.calls[1]["user"]
 
 
+def test_draft_casual_tone_is_measured_and_retried_once() -> None:
+    """v1 실측: 「~해요」를 부탁해도 합니다체로 온다. 어미 비율 실측 → 미달이면 1회 재요청 (#18)."""
+    formal = "Spring 백엔드를 맡았습니다. 공고 분석 서비스를 만들었습니다."
+    casual = "Spring 백엔드를 맡았어요. 공고 분석 서비스를 만들었죠."
+    provider = FakeProvider(_j(answer=formal), _j(answer=casual))
+    res = _run(Gateway(provider).draft_answer(_draft_req().model_copy(update={"tone": "casual"})))
+    assert res.answer == casual
+    assert len(provider.calls) == 2
+    assert "문장 2개 중 0개만 「~해요」체" in provider.calls[1]["user"]
+
+
+def test_draft_tone_retry_that_does_not_improve_keeps_the_first() -> None:
+    formal = "Spring 백엔드를 맡았습니다. 공고 분석 서비스를 만들었습니다."
+    provider = FakeProvider(_j(answer=formal), _j(answer=formal))
+    res = _run(Gateway(provider).draft_answer(_draft_req().model_copy(update={"tone": "casual"})))
+    assert (
+        res.answer == formal
+    )  # 둘 다 어겼으면 첫 답. 503 도 fallback 도 아니다 — 문체는 사실이 아니다
+    assert res.fact_check is not None and not res.fact_check.fallback
+
+
+def test_draft_formal_answer_is_not_retried_for_tone() -> None:
+    formal = "Spring 백엔드를 맡았습니다. 공고 분석 서비스를 만들었습니다."
+    provider = FakeProvider(_j(answer=formal))
+    _run(Gateway(provider).draft_answer(_draft_req()))
+    assert len(provider.calls) == 1
+
+
+def test_draft_length_rule_has_a_floor_and_a_sentence_count() -> None:
+    """「500자 이내」만 주면 355자를 낸다(v1 실측) — 하한 2/3 와 문장 수를 같이 준다 (#16).
+    하한은 부탁이지 강제가 아니다 — 재요청은 효과가 없어 뺐다.
+    """
+    sentence = "Spring 백엔드를 맡았습니다. "  # 17자
+    provider = FakeProvider(_j(answer=sentence * 40), _j(answer=sentence * 30))
+    gw = Gateway(provider)
+    _run(gw.draft_answer(_draft_req(max_chars=900)))
+    _run(gw.draft_answer(_draft_req(max_chars=0)))
+    assert len(provider.calls) == 2
+    assert "600자 이상 900자 이하 (공백 포함) — 문장 11개 이상" in provider.calls[0]["user"]
+    assert "400자 이상 600자 이하 (공백 포함) — 문장 7개 이상" in provider.calls[1]["user"]
+
+
+def test_draft_without_experiences_does_not_call_the_model() -> None:
+    """근거가 0 이면 검증할 것도 0 — v2 실측(003)에서 모델은 전공·연구 주제를 지어냈다 (#16)."""
+    provider = FakeProvider()  # 대본 없음 — 부르면 AssertionError
+    req = _draft_req(max_chars=300).model_copy(update={"experience_summaries": []})
+    res = _run(Gateway(provider).draft_answer(req))
+    assert provider.calls == []
+    assert res.fact_check is not None and res.fact_check.fallback and res.fact_check.passed
+    assert "경험 카드" in res.answer and "카카오 인턴십" in res.answer
+    assert res.used_indexes == []
+    assert res.usage is not None and res.usage.total_tokens == 0
+
+
+def test_draft_only_past_excerpt_counts_as_no_experience() -> None:
+    """발췌는 경험이 아니다 — 발췌만 있으면 경험 0개다."""
+    provider = FakeProvider()
+    req = _draft_req().model_copy(
+        update={"experience_summaries": ["과거 자소서 발췌: 저는 끝까지 확인하는 사람입니다."]}
+    )
+    res = _run(Gateway(provider).draft_answer(req))
+    assert provider.calls == []
+    assert "끝까지 확인" not in res.answer
+
+
 def test_draft_empty_answer_becomes_safe_fallback() -> None:
     """빈 답이면 503 대신 입력 문자열만으로 만든 초안 — BE 는 빈 answer 를 장애로 본다."""
     provider = FakeProvider(_j(answer="   "), _j(answer="   "))
@@ -561,7 +626,8 @@ def test_draft_retry_that_fixes_the_lie_is_accepted() -> None:
 
 def test_draft_output_pii_is_scrubbed() -> None:
     leak = "Spring 백엔드 경험이 있습니다. 연락은 010-1234-5678 로 주세요."
-    provider = FakeProvider(_j(answer=leak), _j(answer=leak))
+    # 「~주세요」는 격식체 어미가 아니라 톤 재요청도 한 번 돈다 — 대본 셋
+    provider = FakeProvider(_j(answer=leak), _j(answer=leak), _j(answer=leak))
     res = _run(Gateway(provider).draft_answer(_draft_req()))
     assert "010-1234-5678" not in res.answer  # 사실검증(수치)에 걸려 문장이 빠지거나, 스크럽된다
 
