@@ -18,7 +18,7 @@ services:
       - path: .env
         required: false  # 없으면 스텁 모드로 뜬다
     environment:
-      CC_STUB_MODE: ${CC_STUB_MODE:-true}
+      CC_STUB_MODE: ${CC_STUB_MODE:-false}  # .env 에 키가 없으면 어차피 스텁으로 내려간다
     volumes:
       # 예산 장부(.cache/budget.json)와 리플레이 캐시가 컨테이너 재시작에도 남게
       - ai-cache:/srv/.cache

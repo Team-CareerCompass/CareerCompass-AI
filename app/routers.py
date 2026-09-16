@@ -76,13 +76,14 @@ health_router = APIRouter()
 @health_router.get("/health")
 async def health() -> dict[str, Any]:
     """§4. 프로바이더를 실제로 호출하지는 않는다 (비용). 키 존재만 본다."""
+    stub = service.use_stub()
     body: dict[str, Any] = {
         "status": "up",
         "version": settings.version,
-        "stubMode": settings.stub_mode,
-        "provider": "stub" if settings.stub_mode else f"hcx/{settings.hcx_model}",
+        "stubMode": stub,
+        "provider": "stub" if stub else f"hcx/{settings.hcx_model}",
         "providerKeyPresent": bool(settings.hcx_api_key),
     }
-    if not settings.stub_mode:
+    if not stub:
         body["budget"] = service.budget().status().as_dict()
     return body

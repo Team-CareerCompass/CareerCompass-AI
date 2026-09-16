@@ -18,6 +18,9 @@ MAX_CHARS = 40_000
 MIN_MEANINGFUL_CHARS = 200
 """계약 §1.4. 이보다 짧으면 파싱을 시도하지 않는다."""
 
+NL = "\n"
+PARA = "\n\n"
+
 _CONTROL = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
 _SPACES = re.compile("[ \t\u00a0\u3000]+")  # NBSP·전각 공백 — 웹 복사본에 흔하다
 _BLANK_LINES = re.compile(r"\n{3,}")
@@ -59,10 +62,46 @@ class Preprocessed:
     """마스킹한 원본 값들. 로그에 남기지 않는다 — 개수 확인용이다."""
     injections: int = 0
     """지시문으로 의심돼 통째로 뺀 문단 수 (#29). 0 이 아니면 로그에 남긴다."""
+    resegmented: bool = False
+    """줄바꿈이 거의 없어 다시 분절했다 — BE 크롤러가 Jsoup `body().text()` 로 보낸 모양."""
 
     @property
     def too_short(self) -> bool:
         return len(self.text.strip()) < MIN_MEANINGFUL_CHARS
+
+
+# BE `CrawlService.fetchDetailText` 는 Jsoup `body().text()` 를 보낸다 — **줄바꿈이 전부 공백**이다.
+# 규칙(줄 시작 번호 = 문항, 라벨↔값 블록 = 마감일)과 보일러플레이트 제거는 줄을 전제하므로,
+# 줄이 거의 없으면 불릿·번호·라벨 앞에서 줄을 다시 세운다. 실측: 한 줄 텍스트에서 마감일 17→15.
+_FLAT_CHARS_PER_NEWLINE = 300
+_LABEL_HEAD = (
+    "모집|지원|접수|신청|제출|선발|활동|우대|자격|혜택|문의|시상|심사|전형|채용|근무|급여|지역|학력|경력|"
+    "마감|시작|결과|발표|기간|대상|인원|방법|내용|서류|일정|절차|요건|조건|사항|개요|주제|주최|주관|후원"
+)
+_SEGMENT_BEFORE = re.compile(
+    # 기호 불릿·대괄호 라벨은 앞에 공백이 없어도 자른다 — 「확인[현대자동차]」「혜택✔ 활동비」
+    r"\s*(?="
+    r"[▶■□●○◆◇▪※☞➤►✅✔📌📅📆🎬🙌💬📥]"  # 기호 불릿
+    r"|[①-⑳]"
+    r"|\[[^\]]{1,12}\]"  # [수행업무] [우대사항] [모집기간]
+    r")"
+    r"|\s+(?="
+    r"(?:\d{1,2}|[가-하]|[ⅠⅡⅢⅣⅤ]|[IVX]{1,3})[.)]\s"  # 1. 가. ①
+    r"|[-•*·]\s"
+    r")"
+    # 「모집기간:」「우대 사항 :」 앞. 단, 「접수 기간:」의 단어 사이 공백은 아니다 —
+    # 앞 단어가 라벨 머리면 그 공백은 라벨 안이다 (021 에서 「접수/기간:」으로 깨졌다)
+    r"|(?<!" + _LABEL_HEAD.replace("|", ")(?<!") + r")"
+    r"\s+(?=(?:" + _LABEL_HEAD + r")[가-힣]{0,4}\s?" + _COLON + r")"
+)
+
+
+def resegment(text: str) -> tuple[str, bool]:
+    """줄바꿈이 거의 없는 텍스트에 줄을 다시 세운다. 줄이 충분하면 손대지 않는다."""
+    if text.count("\n") * _FLAT_CHARS_PER_NEWLINE >= len(text):
+        return text, False
+    out = _SEGMENT_BEFORE.sub("\n", text)
+    return out, True
 
 
 def normalize(text: str) -> str:
@@ -119,16 +158,45 @@ _INJECTION = re.compile(
 )
 
 
+_SENTENCE_SPLIT = re.compile(r"(?<=[.!?。])\s+")
+
+
 def strip_injections(text: str) -> tuple[str, int]:
-    """지시문이 든 문단을 통째로 뺀다. 뺀 문단 수를 같이 돌려준다."""
-    kept: list[str] = []
+    """지시문이 든 문단을 통째로 뺀다. 뺀 수를 같이 돌려준다.
+
+    문단이 하나뿐이면(한 줄로 접힌 입력) 문단을 빼면 공고 전체가 사라진다 — 그때는 **문장 단위**로,
+    지시 문장과 그 뒤 두 문장까지 뺀다. 지시가 여러 문장으로 이어지기 때문이다 (015).
+    줄 구조는 유지한다 — 재분절 결과가 날아가면 안 된다.
+    """
+    paras = text.split(PARA)
+    if len(paras) > 1:
+        kept = [para for para in paras if not _INJECTION.search(para)]
+        return PARA.join(kept), len(paras) - len(kept)
+
+    if not _INJECTION.search(text):
+        return text, 0
     removed = 0
-    for para in text.split("\n\n"):
-        if _INJECTION.search(para):
-            removed += 1
-            continue
-        kept.append(para)
-    return "\n\n".join(kept), removed
+    skip = 0
+    out_lines: list[str] = []
+    for line in text.split(NL):
+        kept_s: list[str] = []
+        skip = 0  # 줄이 있으면 지시문은 그 줄 안에 있다 — 다음 줄까지 지우지 않는다
+        for sentence in _SENTENCE_SPLIT.split(line):
+            if not sentence.strip():
+                continue
+            if skip:
+                skip -= 1
+                removed += 1
+                continue
+            if _INJECTION.search(sentence):
+                removed += 1
+                skip = 2
+                continue
+            kept_s.append(sentence)
+        joined = " ".join(kept_s)
+        # 「나.」처럼 번호만 남은 줄은 버린다 — 지시 문장이 그 번호 뒤에 있었다
+        out_lines.append("" if len(joined.strip()) <= 3 else joined)
+    return NL.join(x for x in out_lines if x.strip()), removed
 
 
 def truncate(text: str, limit: int = MAX_CHARS) -> tuple[str, bool]:
@@ -141,9 +209,17 @@ def truncate(text: str, limit: int = MAX_CHARS) -> tuple[str, bool]:
 
 
 def preprocess(raw: str, *, limit: int = MAX_CHARS) -> Preprocessed:
-    """정규화 → 보일러플레이트 제거 → 주입 문단 제거 → 연락처 마스킹 → 절단."""
-    text = strip_boilerplate(normalize(raw))
+    """정규화 → (줄이 없으면) 재분절 → 보일러플레이트 제거 → 주입 제거 → 연락처 마스킹 → 절단."""
+    text = normalize(raw)
+    text, resegmented = resegment(text)
+    text = strip_boilerplate(text)
     text, injections = strip_injections(text)
     text, masked = mask_contacts(text)
     text, truncated = truncate(text, limit)
-    return Preprocessed(text=text, truncated=truncated, masked=masked, injections=injections)
+    return Preprocessed(
+        text=text,
+        truncated=truncated,
+        masked=masked,
+        injections=injections,
+        resegmented=resegmented,
+    )

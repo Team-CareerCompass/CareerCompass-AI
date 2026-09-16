@@ -9,6 +9,7 @@
 
 from __future__ import annotations
 
+import logging
 from functools import cache
 
 from app import stubs
@@ -26,6 +27,31 @@ from app.schemas import (
     ParseRequest,
     ParseResult,
 )
+
+logger = logging.getLogger("careercompass.ai.service")
+
+
+_stub_warned = False
+
+
+def use_stub() -> bool:
+    """스텁 여부 — 명시적으로 켰거나, 키가 없어 실호출이 불가능하면.
+
+    키 없이 실호출 모드로 뜨면 첫 요청에서 401 이 되어 BE 가 LLM_UNAVAILABLE 을 본다. 그보다는
+    스텁으로라도 돌되 **시끄럽게** 알린다 — 로그(한 번)와 `/health.stubMode` 로.
+    캐시하지 않는다 — 테스트가 설정을 바꿔 가며 부른다.
+    """
+    global _stub_warned
+    stub = settings.stub_mode or not settings.hcx_api_key
+    if stub and not _stub_warned:
+        _stub_warned = True
+        if settings.stub_mode:
+            logger.warning("CC_STUB_MODE=true — 모델을 부르지 않고 더미 응답을 낸다")
+        else:
+            logger.error(
+                "CC_HCX_API_KEY 가 비어 있다 — 스텁으로 내려간다. 실서버라면 설정 누락이다"
+            )
+    return stub
 
 
 @cache
@@ -54,18 +80,18 @@ def gateway(function: str = "parse") -> Gateway:
 
 
 async def parse_posting(req: ParseRequest, prompt_version: str) -> ParseResult | ParseFailure:
-    if settings.stub_mode:
+    if use_stub():
         return stubs.parse_posting(req, prompt_version)
     return await gateway("parse").parse_posting(req, prompt_version)
 
 
 async def comments(req: CommentsRequest, prompt_version: str) -> CommentsResult:
-    if settings.stub_mode:
+    if use_stub():
         return stubs.comments(req, prompt_version)
     return await gateway("comments").comments(req, prompt_version)
 
 
 async def draft_answer(req: DraftRequest, prompt_version: str) -> DraftResult:
-    if settings.stub_mode:
+    if use_stub():
         return stubs.draft_answer(req, prompt_version)
     return await gateway("draft").draft_answer(req, prompt_version)

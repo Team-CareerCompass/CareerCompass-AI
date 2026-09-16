@@ -12,7 +12,7 @@
 
 ## 현재 상태
 
-**엔드포인트 셋이 실제 모델(HyperCLOVA X)을 부른다.** `CC_STUB_MODE=false` 면 `app/gateway.py` 가 전처리 → 규칙 → LLM → 스키마 검증 → 가드 순으로 돈다. 기본값은 여전히 스텁이다 — BE 통합 테스트가 제목 표식으로 시나리오를 고르기 때문이다.
+**엔드포인트 셋이 실제 모델(HyperCLOVA X)을 부른다.** `app/gateway.py` 가 전처리 → 규칙 → LLM → 스키마 검증 → 가드 순으로 돈다. 기본이 실호출이고(`CC_HCX_API_KEY` 필요), `CC_STUB_MODE=true` 면 더미 응답 — BE 통합 테스트가 제목 표식으로 시나리오를 고를 때 쓴다.
 
 ### 측정 결과 — 규칙 vs 규칙+LLM (2026-09-14, 픽스처 31건, HCX-DASH-002)
 
@@ -28,6 +28,8 @@
 | 지연 p50 | — | 2.0초 |
 
 표본을 13 → 31건으로 늘리자 규칙이 넷 깨졌고 전부 고쳤다 — 키-값 표 레이아웃(사람인)의 마감일, 「1.2~1.3 배수」를 1월 3일로, 1차/2차 접수기간, 등록일정·교과목 안내를 공고로. 이게 평가셋이 하는 일이다.
+
+**BE 가 실제로 보내는 모양은 한 줄이다** — Jsoup `body().text()`. 픽스처를 그 모양으로 접어서(`--shape flat`) 재면 마감일이 26→23 으로 떨어졌고, 원본 페이지 전체(메뉴·목록 포함)로는 17→15 였다. 전처리에 **재분절**(줄바꿈이 없으면 불릿·번호·「라벨:」 앞에서 줄 세우기)을 넣고 마감일 창을 다음 항목에서 끊게 해서 둘 다 100% 로 돌렸다. 회귀 테스트가 두 모양을 다 본다.
 
 `python scripts/evaluate.py --pipeline llm` 으로 재현한다. `CC_LLM_CACHE=record` 로 한 번 녹화하면 그 뒤는 공짜다.
 
@@ -105,7 +107,7 @@ curl localhost:8000/health
 
 또는 `docker compose up --build`. main 에 머지되면 CI 가 `ghcr.io/team-careercompass/careercompass-ai:latest` 를 올린다 — 운영 인스턴스는 빌드하지 않고 당겨 쓴다. 비루트 유저, 비밀은 전부 환경변수, 예산 장부·캐시는 `/srv/.cache` 볼륨.
 
-**실제 모델을 부르려면** `.env` 에 `CC_STUB_MODE=false` 와 `CC_HCX_API_KEY` 를 넣는다. 모델은 `CC_HCX_MODEL`(기본 `HCX-DASH-002`, 제일 싸다), 기능별로 `CC_HCX_MODEL_PARSE` 등으로 덮어쓴다. Bedrock 은 서울 리전 할당량이 풀리지 않아 어댑터를 넣지 않았다 — `app/providers/` 에 파일 하나 추가하면 된다.
+**기본이 실호출이다** — `.env` 에 `CC_HCX_API_KEY` 만 넣으면 된다. 키가 없으면 스텁으로 내려가되 로그에 ERROR 로 알린다. 스텁을 일부러 쓰려면 `CC_STUB_MODE=true`. 모델은 `CC_HCX_MODEL`(기본 `HCX-DASH-002`, 제일 싸다), 기능별로 `CC_HCX_MODEL_PARSE` 등으로 덮어쓴다. Bedrock 은 서울 리전 할당량이 풀리지 않아 어댑터를 넣지 않았다 — `app/providers/` 에 파일 하나 추가하면 된다.
 
 **비용 상한이 기본으로 걸려 있다** — 일 250원 · 월 5,000원 (`CC_BUDGET_*_KRW`). 넘으면 모델을 부르기 전에 503. [`docs/COST.md`](docs/COST.md) 「상한」.
 

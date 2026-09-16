@@ -11,6 +11,7 @@ BE 의 `HeuristicLlmGateway` 가 그 아래 기준선이다.
 """
 
 import asyncio
+import dataclasses
 from collections import Counter
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -20,6 +21,14 @@ from app import rules
 from app.fixtures import Fixture, load_all
 from app.preprocess import preprocess
 from app.schemas import Image, ParseFailure, ParseRequest
+
+
+def flatten(fx: Fixture) -> Fixture:
+    """BE 가 실제로 보내는 모양 — Jsoup `body().text()` 처럼 줄바꿈을 전부 공백으로 접는다.
+
+    픽스처는 줄이 살아 있는 텍스트라, 이걸로 안 재면 실서버에서만 깨지는 것을 놓친다.
+    """
+    return dataclasses.replace(fx, body=" ".join(fx.body.split()))
 
 
 def run_rules(fx: Fixture) -> dict[str, Any]:
@@ -45,6 +54,7 @@ def run_rules(fx: Fixture) -> dict[str, Any]:
         "truncated": pre.truncated,
         "maskedContacts": len(pre.masked),
         "injectionsStripped": pre.injections,
+        "resegmented": pre.resegmented,
         "imageOnly": fx.image_only,
     }
 
@@ -288,8 +298,12 @@ def evaluate(
     *,
     pipeline: str = "rules",
     run: Callable[[Fixture], dict[str, Any]] | None = None,
+    shape: str = "lines",
 ) -> Report:
-    """`run` 을 주면 그것으로, 아니면 `pipeline` 이름으로 고른다 (`rules` | `llm`)."""
+    """`run` 을 주면 그것으로, 아니면 `pipeline` 이름으로 고른다 (`rules` | `llm`).
+
+    `shape="flat"` 이면 픽스처를 BE 모양(한 줄)으로 접어서 돌린다.
+    """
     if run is None:
         if pipeline == "llm":
             from app.service import gateway  # 지연 임포트 — 키 없는 환경에서 rules 만 돌리려고
@@ -301,7 +315,7 @@ def evaluate(
 
         else:
             run = run_rules
-    report = Report(pipeline=pipeline)
+    report = Report(pipeline=pipeline if shape == "lines" else f"{pipeline}-{shape}")
     if pipeline == "llm":
         from app.config import settings
         from app.prompts import load_prompt
@@ -310,7 +324,7 @@ def evaluate(
         report.model = settings.hcx_model_parse or settings.hcx_model
 
     for fx in fixtures if fixtures is not None else load_all():
-        actual = run(fx)
+        actual = run(flatten(fx) if shape == "flat" else fx)
         grades = {
             "dueGrade": grade_due_date(fx.expected, actual),
             "typeGrade": grade_type(fx.expected, actual),

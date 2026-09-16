@@ -87,3 +87,29 @@ def test_rules_pipeline_extracts_no_keywords() -> None:
     report = evaluate()
     assert report.keyword_recall == 0.0
     assert report.keyword_forbidden == 0
+
+
+# --------------------------------------------------------------------------
+# BE 모양 — Jsoup body().text() 처럼 줄바꿈이 없는 입력에서도 무너지지 않는가
+# --------------------------------------------------------------------------
+
+
+def test_flat_shape_due_date_does_not_regress() -> None:
+    """실서버 입력은 한 줄이다. 픽스처(줄 있음)만 재면 실서버에서만 깨지는 것을 놓친다."""
+    report = evaluate(shape="flat")
+    assert report.hallucinated == 0
+    assert report.due_accuracy is not None and report.due_accuracy >= 0.9
+    assert report.posting_accuracy is not None and report.posting_accuracy >= 0.9
+
+
+def test_flat_shape_is_resegmented() -> None:
+    from app.evaluation import flatten
+    from app.preprocess import preprocess
+
+    for fx in load_all():
+        if len(fx.body) < 600:
+            continue
+        pre = preprocess(flatten(fx).body)
+        assert pre.resegmented, fx.id
+        # 사람인처럼 라벨에 콜론이 없는 페이지는 줄이 적게 선다 — 그래도 0 은 아니어야 한다
+        assert pre.text.count("\n") >= 1, fx.id
