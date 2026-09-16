@@ -1,0 +1,1796 @@
+{
+  "ranAt": "2026-09-16T102144Z",
+  "pipeline": "llm",
+  "promptVersion": "v2",
+  "model": "HCX-005",
+  "dueDate": {
+    "correct": 24,
+    "skip": 5,
+    "correct_null": 2
+  },
+  "type": {
+    "correct": 24,
+    "skip": 7
+  },
+  "formQuestions": {
+    "correct": 25,
+    "skip": 5,
+    "missed": 1
+  },
+  "posting": {
+    "correct": 28,
+    "skip": 3
+  },
+  "dueAccuracy": 1.0,
+  "typeAccuracy": 1.0,
+  "questionAccuracy": 0.9615384615384616,
+  "postingAccuracy": 1.0,
+  "keywords": {
+    "gold": 160,
+    "hit": 94,
+    "pred": 121,
+    "predHit": 87,
+    "forbidden": 1
+  },
+  "keywordRecall": 0.5875,
+  "keywordPrecision": 0.71900826446281,
+  "keywordForbidden": 1,
+  "preferences": {
+    "gold": 60,
+    "hit": 39,
+    "pred": 44,
+    "predHit": 36,
+    "forbidden": 0
+  },
+  "preferenceRecall": 0.65,
+  "preferencePrecision": 0.8181818181818182,
+  "rows": [
+    {
+      "id": "001",
+      "dueGrade": "correct",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "keywordGrade": {
+        "gold": 6,
+        "hit": 4,
+        "pred": 4,
+        "predHit": 4,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 0,
+        "hit": 0,
+        "pred": 0,
+        "predHit": 0,
+        "forbidden": 0
+      },
+      "dueDateRaw": "접수기한 : 2026년 9월 1일 (화) ~ 2026년 9월 15일(화)",
+      "yearInferred": false,
+      "dueReason": null,
+      "qualifications": {
+        "year": null,
+        "gpa": "학점 3.7/",
+        "major": null
+      },
+      "truncated": false,
+      "maskedContacts": 1,
+      "injectionsStripped": 0,
+      "imageOnly": false,
+      "dueDate": "2026-09-15",
+      "type": "scholarship",
+      "formQuestions": [],
+      "preferences": [],
+      "keywords": [
+        "월정김용복장학금",
+        "월정생활비장학금",
+        "등록금 전액지원",
+        "생활비 지원"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "usage": {
+        "provider": "hcx",
+        "model": "HCX-005",
+        "promptVersion": "v1",
+        "promptTokens": 1585,
+        "completionTokens": 66,
+        "totalTokens": 1651,
+        "latencyMs": 2715,
+        "costKrw": 2.3112
+      }
+    },
+    {
+      "id": "002",
+      "dueGrade": "correct",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "keywordGrade": {
+        "gold": 5,
+        "hit": 3,
+        "pred": 3,
+        "predHit": 3,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 0,
+        "hit": 0,
+        "pred": 0,
+        "predHit": 0,
+        "forbidden": 0
+      },
+      "dueDateRaw": "신청기간 및 방법\n - 기간 : 2026. 9. 15. (화) ~ 2026. 9. 21. (월)\n - 방법 : 금신장학재단 홈페이지(www.ke",
+      "yearInferred": false,
+      "dueReason": null,
+      "qualifications": {
+        "year": null,
+        "gpa": "학점이상 이수 및 성적 4.5만점",
+        "major": null
+      },
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "imageOnly": false,
+      "dueDate": "2026-09-21",
+      "type": "scholarship",
+      "formQuestions": [],
+      "preferences": [],
+      "keywords": [
+        "금신장학재단",
+        "금신사랑장학생",
+        "생활비"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "usage": {
+        "provider": "hcx",
+        "model": "HCX-005",
+        "promptVersion": "v1",
+        "promptTokens": 1465,
+        "completionTokens": 55,
+        "totalTokens": 1520,
+        "latencyMs": 2265,
+        "costKrw": 2.1063
+      }
+    },
+    {
+      "id": "003",
+      "dueGrade": "correct",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "keywordGrade": {
+        "gold": 4,
+        "hit": 3,
+        "pred": 3,
+        "predHit": 3,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 2,
+        "hit": 0,
+        "pred": 4,
+        "predHit": 0,
+        "forbidden": 0
+      },
+      "dueDateRaw": "신청기간: 2026. 9. 7.(월) 18:00 ~ 2026. 9. 18.(금) 09:00",
+      "yearInferred": false,
+      "dueReason": null,
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "truncated": false,
+      "maskedContacts": 1,
+      "injectionsStripped": 0,
+      "imageOnly": false,
+      "dueDate": "2026-09-18",
+      "type": "scholarship",
+      "formQuestions": [],
+      "preferences": [
+        "특정 분야의 재능 보유 학생",
+        "바른 인성과 봉사 정신 소유 학생",
+        "국가·사회 발전에 기여할 학생",
+        "타 장학금 미수혜 학생"
+      ],
+      "keywords": [
+        "미래인재육성재단",
+        "생활비성 장학금",
+        "2학년 1학기 진학 예정 학생"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "usage": {
+        "provider": "hcx",
+        "model": "HCX-005",
+        "promptVersion": "v1",
+        "promptTokens": 1611,
+        "completionTokens": 103,
+        "totalTokens": 1714,
+        "latencyMs": 5191,
+        "costKrw": 2.5288
+      }
+    },
+    {
+      "id": "004",
+      "dueGrade": "correct",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "keywordGrade": {
+        "gold": 9,
+        "hit": 3,
+        "pred": 5,
+        "predHit": 3,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 0,
+        "hit": 0,
+        "pred": 0,
+        "predHit": 0,
+        "forbidden": 0
+      },
+      "dueDateRaw": "모집기간]26.09.01(화) 9시 ~ 09.14(월) 17시까지 (KST)\n[지원대상]학/석사 학위를 기 취득하셨거나 '27년 2월 이내 졸업",
+      "yearInferred": false,
+      "dueReason": null,
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "imageOnly": false,
+      "dueDate": "2026-09-14",
+      "type": "recruit",
+      "formQuestions": [],
+      "preferences": [],
+      "keywords": [
+        "현대자동차",
+        "연구개발",
+        "R&D 기술경영",
+        "SW 디지털 엔지니어링",
+        "로보틱스 기술 및 사업 개발"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "usage": {
+        "provider": "hcx",
+        "model": "HCX-005",
+        "promptVersion": "v1",
+        "promptTokens": 1189,
+        "completionTokens": 68,
+        "totalTokens": 1257,
+        "latencyMs": 2347,
+        "costKrw": 1.8263
+      }
+    },
+    {
+      "id": "005",
+      "dueGrade": "skip",
+      "typeGrade": "skip",
+      "questionGrade": "skip",
+      "postingGrade": "skip",
+      "keywordGrade": null,
+      "preferenceGrade": null,
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": "not_found",
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "imageOnly": true,
+      "dueDate": null,
+      "type": null,
+      "formQuestions": [],
+      "preferences": [],
+      "keywords": [],
+      "likelyPosting": true,
+      "failReason": "IMAGE_ONLY",
+      "usage": {
+        "provider": "hcx",
+        "model": "HCX-005",
+        "promptVersion": "v1",
+        "promptTokens": 0,
+        "completionTokens": 0,
+        "totalTokens": 0,
+        "latencyMs": 0,
+        "costKrw": 0.0
+      }
+    },
+    {
+      "id": "006",
+      "dueGrade": "correct",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "keywordGrade": {
+        "gold": 7,
+        "hit": 2,
+        "pred": 8,
+        "predHit": 2,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 0,
+        "hit": 0,
+        "pred": 0,
+        "predHit": 0,
+        "forbidden": 0
+      },
+      "dueDateRaw": "접수기간\n- 2026. 8. 24(월) 12시~ 9. 21(월) 18시까지(※접수기한 엄수)",
+      "yearInferred": false,
+      "dueReason": null,
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "truncated": false,
+      "maskedContacts": 2,
+      "injectionsStripped": 0,
+      "imageOnly": false,
+      "dueDate": "2026-09-21",
+      "type": "contest",
+      "formQuestions": [],
+      "preferences": [],
+      "keywords": [
+        "K-조선 해커톤",
+        "산업통상부",
+        "한국산업기술진흥원",
+        "조선해양미래혁신인재양성센터사업",
+        "HD한국조선해양",
+        "한화오션",
+        "삼성중공업",
+        "AX 솔루션"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "usage": {
+        "provider": "hcx",
+        "model": "HCX-005",
+        "promptVersion": "v1",
+        "promptTokens": 1542,
+        "completionTokens": 95,
+        "totalTokens": 1637,
+        "latencyMs": 3021,
+        "costKrw": 2.4025
+      }
+    },
+    {
+      "id": "007",
+      "dueGrade": "correct_null",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "keywordGrade": {
+        "gold": 6,
+        "hit": 3,
+        "pred": 6,
+        "predHit": 3,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 0,
+        "hit": 0,
+        "pred": 0,
+        "predHit": 0,
+        "forbidden": 0
+      },
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": "not_found",
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "imageOnly": false,
+      "dueDate": null,
+      "type": "contest",
+      "formQuestions": [],
+      "preferences": [],
+      "keywords": [
+        "K-인공지능 제조데이터 분석 경진대회",
+        "인공지능(AI)",
+        "빅데이터",
+        "제조업",
+        "장비이상 탐지",
+        "품질 진단"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "usage": {
+        "provider": "hcx",
+        "model": "HCX-005",
+        "promptVersion": "v1",
+        "promptTokens": 1063,
+        "completionTokens": 77,
+        "totalTokens": 1140,
+        "latencyMs": 2549,
+        "costKrw": 1.7138
+      }
+    },
+    {
+      "id": "008",
+      "dueGrade": "correct",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "keywordGrade": {
+        "gold": 5,
+        "hit": 3,
+        "pred": 3,
+        "predHit": 3,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 0,
+        "hit": 0,
+        "pred": 0,
+        "predHit": 0,
+        "forbidden": 0
+      },
+      "dueDateRaw": "모집기간: 8/24(월) ~ 9/11(금)지원 링크(구글폼) 👉https://forms.gle/5jLKr1c7sMfKiL8ZA",
+      "yearInferred": true,
+      "dueReason": null,
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "imageOnly": false,
+      "dueDate": "2026-09-11",
+      "type": "activity",
+      "formQuestions": [],
+      "preferences": [],
+      "keywords": [
+        "대학생 서포터즈",
+        "LG 마이컵",
+        "SNS 콘텐츠 제작"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "usage": {
+        "provider": "hcx",
+        "model": "HCX-005",
+        "promptVersion": "v1",
+        "promptTokens": 970,
+        "completionTokens": 48,
+        "totalTokens": 1018,
+        "latencyMs": 1876,
+        "costKrw": 1.4525
+      }
+    },
+    {
+      "id": "009",
+      "dueGrade": "correct",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "keywordGrade": {
+        "gold": 10,
+        "hit": 6,
+        "pred": 10,
+        "predHit": 6,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 5,
+        "hit": 4,
+        "pred": 4,
+        "predHit": 4,
+        "forbidden": 0
+      },
+      "dueDateRaw": "접수기간 : 2026년 9월 1일(화)~2026년 9월 21일(월) 18:00\n* 접수방법 : 채용홈페이지 커리어두산(https://career",
+      "yearInferred": false,
+      "dueReason": null,
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": "이공계열"
+      },
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "imageOnly": false,
+      "dueDate": "2026-09-21",
+      "type": "recruit",
+      "formQuestions": [
+        {
+          "order": 1,
+          "question": "지원하는 회사와 분야(직무)에 대한 지원 동기를 자유롭게 기술하세요.",
+          "maxChars": 400
+        }
+      ],
+      "preferences": [
+        "화학공학 계열",
+        "중국어 비즈니스 회화 가능자",
+        "AI 관련 경험 보유 또는 교육 이수",
+        "산업보안, 국방/방산 관련 경험 보유 또는 교육 이수"
+      ],
+      "keywords": [
+        "(주)두산",
+        "두산에너빌리티",
+        "두산로보틱스",
+        "생산",
+        "품질관리",
+        "R&D",
+        "영업/마케팅",
+        "구매",
+        "AI 솔루션 개발",
+        "방산·산업보안"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "usage": {
+        "provider": "hcx",
+        "model": "HCX-005",
+        "promptVersion": "v1",
+        "promptTokens": 4342,
+        "completionTokens": 426,
+        "totalTokens": 4768,
+        "latencyMs": 10958,
+        "costKrw": 7.5575
+      }
+    },
+    {
+      "id": "010",
+      "dueGrade": "skip",
+      "typeGrade": "skip",
+      "questionGrade": "skip",
+      "postingGrade": "correct",
+      "keywordGrade": null,
+      "preferenceGrade": null,
+      "dueDateRaw": "신청기간: 2026. 9. 14.(월) 10:00 ~ 10. 11.(일) 23:59까지",
+      "yearInferred": false,
+      "dueReason": null,
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "truncated": false,
+      "maskedContacts": 2,
+      "injectionsStripped": 0,
+      "imageOnly": false,
+      "dueDate": null,
+      "type": null,
+      "formQuestions": [],
+      "preferences": [],
+      "keywords": [],
+      "likelyPosting": false,
+      "failReason": "NOT_A_POSTING",
+      "usage": {
+        "provider": "hcx",
+        "model": "HCX-005",
+        "promptVersion": "v1",
+        "promptTokens": 0,
+        "completionTokens": 0,
+        "totalTokens": 0,
+        "latencyMs": 0,
+        "costKrw": 0.0
+      }
+    },
+    {
+      "id": "011",
+      "dueGrade": "correct",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "keywordGrade": {
+        "gold": 5,
+        "hit": 4,
+        "pred": 5,
+        "predHit": 4,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 3,
+        "hit": 1,
+        "pred": 1,
+        "predHit": 1,
+        "forbidden": 0
+      },
+      "dueDateRaw": "모집 기간: 26.09.03(목) ~ 26.09.13(일)",
+      "yearInferred": false,
+      "dueReason": null,
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "truncated": false,
+      "maskedContacts": 1,
+      "injectionsStripped": 0,
+      "imageOnly": false,
+      "dueDate": "2026-09-13",
+      "type": "activity",
+      "formQuestions": [],
+      "preferences": [
+        "인스타그램, 틱톡 등 숏폼 채널"
+      ],
+      "keywords": [
+        "아모레퍼시픽",
+        "프리메라",
+        "숏폼 크리에이터",
+        "SNS",
+        "AI 툴"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "usage": {
+        "provider": "hcx",
+        "model": "HCX-005",
+        "promptVersion": "v1",
+        "promptTokens": 1127,
+        "completionTokens": 107,
+        "totalTokens": 1234,
+        "latencyMs": 3189,
+        "costKrw": 1.9438
+      }
+    },
+    {
+      "id": "013",
+      "dueGrade": "correct_null",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "keywordGrade": {
+        "gold": 8,
+        "hit": 6,
+        "pred": 7,
+        "predHit": 5,
+        "forbidden": 1
+      },
+      "preferenceGrade": {
+        "gold": 4,
+        "hit": 3,
+        "pred": 6,
+        "predHit": 6,
+        "forbidden": 0
+      },
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": "no_deadline",
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "imageOnly": false,
+      "dueDate": null,
+      "type": "recruit",
+      "formQuestions": [],
+      "preferences": [
+        "C/C++",
+        "C#(WPF)",
+        "Python",
+        "Java 활용 능력",
+        "딥러닝/AI 기반 통신 응용 프로젝트 개발 경험",
+        "분산처리 및 클라우드 환경 개발 경험"
+      ],
+      "keywords": [
+        "대한항공",
+        "항공우주",
+        "무인기 AI",
+        "전문인력",
+        "임무 수행 알고리즘",
+        "군집 운용 지능형 SW",
+        "데이터 기반 학습 모델"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "usage": {
+        "provider": "hcx",
+        "model": "HCX-005",
+        "promptVersion": "v1",
+        "promptTokens": 943,
+        "completionTokens": 136,
+        "totalTokens": 1079,
+        "latencyMs": 3771,
+        "costKrw": 1.8588
+      }
+    },
+    {
+      "id": "014",
+      "dueGrade": "skip",
+      "typeGrade": "skip",
+      "questionGrade": "skip",
+      "postingGrade": "correct",
+      "keywordGrade": null,
+      "preferenceGrade": null,
+      "dueDateRaw": "신청\n\n[8.5. ~ 8.6.]",
+      "yearInferred": true,
+      "dueReason": null,
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "imageOnly": false,
+      "dueDate": null,
+      "type": null,
+      "formQuestions": [],
+      "preferences": [],
+      "keywords": [],
+      "likelyPosting": false,
+      "failReason": "NOT_A_POSTING",
+      "usage": {
+        "provider": "hcx",
+        "model": "HCX-005",
+        "promptVersion": "v1",
+        "promptTokens": 0,
+        "completionTokens": 0,
+        "totalTokens": 0,
+        "latencyMs": 0,
+        "costKrw": 0.0
+      }
+    },
+    {
+      "id": "015",
+      "dueGrade": "correct",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "keywordGrade": {
+        "gold": 5,
+        "hit": 3,
+        "pred": 3,
+        "predHit": 3,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 0,
+        "hit": 0,
+        "pred": 0,
+        "predHit": 0,
+        "forbidden": 0
+      },
+      "dueDateRaw": "모집기간: 8/24(월) ~ 9/11(금)지원 링크(구글폼) 👉https://forms.gle/5jLKr1c7sMfKiL8ZA",
+      "yearInferred": true,
+      "dueReason": null,
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 1,
+      "imageOnly": false,
+      "dueDate": "2026-09-11",
+      "type": "activity",
+      "formQuestions": [],
+      "preferences": [],
+      "keywords": [
+        "대학생 서포터즈",
+        "LG 마이컵",
+        "SNS 콘텐츠 제작"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "usage": {
+        "provider": "hcx",
+        "model": "HCX-005",
+        "promptVersion": "v1",
+        "promptTokens": 970,
+        "completionTokens": 48,
+        "totalTokens": 1018,
+        "latencyMs": 1876,
+        "costKrw": 1.4525
+      }
+    },
+    {
+      "id": "016",
+      "dueGrade": "correct",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "keywordGrade": {
+        "gold": 6,
+        "hit": 3,
+        "pred": 3,
+        "predHit": 3,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 4,
+        "hit": 0,
+        "pred": 0,
+        "predHit": 0,
+        "forbidden": 0
+      },
+      "dueDateRaw": "마감일\n\n ~06/21(일)",
+      "yearInferred": true,
+      "dueReason": null,
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "imageOnly": false,
+      "dueDate": "2026-06-21",
+      "type": "recruit",
+      "formQuestions": [
+        {
+          "order": 1,
+          "question": "1-2. 지원 직무를 수행함에 있어 가장 필요한 역량을 정의한 후, 지원자가 해당 역량을 활용해 성공적인 결과를 얻은 경험을 서술해주세요. (자신의 전공, 경험 등을 기반으로 구체적으로 기술)",
+          "maxChars": 1000
+        },
+        {
+          "order": 2,
+          "question": "2-2. 앞서 기술한 조직 내에서 갈등을 극복하고 협업을 통해 목표를 달성한 경험을 설명해주세요.",
+          "maxChars": 700
+        }
+      ],
+      "preferences": [],
+      "keywords": [
+        "(주)현대케피코",
+        "신입 채용연계형 인턴",
+        "차량 사이버보안 관리"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "usage": {
+        "provider": "hcx",
+        "model": "HCX-005",
+        "promptVersion": "v1",
+        "promptTokens": 1500,
+        "completionTokens": 181,
+        "totalTokens": 1681,
+        "latencyMs": 8665,
+        "costKrw": 2.78
+      }
+    },
+    {
+      "id": "017",
+      "dueGrade": "correct",
+      "typeGrade": "correct",
+      "questionGrade": "missed",
+      "postingGrade": "correct",
+      "keywordGrade": {
+        "gold": 7,
+        "hit": 4,
+        "pred": 3,
+        "predHit": 3,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 3,
+        "hit": 0,
+        "pred": 0,
+        "predHit": 0,
+        "forbidden": 0
+      },
+      "dueDateRaw": "마감일\n\n ~06/10(수)",
+      "yearInferred": true,
+      "dueReason": null,
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "imageOnly": false,
+      "dueDate": "2026-06-10",
+      "type": "recruit",
+      "formQuestions": [
+        {
+          "order": 1,
+          "question": "극지연구소에 지원하게 된 동기와 본인의 경험과 역량 등을 토대로 본인의 장점을 기술해 주십시오.",
+          "maxChars": 200
+        },
+        {
+          "order": 2,
+          "question": "지원한 분야에 대한 직무수행능력을 키우기 위해 노력했던 경험에 대해 서술해 주십시오.",
+          "maxChars": 200
+        }
+      ],
+      "preferences": [],
+      "keywords": [
+        "한국해양과학기술원부설극지연구소",
+        "청년인턴(체험형)",
+        "정책업무"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "usage": {
+        "provider": "hcx",
+        "model": "HCX-005",
+        "promptVersion": "v1",
+        "promptTokens": 1528,
+        "completionTokens": 217,
+        "totalTokens": 1745,
+        "latencyMs": 5601,
+        "costKrw": 2.995
+      }
+    },
+    {
+      "id": "018",
+      "dueGrade": "correct",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "keywordGrade": {
+        "gold": 5,
+        "hit": 4,
+        "pred": 5,
+        "predHit": 3,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 3,
+        "hit": 2,
+        "pred": 2,
+        "predHit": 2,
+        "forbidden": 0
+      },
+      "dueDateRaw": "마감일\n\n ~02/11(수)",
+      "yearInferred": true,
+      "dueReason": null,
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": "공학계열"
+      },
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "imageOnly": false,
+      "dueDate": "2026-02-11",
+      "type": "recruit",
+      "formQuestions": [
+        {
+          "order": 1,
+          "question": "조직의 일원으로서 반드시 지켜야 한다고 생각하는 규범이나 절차는 무엇입니까? 해당 규범을 지키기 위해 원칙을 고수했던 본인의 경험과 그 결과에 대해 작성해 주십시오 (최소 350자, 최대 500자 입력가능)",
+          "maxChars": 500
+        },
+        {
+          "order": 2,
+          "question": "지금까지의 경험 중 2인 이상이 함께 공통된 목표를 달성하기 위해 협력했던 사례를 구체적으로 작성해 주십시오. 특히 목표 달성에 성공한 요인과 그 과정에서 본인이 맡은 역할을 중심으로 작성해 주십시오 (최소 350자, 최대 500자 입력가능)",
+          "maxChars": 500
+        },
+        {
+          "order": 3,
+          "question": "자신의 전공 분야나 직무 영역에서 전문성을 향상시키거나 전문 지식을 활용하여 성과를 이끌어낸 경험을 서술해 주십시오. 그 과정에서 쌓은 지식/기술을 적용하여 얻은 결과를 함께 작성해 주십시오 (최소 350자, 최대 500자 입력가능)",
+          "maxChars": 500
+        },
+        {
+          "order": 4,
+          "question": "그동안의 경험 중 가장 달성하기 어려웠던 목표를 이루기 위해 노력했던 사례를 작성해 주십시오. 당면했던 어려움은 무엇이었고, 목표 달성을 위해 어떤 구체적인 접근방법을 시도했으며, 결과는 어떠했는지 상세히 작성해 주십시오 (최소 350자, 최대 500자 입력가능)",
+          "maxChars": 500
+        },
+        {
+          "order": 5,
+          "question": "새롭게 속하게 된 조직에서 그 조직의 문화와 운영 방식을 인식하고 적응하기 위해 노력했던 경험을 구체적으로 작성해 주십시오. 당시 상황에서 조직의 가치나 규범을 인지하고 실천하기 위해 취했던 행동과 그 결과에 초점을 맞춰 작성해 주십시오 (최소 350자, 최대 500자 입력가능)",
+          "maxChars": 500
+        }
+      ],
+      "preferences": [
+        "국가유공자",
+        "장애인우대"
+      ],
+      "keywords": [
+        "한국원자력안전기술원",
+        "정규직 채용",
+        "석사 졸업 이상",
+        "공학계열 전공",
+        "TOEIC 700점 이상"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "usage": {
+        "provider": "hcx",
+        "model": "HCX-005",
+        "promptVersion": "v1",
+        "promptTokens": 1482,
+        "completionTokens": 493,
+        "totalTokens": 1975,
+        "latencyMs": 15514,
+        "costKrw": 4.3175
+      }
+    },
+    {
+      "id": "019",
+      "dueGrade": "correct",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "keywordGrade": {
+        "gold": 5,
+        "hit": 3,
+        "pred": 4,
+        "predHit": 3,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 0,
+        "hit": 0,
+        "pred": 0,
+        "predHit": 0,
+        "forbidden": 0
+      },
+      "dueDateRaw": "접수기간 : 2025. 11. 3.(월) ~ 11. 14.(금) 17:00 까지",
+      "yearInferred": false,
+      "dueReason": null,
+      "qualifications": {
+        "year": null,
+        "gpa": "평점 4.0(4.5만점",
+        "major": "이공계열"
+      },
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "imageOnly": false,
+      "dueDate": "2025-11-14",
+      "type": "scholarship",
+      "formQuestions": [],
+      "preferences": [],
+      "keywords": [
+        "(재)관정재단",
+        "국내대학 장학생",
+        "성적우수 장학금",
+        "학업장려 장학금"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "usage": {
+        "provider": "hcx",
+        "model": "HCX-005",
+        "promptVersion": "v1",
+        "promptTokens": 1261,
+        "completionTokens": 66,
+        "totalTokens": 1327,
+        "latencyMs": 2292,
+        "costKrw": 1.9062
+      }
+    },
+    {
+      "id": "020",
+      "dueGrade": "correct",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "keywordGrade": {
+        "gold": 6,
+        "hit": 4,
+        "pred": 6,
+        "predHit": 4,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 6,
+        "hit": 5,
+        "pred": 6,
+        "predHit": 6,
+        "forbidden": 0
+      },
+      "dueDateRaw": "제출기한 : 2025. 10. 29.(수 ) 18:00 까지",
+      "yearInferred": false,
+      "dueReason": null,
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "imageOnly": false,
+      "dueDate": "2025-10-29",
+      "type": "scholarship",
+      "formQuestions": [],
+      "preferences": [
+        "리더십활동 유경험자",
+        "특별재능 보유자",
+        "대한민국 인재상 수상자",
+        "대통령상 또는 국무총리상 수상",
+        "장관 및 광역단체장상 수상",
+        "전국 규모 이상의 학술 또는 논문 공모전 입상자"
+      ],
+      "keywords": [
+        "한국지도자육성장학재단",
+        "신규장학생",
+        "대학생",
+        "장학금",
+        "등록금 전액지원",
+        "학업보조비"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "usage": {
+        "provider": "hcx",
+        "model": "HCX-005",
+        "promptVersion": "v1",
+        "promptTokens": 1546,
+        "completionTokens": 143,
+        "totalTokens": 1689,
+        "latencyMs": 4015,
+        "costKrw": 2.6475
+      }
+    },
+    {
+      "id": "021",
+      "dueGrade": "correct",
+      "typeGrade": "skip",
+      "questionGrade": "correct",
+      "postingGrade": "skip",
+      "keywordGrade": {
+        "gold": 3,
+        "hit": 3,
+        "pred": 3,
+        "predHit": 3,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 0,
+        "hit": 0,
+        "pred": 0,
+        "predHit": 0,
+        "forbidden": 0
+      },
+      "dueDateRaw": "접수 기간: 7. 27.(월) ~ 8. 2.(일)",
+      "yearInferred": true,
+      "dueReason": null,
+      "qualifications": {
+        "year": "4학년 재학",
+        "gpa": null,
+        "major": null
+      },
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "imageOnly": false,
+      "dueDate": "2026-08-02",
+      "type": "activity",
+      "formQuestions": [],
+      "preferences": [],
+      "keywords": [
+        "현장실습",
+        "서울캠퍼스",
+        "재학생"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "usage": {
+        "provider": "hcx",
+        "model": "HCX-005",
+        "promptVersion": "v1",
+        "promptTokens": 977,
+        "completionTokens": 45,
+        "totalTokens": 1022,
+        "latencyMs": 1898,
+        "costKrw": 1.4463
+      }
+    },
+    {
+      "id": "022",
+      "dueGrade": "skip",
+      "typeGrade": "skip",
+      "questionGrade": "skip",
+      "postingGrade": "correct",
+      "keywordGrade": null,
+      "preferenceGrade": null,
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": "not_found",
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "imageOnly": false,
+      "dueDate": null,
+      "type": null,
+      "formQuestions": [],
+      "preferences": [],
+      "keywords": [],
+      "likelyPosting": false,
+      "failReason": "NOT_A_POSTING",
+      "usage": {
+        "provider": "hcx",
+        "model": "HCX-005",
+        "promptVersion": "v1",
+        "promptTokens": 0,
+        "completionTokens": 0,
+        "totalTokens": 0,
+        "latencyMs": 0,
+        "costKrw": 0.0
+      }
+    },
+    {
+      "id": "023",
+      "dueGrade": "correct",
+      "typeGrade": "skip",
+      "questionGrade": "correct",
+      "postingGrade": "skip",
+      "keywordGrade": {
+        "gold": 5,
+        "hit": 2,
+        "pred": 3,
+        "predHit": 2,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 0,
+        "hit": 0,
+        "pred": 0,
+        "predHit": 0,
+        "forbidden": 0
+      },
+      "dueDateRaw": "모집 기간\n\n 2026. 5. 22.(금 ) ~ 6. 17.( 수 )",
+      "yearInferred": false,
+      "dueReason": null,
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "imageOnly": false,
+      "dueDate": "2026-06-17",
+      "type": "activity",
+      "formQuestions": [],
+      "preferences": [],
+      "keywords": [
+        "자기설계학기제",
+        "드림학기제",
+        "대학생 대외활동"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "usage": {
+        "provider": "hcx",
+        "model": "HCX-005",
+        "promptVersion": "v1",
+        "promptTokens": 2398,
+        "completionTokens": 52,
+        "totalTokens": 2450,
+        "latencyMs": 2423,
+        "costKrw": 3.2575
+      }
+    },
+    {
+      "id": "024",
+      "dueGrade": "skip",
+      "typeGrade": "skip",
+      "questionGrade": "skip",
+      "postingGrade": "correct",
+      "keywordGrade": null,
+      "preferenceGrade": null,
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": "not_found",
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "imageOnly": false,
+      "dueDate": null,
+      "type": null,
+      "formQuestions": [],
+      "preferences": [],
+      "keywords": [],
+      "likelyPosting": false,
+      "failReason": "NOT_A_POSTING",
+      "usage": {
+        "provider": "hcx",
+        "model": "HCX-005",
+        "promptVersion": "v1",
+        "promptTokens": 0,
+        "completionTokens": 0,
+        "totalTokens": 0,
+        "latencyMs": 0,
+        "costKrw": 0.0
+      }
+    },
+    {
+      "id": "025",
+      "dueGrade": "correct",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "keywordGrade": {
+        "gold": 6,
+        "hit": 4,
+        "pred": 5,
+        "predHit": 3,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 6,
+        "hit": 4,
+        "pred": 4,
+        "predHit": 4,
+        "forbidden": 0
+      },
+      "dueDateRaw": "마감일 2026.07.19",
+      "yearInferred": false,
+      "dueReason": null,
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "imageOnly": false,
+      "dueDate": "2026-07-19",
+      "type": "activity",
+      "formQuestions": [],
+      "preferences": [
+        "파워블로거/SNS",
+        "사진/영상/디자인 툴 활용 능력",
+        "취재/인터뷰/기사 경험",
+        "콘텐츠 기획/제작 경험"
+      ],
+      "keywords": [
+        "대학생",
+        "네이버 플레이스 서포터즈",
+        "콘텐츠 제작",
+        "SNS",
+        "QR오더"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "usage": {
+        "provider": "hcx",
+        "model": "HCX-005",
+        "promptVersion": "v1",
+        "promptTokens": 1533,
+        "completionTokens": 106,
+        "totalTokens": 1639,
+        "latencyMs": 3621,
+        "costKrw": 2.4463
+      }
+    },
+    {
+      "id": "026",
+      "dueGrade": "correct",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "keywordGrade": {
+        "gold": 6,
+        "hit": 5,
+        "pred": 4,
+        "predHit": 4,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 5,
+        "hit": 3,
+        "pred": 3,
+        "predHit": 3,
+        "forbidden": 0
+      },
+      "dueDateRaw": "마감일 2026.03.16",
+      "yearInferred": false,
+      "dueReason": null,
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "imageOnly": false,
+      "dueDate": "2026-03-16",
+      "type": "activity",
+      "formQuestions": [],
+      "preferences": [
+        "파워블로거/SNS",
+        "콘텐츠 기획/제작 경험",
+        "타 대외활동 경험"
+      ],
+      "keywords": [
+        "대학생 홍보 서포터즈",
+        "구로기적의도서관",
+        "SNS 콘텐츠 제작",
+        "도서관 프로그램 기획"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "usage": {
+        "provider": "hcx",
+        "model": "HCX-005",
+        "promptVersion": "v1",
+        "promptTokens": 1514,
+        "completionTokens": 79,
+        "totalTokens": 1593,
+        "latencyMs": 2592,
+        "costKrw": 2.2875
+      }
+    },
+    {
+      "id": "027",
+      "dueGrade": "correct",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "keywordGrade": {
+        "gold": 7,
+        "hit": 3,
+        "pred": 5,
+        "predHit": 3,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 6,
+        "hit": 5,
+        "pred": 6,
+        "predHit": 5,
+        "forbidden": 0
+      },
+      "dueDateRaw": "마감일 2026.01.25",
+      "yearInferred": false,
+      "dueReason": null,
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "imageOnly": false,
+      "dueDate": "2026-01-25",
+      "type": "activity",
+      "formQuestions": [],
+      "preferences": [
+        "파워블로거/SNS 역량",
+        "사진/영상/디자인 툴 활용 능력",
+        "멘토링/수업 진행 경험",
+        "콘텐츠 기획/제작 경험 보유",
+        "리더십 있는 사람",
+        "휴학 중이거나 시간 투자 가능한 학생"
+      ],
+      "keywords": [
+        "대학생 서포터즈",
+        "아동권리옹호단",
+        "멘토링",
+        "콘텐츠 기획/제작",
+        "파워블로거"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "usage": {
+        "provider": "hcx",
+        "model": "HCX-005",
+        "promptVersion": "v1",
+        "promptTokens": 1850,
+        "completionTokens": 136,
+        "totalTokens": 1986,
+        "latencyMs": 3933,
+        "costKrw": 2.9925
+      }
+    },
+    {
+      "id": "028",
+      "dueGrade": "correct",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "keywordGrade": {
+        "gold": 8,
+        "hit": 4,
+        "pred": 7,
+        "predHit": 4,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 2,
+        "hit": 1,
+        "pred": 4,
+        "predHit": 1,
+        "forbidden": 0
+      },
+      "dueDateRaw": "접수기간: 2026.06.09.(화) ~ 2026.06.24.(수) 17시까지\n- 접수방법: 의학원채용사이트(http://kirams.recru",
+      "yearInferred": false,
+      "dueReason": null,
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": "영상의학과"
+      },
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "imageOnly": false,
+      "dueDate": "2026-06-24",
+      "type": "recruit",
+      "formQuestions": [],
+      "preferences": [
+        "장애인 및 취업보호(원)대상자",
+        "영어를 공용어로 사용하는 국가에서 학사학위 이상을 취득한 경우",
+        "영어를 공용어로 사용하는 국가의 국공립기관, 원자력유관기관 및 대학에서 2년 이상 취업 또는 석사/박사후연수생으로 연수한 자",
+        "박사학위를 취득한 자"
+      ],
+      "keywords": [
+        "한국원자력의학원",
+        "정기직원채용",
+        "일반직",
+        "사무직",
+        "연구직",
+        "간호직",
+        "보건직"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "usage": {
+        "provider": "hcx",
+        "model": "HCX-005",
+        "promptVersion": "v1",
+        "promptTokens": 3562,
+        "completionTokens": 160,
+        "totalTokens": 3722,
+        "latencyMs": 4740,
+        "costKrw": 5.2525
+      }
+    },
+    {
+      "id": "029",
+      "dueGrade": "correct",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "keywordGrade": {
+        "gold": 7,
+        "hit": 3,
+        "pred": 5,
+        "predHit": 3,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 8,
+        "hit": 8,
+        "pred": 1,
+        "predHit": 1,
+        "forbidden": 0
+      },
+      "dueDateRaw": "접수기간 : 2026. 6. 2.(화) 14:00 ~ 2026. 6. 16(화) 14:00",
+      "yearInferred": false,
+      "dueReason": null,
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "imageOnly": false,
+      "dueDate": "2026-06-16",
+      "type": "recruit",
+      "formQuestions": [],
+      "preferences": [
+        "발전소 주변지역 주민, 장애인, 저소득층, 북한이탈주민, 당사 시간선택제 근무자, 다문화가족, 자립준비청년, 당사 체험형 인턴 우수 수료자"
+      ],
+      "keywords": [
+        "한국서부발전(주)",
+        "채용형 인턴",
+        "운전·운송, 화학, 환경·에너지·안전",
+        "기술직, 별정직",
+        "장애인, 저소득층, 북한이탈주민, 다문화가족, 자립준비청년"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "usage": {
+        "provider": "hcx",
+        "model": "HCX-005",
+        "promptVersion": "v1",
+        "promptTokens": 2528,
+        "completionTokens": 142,
+        "totalTokens": 2670,
+        "latencyMs": 4142,
+        "costKrw": 3.87
+      }
+    },
+    {
+      "id": "030",
+      "dueGrade": "correct",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "keywordGrade": {
+        "gold": 6,
+        "hit": 3,
+        "pred": 3,
+        "predHit": 3,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 3,
+        "hit": 3,
+        "pred": 3,
+        "predHit": 3,
+        "forbidden": 0
+      },
+      "dueDateRaw": "접수기간: 2026. 1. 12.(월) 09:00 ~ 1. 22.(목) 18:00",
+      "yearInferred": false,
+      "dueReason": null,
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "imageOnly": false,
+      "dueDate": "2026-01-22",
+      "type": "recruit",
+      "formQuestions": [],
+      "preferences": [
+        "직업일자리사업 반복참여에 해당하지 않는 자",
+        "취업취약계층 대상자",
+        "취업보호(지원) 대상자"
+      ],
+      "keywords": [
+        "한국산업안전보건공단",
+        "안전직",
+        "제조업 안전한 일터 지킴이"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "usage": {
+        "provider": "hcx",
+        "model": "HCX-005",
+        "promptVersion": "v1",
+        "promptTokens": 4151,
+        "completionTokens": 94,
+        "totalTokens": 4245,
+        "latencyMs": 3297,
+        "costKrw": 5.6587
+      }
+    },
+    {
+      "id": "031",
+      "dueGrade": "correct",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "keywordGrade": {
+        "gold": 6,
+        "hit": 6,
+        "pred": 5,
+        "predHit": 5,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 0,
+        "hit": 0,
+        "pred": 0,
+        "predHit": 0,
+        "forbidden": 0
+      },
+      "dueDateRaw": "접수기간\n\n 2026-09-02 ~ 2026-10-06 D-22",
+      "yearInferred": false,
+      "dueReason": null,
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "imageOnly": false,
+      "dueDate": "2026-10-06",
+      "type": "contest",
+      "formQuestions": [],
+      "preferences": [],
+      "keywords": [
+        "SF 판타지 웹소설 공모전",
+        "대전광역시",
+        "한국콘텐츠진흥원",
+        "전자신문",
+        "문피아"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "usage": {
+        "provider": "hcx",
+        "model": "HCX-005",
+        "promptVersion": "v1",
+        "promptTokens": 1318,
+        "completionTokens": 64,
+        "totalTokens": 1382,
+        "latencyMs": 2272,
+        "costKrw": 1.9675
+      }
+    },
+    {
+      "id": "032",
+      "dueGrade": "correct",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "keywordGrade": {
+        "gold": 7,
+        "hit": 3,
+        "pred": 3,
+        "predHit": 2,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 0,
+        "hit": 0,
+        "pred": 0,
+        "predHit": 0,
+        "forbidden": 0
+      },
+      "dueDateRaw": "마감일 2026년 8월 31일(월) 기준, 국내외 2년제 이상 대학에 재학 또는 휴학 중인 대학생",
+      "yearInferred": false,
+      "dueReason": null,
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "imageOnly": false,
+      "dueDate": "2026-08-31",
+      "type": "contest",
+      "formQuestions": [],
+      "preferences": [],
+      "keywords": [
+        "대학생 콘텐츠 공모전",
+        "광고 마케팅",
+        "희망브리지 전국재해구호협회"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "usage": {
+        "provider": "hcx",
+        "model": "HCX-005",
+        "promptVersion": "v1",
+        "promptTokens": 1355,
+        "completionTokens": 58,
+        "totalTokens": 1413,
+        "latencyMs": 2071,
+        "costKrw": 1.9838
+      }
+    }
+  ]
+}
