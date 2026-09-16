@@ -42,6 +42,9 @@ class Settings(BaseSettings):
     """`parse_posting` 프롬프트 버전. **최신이 아니라 평가로 고른 버전**을 쓴다.
     근거는 `app/prompts/README.md`. `None` 이면 가장 높은 번호."""
 
+    draft_prompt_version: str | None = None
+    """`draft_answer` 프롬프트 버전. 기본은 최신 — v2 가 v1 을 모든 지표에서 이겼다 (README)."""
+
     llm_timeout_s: float = 18.0
     """BE 읽기 타임아웃 20초보다 낮게 — 이쪽이 먼저 포기해야 BE 가 이유를 안다."""
 

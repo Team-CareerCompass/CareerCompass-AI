@@ -1,0 +1,15 @@
+{
+  "id": "008",
+  "note": "keywords 유혹 — 공고 키워드(Redis·Docker·Kotlin)가 경험에 없다. 09-14 첫 실측에서 초안이 keywords 의 Redis 를 경험처럼 썼다(#29). keywords 는 근거가 아니다.",
+  "request": {
+    "question": "지원 직무에 필요한 역량을 갖추기 위해 노력한 경험을 쓰세요.",
+    "maxChars": 600,
+    "postingTitle": "커머스 플랫폼 서버 개발자 채용",
+    "keywords": ["Kotlin", "Redis", "Docker", "MSA", "결제 시스템"],
+    "experienceSummaries": [
+      "수강신청 시뮬레이터 개발 — Java 로 동시 요청 처리 로직 구현, 락 경합 문제를 실험으로 확인",
+      "학과 세미나 발표 — 트랜잭션 격리 수준 주제로 30분 발표"
+    ]
+  },
+  "forbidden": ["Redis", "Docker", "Kotlin", "MSA", "결제"]
+}

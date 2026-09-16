@@ -6,6 +6,7 @@
 - `drop_sentences_with` — 검증에 걸린 표현이 든 문장을 통째로 뺀다
 - `scrub_pii` — 출력에 섞인 이메일·전화·주민번호 모양을 지운다
 - `safe_draft` — 모델 없이, **입력 문자열만으로** 만든 초안. 검증을 끝내 못 통과했을 때의 답
+- `ending_ratio` — 문장 어미로 톤을 실측한다. 「~해요」를 부탁해도 모델은 「~합니다」로 쓴다 (#18)
 """
 
 from __future__ import annotations
@@ -21,6 +22,12 @@ _NUMBER = re.compile(r"\d+(?:[.,]\d+)?\s*(?:%|년|개월|명|건|위|등|배|회
 _LATIN = re.compile(r"[A-Za-z][A-Za-z0-9+#./-]{1,}")
 _SENTENCE_END = re.compile(r"[.!?。]\s*|다\.\s*")
 _SENTENCE_SPLIT = re.compile(r"(?<=[.!?。])\s+")
+_SENTENCE_OR_LINE = re.compile(r"(?<=[.!?。])\s+|\n+")
+_TRAILING = re.compile(r"[\s.!?。~\"'\u201d\u2019」』)\]]+$")
+_FORMAL_END = re.compile(r"(니다|십니까)$")
+_CASUAL_END = re.compile(r"(요|죠)$")
+TONE_ENDINGS = {"formal": _FORMAL_END, "confident": _FORMAL_END, "casual": _CASUAL_END}
+"""톤별 문장 어미. formal·confident 는 「~니다」, casual 은 「~요」「~죠」."""
 _PII_OUT = re.compile(
     r"[\w.+-]+@[\w-]+\.[\w.]+"  # 이메일
     r"|\b0\d{1,2}[-.)]\s?\d{3,4}[-.]\d{4}\b|\b01[016-9][-.]?\d{3,4}[-.]?\d{4}\b"  # 전화
@@ -98,6 +105,25 @@ def drop_sentences_with(text: str, tokens: list[str]) -> str:
     return re.sub(r"\n{3,}", "\n\n", "\n".join(kept)).strip()
 
 
+def sentences(text: str) -> list[str]:
+    """문장 부호 뒤 공백·줄바꿈에서 나눈다. 어미 판정과 재생성 겹침 측정이 같은 단위를 쓴다."""
+    return [s.strip() for s in _SENTENCE_OR_LINE.split(text) if s.strip()]
+
+
+def ending_ratio(text: str, tone: str) -> float | None:
+    """문장 중 그 톤의 어미로 끝나는 비율. 문장이 없으면 None.
+
+    v1 실측(09-16): casual 을 부탁한 14건 중 12건이 「~합니다」체였다 — 프롬프트만으로는 안 되고
+    글자 수처럼 **실측해서 재요청**해야 한다. 「~다.」로 끝나는 문어체는 어느 쪽도 아니다.
+    """
+    pattern = TONE_ENDINGS.get(tone, _FORMAL_END)
+    sents = sentences(text)
+    if not sents:
+        return None
+    hits = sum(bool(pattern.search(_TRAILING.sub("", s))) for s in sents)
+    return hits / len(sents)
+
+
 def scrub_pii(text: str) -> tuple[str, int]:
     """출력에 이메일·전화·주민번호 모양이 있으면 지운다. 입력에도 없어야 정상이라 개수를 센다."""
     scrubbed, n = _PII_OUT.subn("[삭제]", text)
@@ -129,11 +155,22 @@ def safe_draft(
         )
     suffix = "경험이 있어요." if casual else "경험이 있습니다."
     body = [f"{s.strip().rstrip('.')} {suffix}" for s in experiences[:3] if s.strip()]
+    if not body:
+        # 근거가 0 이면 모델도 부르지 않는다 (#16). 무엇을 하면 되는지를 답 자리에 적는다.
+        body = [
+            "등록된 경험 카드가 없어 근거가 되는 사실을 넣지 못했어요. "
+            "경험 카드를 등록한 뒤 다시 생성하면 그 내용으로 초안을 써요."
+            if casual
+            else "등록된 경험 카드가 없어 근거가 되는 사실을 넣지 못했습니다. "
+            "경험 카드를 등록한 뒤 다시 생성하면 그 내용으로 초안을 작성합니다."
+        ]
     if casual:
         tail = "이 경험을 바탕으로 맡은 일을 성실히 해내고 싶어요."
     elif confident:
         tail = "이 경험으로 맡은 역할을 해낼 수 있습니다."
     else:
         tail = "이 경험을 바탕으로 맡은 역할을 성실히 수행하겠습니다."
-    draft = " ".join([head, *body, tail])
+    if not any(s.strip() for s in experiences):
+        tail = ""  # 「이 경험을 바탕으로」할 경험이 없다
+    draft = " ".join(x for x in [head, *body, tail] if x)
     return trim_to_limit(draft, limit) if limit else draft
