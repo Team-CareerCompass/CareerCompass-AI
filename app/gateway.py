@@ -35,6 +35,7 @@ from app.guard import (
     scrub_pii,
     sentences,
     trim_to_limit,
+    unsupported_claims,
 )
 from app.preprocess import preprocess
 from app.prompts import Prompt, load_prompt
@@ -442,10 +443,11 @@ class Gateway:
         for name, value in (("strength", strength), ("weakness", weakness)):
             if not value:
                 continue
-            unverified = fact_check(value, grounds + req.missing_qualifications)
+            evidence = grounds + req.missing_qualifications
+            unverified = fact_check(value, evidence) + unsupported_claims(value, evidence)
             if not unverified:
                 continue
-            logger.warning("코멘트 %s 에 근거 없는 토큰 %s — 문장 제거", name, unverified)
+            logger.warning("코멘트 %s 에 근거 없는 표현 %s — 문장 제거", name, unverified)
             kept = _keep_cited_sentences(drop_sentences_with(value, unverified), grounds)
             if name == "strength":
                 strength = kept
@@ -594,7 +596,11 @@ class Gateway:
         # 근거는 **사용자의 경험**이다. 공고 키워드는 근거가 아니다 — 첫 실측에서 keywords 의
         # Redis 를 「사용해 본 경험」으로 쓴 초안이 통과했다(#29). 공고 제목·질문은 회사명·주제가
         # 답에 나오는 것이 당연하므로 남긴다.
-        unverified = fact_check(answer, sources) if answer else []
+        # 수치·영문(`fact_check`)에 한국어 자격·수상·소속 단정을 더한다 (#29). 아래 경로는 같다 —
+        # 재요청 → 문장 제거 → 안전 초안. 「자격증을 취득했습니다」가 그 문장째 빠진다.
+        unverified = (
+            fact_check(answer, sources) + unsupported_claims(answer, sources) if answer else []
+        )
         if unverified and self._can_retry(deadline, completions, "사실검증"):
             # ① 1회 재요청 — 무엇이 근거에 없는지 짚어서
             retry_user = (
@@ -614,9 +620,10 @@ class Gateway:
                 candidate = redo.answer.strip()
                 if limit:
                     candidate = trim_to_limit(candidate, limit)
-                if len(fact_check(candidate, sources)) < len(unverified):
+                redone = fact_check(candidate, sources) + unsupported_claims(candidate, sources)
+                if len(redone) < len(unverified):
                     answer, used_raw = candidate, redo.usedIndexes
-                    unverified = fact_check(answer, sources)
+                    unverified = redone
             except SchemaViolation:
                 pass
         if unverified:
@@ -624,7 +631,7 @@ class Gateway:
             stripped = drop_sentences_with(answer, unverified)
             if len(stripped) >= max(40, len(answer) // 3):
                 answer = stripped
-                unverified = fact_check(answer, sources)
+                unverified = fact_check(answer, sources) + unsupported_claims(answer, sources)
         if unverified or not answer:
             # ③ 그래도 남으면 모델 출력을 버리고 입력 문자열만으로 만든 초안을 낸다.
             #    빤하지만 거짓이 없다. 사용자가 고쳐 쓰는 출발점.

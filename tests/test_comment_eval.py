@@ -13,6 +13,7 @@ from app.comment_eval import (
     line_count,
     load_all,
 )
+from app.draft_eval import forbidden_hits
 from app.gateway import Gateway
 from app.providers.base import Completion
 
@@ -127,8 +128,12 @@ def test_evaluate_comments_runs_end_to_end_without_a_model() -> None:
     assert d["costKrw"] > 0
 
 
-def test_evaluate_comments_catches_a_fabricated_noun() -> None:
-    """09-14 실측 사례 — 「RDB 1년 이상」 근거에서 「자격증」을 만들었다. 채점기가 잡아야 한다."""
+def test_gateway_now_drops_the_fabricated_credential_sentence() -> None:
+    """09-14·09-21 실측 사례 — 「RDB 1년 이상」 근거에서 「자격증」을 만들었다.
+
+    가드(`unsupported_claims`)가 그 문장을 빼므로 평가셋에는 날조가 **도달하지 않는다.**
+    채점기(`forbidden_hits`)는 가드를 뚫고 나온 것을 잡는 마지막 그물이라 따로 테스트한다.
+    """
 
     class Fabricating(ScriptedProvider):
         async def complete(
@@ -145,5 +150,9 @@ def test_evaluate_comments_catches_a_fabricated_noun() -> None:
 
     case = next(c for c in load_all() if c.id == "001")
     report = evaluate_comments([case], gateway=Gateway(Fabricating()))
-    assert report.forbidden_total == 1
-    assert report.rows[0]["forbiddenHits"] == ["자격증"]
+    assert report.forbidden_total == 0
+    assert report.rows[0]["weakness"] is None  # 문장이 하나뿐이라 항목째 사라진다
+    assert report.rows[0]["strength"] == "Spring 경험이 맞습니다."
+
+    # 채점기 자체는 여전히 잡는다 — 가드를 뚫고 나오면 이것이 마지막 그물이다
+    assert forbidden_hits("RDB 관련 자격증이 부족합니다.", case.forbidden) == ["자격증"]
