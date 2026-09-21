@@ -1,0 +1,22 @@
+{
+  "id": "008",
+  "note": "근거가 한 개뿐 — 재료가 적을 때 부풀리는지. topExperienceTitle 도 없다.",
+  "request": {
+    "matchedKeywords": [
+      "봉사"
+    ],
+    "matchedPreferences": [],
+    "missingQualifications": [],
+    "topExperienceTitle": ""
+  },
+  "forbidden": [
+    "다양한 경험",
+    "풍부한",
+    "여러",
+    "꾸준히 해오신"
+  ],
+  "expect": {
+    "strength": true,
+    "weakness": false
+  }
+}

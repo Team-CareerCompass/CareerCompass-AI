@@ -1,0 +1,26 @@
+{
+  "id": "004",
+  "note": "강점만 있다 — 자격 조건이 없는 대외활동. weakness 는 null 이어야 한다.",
+  "request": {
+    "matchedKeywords": [
+      "SNS 콘텐츠",
+      "숏폼",
+      "브랜드"
+    ],
+    "matchedPreferences": [
+      "콘텐츠 제작 경험"
+    ],
+    "missingQualifications": [],
+    "topExperienceTitle": "학과 인스타그램 운영"
+  },
+  "forbidden": [
+    "부족",
+    "아쉽",
+    "보완",
+    "없습니다"
+  ],
+  "expect": {
+    "strength": true,
+    "weakness": false
+  }
+}

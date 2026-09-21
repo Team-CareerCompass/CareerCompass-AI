@@ -1,0 +1,24 @@
+{
+  "id": "003",
+  "note": "약점만 있다 — 맞는 것이 하나도 없는 공고. strength 는 null 이어야 하는데 모델은 위로를 지어내려 한다.",
+  "request": {
+    "matchedKeywords": [],
+    "matchedPreferences": [],
+    "missingQualifications": [
+      "기계공학 전공",
+      "3학년 이상",
+      "학점 3.5 이상"
+    ],
+    "topExperienceTitle": ""
+  },
+  "forbidden": [
+    "열정",
+    "가능성",
+    "성장",
+    "노력하면",
+    "충분히"
+  ],
+  "expect": {
+    "weakness": true
+  }
+}

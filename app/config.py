@@ -45,6 +45,9 @@ class Settings(BaseSettings):
     draft_prompt_version: str | None = None
     """`draft_answer` 프롬프트 버전. 기본은 최신 — v2 가 v1 을 모든 지표에서 이겼다 (README)."""
 
+    comments_prompt_version: str | None = None
+    """`comments` 프롬프트 버전. 기본은 최신 (#14)."""
+
     llm_timeout_s: float = 18.0
     """**HTTP 요청 하나당** 상한. BE 읽기 타임아웃 20초보다 낮게 — 이쪽이 먼저 포기해야
     BE 가 이유를 안다. 엔드포인트 전체 상한은 아래 `request_deadline_s` 다."""

@@ -280,6 +280,101 @@ def test_comments_schema_failure_is_null_not_error() -> None:
     assert res.strength is None and res.weakness is None
 
 
+def test_comments_drop_sentences_that_cite_nothing() -> None:
+    """가드는 문장 단위다 (09-21 실측) — 앞 문장이 근거를 지목한 덕에 뒷 문장이 묻어가지 않는다."""
+    provider = FakeProvider(
+        _j(
+            strength="Spring 경험이 이 공고와 맞습니다. 앞으로 크게 성장하실 분입니다.",
+            weakness="RDB 1년 이상 경력이 프로필에 없습니다. 관련 자격증 취득을 고려해 보세요.",
+        )
+    )
+    res = _run(
+        Gateway(provider).comments(
+            CommentsRequest(
+                matchedKeywords=["Spring"],
+                missingQualifications=["RDB 1년 이상"],
+            )
+        )
+    )
+    assert res.strength == "Spring 경험이 이 공고와 맞습니다."
+    assert res.weakness == "RDB 1년 이상 경력이 프로필에 없습니다."
+
+
+def test_comments_fact_check_drops_a_technology_the_evidence_never_named() -> None:
+    """09-21 실측: 「RDB 1년 이상」에서 「RDBMS(예: MySQL)」가 나왔다. 초안의 검증을 여기도."""
+    provider = FakeProvider(
+        _j(
+            strength=None,
+            weakness="RDBMS(예: MySQL)를 1년 이상 다뤄본 경험이 필요합니다.",
+        )
+    )
+    res = _run(Gateway(provider).comments(CommentsRequest(missingQualifications=["RDB 1년 이상"])))
+    assert res.weakness is None  # 문장이 하나뿐이라 통째로 빠진다 — 빈말보다 침묵
+    assert len(provider.calls) == 1  # 재요청하지 않는다
+
+
+def test_comments_fact_check_keeps_the_clean_sentence() -> None:
+    provider = FakeProvider(
+        _j(
+            strength="Python 데이터 분석 경험이 맞습니다. Tableau 대시보드 경험도 돋보입니다.",
+            weakness=None,
+        )
+    )
+    res = _run(
+        Gateway(provider).comments(CommentsRequest(matchedKeywords=["Python", "데이터 분석"]))
+    )
+    assert res.strength == "Python 데이터 분석 경험이 맞습니다."
+
+
+def test_comments_drop_capability_claimed_from_a_bare_word() -> None:
+    """BE 과대매칭 방어 (#14) — 근거 「설계」 하나로 「설계 능력」을 단정하면 항목째 버린다.
+
+    09-21 실측: 프롬프트 v2 에 적어 두어도 모델이 썼다. 사용자는 해본 적 없는 일을 읽는다.
+    """
+    provider = FakeProvider(
+        _j(
+            strength="환경 관련 경험과 설계 능력이 있습니다. 근무환경 개선 동아리가 그 증거입니다.",
+            weakness=None,
+        )
+    )
+    res = _run(
+        Gateway(provider).comments(
+            CommentsRequest(
+                matchedKeywords=["환경"],
+                matchedPreferences=["경험", "설계"],
+                topExperienceTitle="근무환경 개선 동아리",
+            )
+        )
+    )
+    assert res.strength is None
+
+
+def test_comments_capability_from_a_specific_ground_is_fine() -> None:
+    """구체적인 근거에 「역량」을 붙이는 것은 정상이다 — 낱말 하나일 때만 막는다."""
+    provider = FakeProvider(
+        _j(strength="Java/Kotlin 백엔드 경험이 이 공고가 찾는 역량과 맞습니다.", weakness=None)
+    )
+    res = _run(
+        Gateway(provider).comments(CommentsRequest(matchedPreferences=["Java/Kotlin 백엔드 경험"]))
+    )
+    assert res.strength is not None
+
+
+def test_comments_keep_at_most_two_sentences() -> None:
+    provider = FakeProvider(
+        _j(
+            strength="Spring 경험이 맞습니다. Kotlin 경험도 맞습니다. REST API 경험도 맞습니다.",
+            weakness=None,
+        )
+    )
+    res = _run(
+        Gateway(provider).comments(
+            CommentsRequest(matchedKeywords=["Spring", "Kotlin", "REST API"])
+        )
+    )
+    assert res.strength is not None and len(res.strength.split(". ")) == 2
+
+
 # --------------------------------------------------------------------------
 # §3 초안 — 글자 수 실측, 사실 대조
 # --------------------------------------------------------------------------

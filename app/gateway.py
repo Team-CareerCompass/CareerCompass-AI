@@ -67,6 +67,15 @@ logger = logging.getLogger("careercompass.ai.gateway")
 MAX_KEYWORDS = 10
 MIN_KEYWORDS = 3
 MAX_QUESTIONS = 10  # FE #413
+MAX_COMMENT_SENTENCES = 2
+"""코멘트 항목 하나의 문장 수 상한 (계약 §2.2 「1~3줄」·프롬프트)."""
+SHORT_GROUND_CHARS = 3
+"""이 길이 이하의 근거는 「경험」「설계」「환경」처럼 낱말 하나다 — 역량의 증거가 못 된다.
+
+BE `SuitabilityCalculator` 가 우대 조건을 토큰 부분일치로 충족 처리해서(HANDOFF §5) 이런 근거가
+실제로 온다. 09-21 실측에서 모델은 근거 「설계」를 받아 「설계 능력이 있습니다」라고 썼다 —
+사용자는 해본 적 없는 일이다. 프롬프트로는 안 막혀서(v2 에 적었는데도 나왔다) 규칙으로 막는다.
+"""
 LLM_BODY_CHARS = 16_000
 """LLM 에 넣는 본문 상한. 계약의 40,000 은 받는 상한이고, 이건 비용 상한이다."""
 DEFAULT_DRAFT_CHARS = 600
@@ -405,7 +414,7 @@ class Gateway:
                 )
             )
 
-        prompt = load_prompt("comments")
+        prompt = load_prompt("comments", settings.comments_prompt_version)
         user = prompt.render(
             matched_keywords=_jlist(req.matched_keywords),
             matched_preferences=_jlist(req.matched_preferences),
@@ -420,10 +429,34 @@ class Gateway:
             # 코멘트는 없어도 점수는 나간다. 이상한 문장보다 null 이 낫다.
             return CommentsResult(usage=self._usage(prompt_version, []))
 
-        # #14 방어 — 근거를 하나도 지목하지 않은 문장은 버린다. BE 의 우대 매칭이 과대매칭이라
+        # #14 방어 — 근거를 지목하지 않은 **문장**을 버린다. BE 의 우대 매칭이 과대매칭이라
         # 근거 자체가 의심스러운데, 근거조차 안 나오는 문장은 확실히 빈말이다.
-        strength = _keep_if_cites(llm.strength, grounds)
-        weakness = _keep_if_cites(llm.weakness, req.missing_qualifications)
+        # 항목이 아니라 문장 단위다 (09-21 실측): 「…전문성을 입증하기 어렵습니다.
+        # 이를 보완하기 위해 관련 자격증 취득을 고려할 수 있습니다.」에서 뒤 문장만 근거가 없었다.
+        strength = _keep_cited_sentences(llm.strength, grounds)
+        weakness = _keep_cited_sentences(llm.weakness, req.missing_qualifications)
+
+        # 초안에만 있던 사실검증을 코멘트에도 건다 (09-21 실측). 「RDB 1년 이상」이라는 근거에서
+        # 「RDBMS(예: MySQL)를 1년 이상」이 나왔다 — 근거에 없는 기술명을 예시로 든 것이다.
+        # 초안과 달리 **재요청하지 않는다** — 코멘트는 null 이 허용되고 점수는 그대로 나간다 (§2.2).
+        for name, value in (("strength", strength), ("weakness", weakness)):
+            if not value:
+                continue
+            unverified = fact_check(value, grounds + req.missing_qualifications)
+            if not unverified:
+                continue
+            logger.warning("코멘트 %s 에 근거 없는 토큰 %s — 문장 제거", name, unverified)
+            kept = _keep_cited_sentences(drop_sentences_with(value, unverified), grounds)
+            if name == "strength":
+                strength = kept
+            else:
+                weakness = kept
+
+        # 근거를 넘어선 단정은 항목째 버린다 — 앞 문장을 빼면 뒷 문장의 「이러한 역량」이 뜬다.
+        if strength and (weak := _overclaims_capability(strength, grounds)):
+            logger.warning("근거 「%s」 하나로 역량을 단정 — 강점 코멘트를 버린다", weak)
+            strength = None
+
         strength = scrub_pii(strength)[0] if strength else None
         weakness = scrub_pii(weakness)[0] if weakness else None
         return CommentsResult(
@@ -643,6 +676,7 @@ def _posting_type(value: str | None) -> PostingType | None:
 
 
 _TOKEN = re.compile(r"[A-Za-z0-9+#.]{2,}|[가-힣]{2,}")
+_CAPABILITY = "(?:능력|역량|전문성|실력)"
 
 
 def _cites(text: str, ground: str) -> bool:
@@ -662,11 +696,32 @@ def _cites(text: str, ground: str) -> bool:
     return hits * 2 >= len(tokens)
 
 
-def _keep_if_cites(sentence: str | None, grounds: list[str]) -> str | None:
-    """문장이 근거 중 하나라도 지목해야 살린다. 최대 3줄."""
-    if not sentence or not sentence.strip():
-        return None
-    text = "\n".join(sentence.strip().splitlines()[:3])
-    if any(_cites(text, g) for g in grounds if g):
-        return text
+def _overclaims_capability(text: str, grounds: list[str]) -> str | None:
+    """짧은 근거 낱말에 「능력·역량」을 붙여 단정했는가. 그런 근거를 돌려준다 (#14).
+
+    「설계」라는 근거 하나로 「설계 능력을 보유하고 있습니다」를 쓰면, 문장은 근거를 지목했고
+    날조 토큰도 없지만 **사용자가 해본 적 없는 일**이 된다. 근거가 낱말 하나일 때만 본다 —
+    「Java/Kotlin 백엔드 경험」처럼 구체적인 근거에 「역량」을 붙이는 것은 정상이다.
+    """
+    for ground in grounds:
+        g = ground.strip()
+        if not g or len(g) > SHORT_GROUND_CHARS:
+            continue
+        if re.search(rf"{re.escape(g)}\s*(?:관련\s*)?{_CAPABILITY}", text):
+            return g
     return None
+
+
+def _keep_cited_sentences(text: str | None, grounds: list[str]) -> str | None:
+    """근거를 지목한 **문장만** 남긴다. 남는 것이 없으면 `None` — 빈말보다 침묵이 낫다.
+
+    항목 단위로 보던 것을 09-21 실측 뒤 문장 단위로 좁혔다. 항목 단위면 앞 문장이 근거를
+    지목한 덕에 뒷 문장의 빈말·날조가 같이 통과한다 — 실제로 그렇게 나왔다.
+    문장 하나가 근거를 지목하는 기준(`_cites`)은 그대로다: 글자 그대로 또는 토큰 절반.
+    """
+    if not text or not text.strip():
+        return None
+    kept = [s for s in sentences(text) if any(_cites(s, g) for g in grounds if g)]
+    if not kept:
+        return None
+    return " ".join(kept[:MAX_COMMENT_SENTENCES])

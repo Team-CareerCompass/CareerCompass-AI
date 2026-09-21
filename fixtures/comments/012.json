@@ -1,0 +1,24 @@
+{
+  "id": "012",
+  "note": "missingQualifications 가 수치 조건 — 학점이다. 없는 수치(3.0을 4.0으로)를 만드는지.",
+  "request": {
+    "matchedKeywords": [
+      "장학금",
+      "학업"
+    ],
+    "matchedPreferences": [],
+    "missingQualifications": [
+      "직전 학기 평점 3.0 이상"
+    ],
+    "topExperienceTitle": ""
+  },
+  "forbidden": [
+    "4.0",
+    "4.5",
+    "3.5",
+    "2.5"
+  ],
+  "expect": {
+    "weakness": true
+  }
+}

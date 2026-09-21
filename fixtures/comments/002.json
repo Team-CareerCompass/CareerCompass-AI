@@ -1,0 +1,16 @@
+{
+  "id": "002",
+  "note": "근거가 전부 비었다 — 모델을 부르지 않고 strength·weakness 둘 다 null 이어야 한다 (계약 §2.2).",
+  "request": {
+    "matchedKeywords": [],
+    "matchedPreferences": [],
+    "missingQualifications": [],
+    "topExperienceTitle": ""
+  },
+  "forbidden": [],
+  "expect": {
+    "strength": false,
+    "weakness": false,
+    "noCall": true
+  }
+}
