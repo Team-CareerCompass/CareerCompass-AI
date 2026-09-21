@@ -14,6 +14,7 @@ import pytest
 
 from app import service
 from app.cache import CacheMiss, ReplayCache
+from app.config import settings
 from app.contract import ServiceError
 from app.gateway import Gateway
 from app.guard import extract_json, fact_check, trim_to_limit
@@ -690,6 +691,79 @@ def test_parse_strips_injection_before_it_reaches_the_model() -> None:
 # --------------------------------------------------------------------------
 # #31 비용 상한 — 호출 전에 막는다
 # --------------------------------------------------------------------------
+
+
+# --------------------------------------------------------------------------
+# 전체 시한 (C1) — 재요청이 쌓여 BE 타임아웃(20초)을 넘지 않게
+# --------------------------------------------------------------------------
+
+
+def test_deadline_allows_only_what_fits() -> None:
+    from app.gateway import Deadline
+
+    d = Deadline(budget_s=10.0)
+    assert d.allows(3.0)  # 3 + 여유 1 < 10
+    assert not d.allows(9.5)
+    assert not Deadline(budget_s=0.0).allows(0.0)
+    assert Deadline(budget_s=-5.0).remaining_s < 0
+
+
+def test_deadline_skips_the_schema_retry(monkeypatch: pytest.MonkeyPatch) -> None:
+    """시간이 없으면 재요청하지 않고 각 엔드포인트의 실패 경로로 간다 — 파싱은 200 + 플래그."""
+    monkeypatch.setattr(settings, "request_deadline_s", 0.0)
+    provider = FakeProvider("잡담", PARSE_OK)  # 둘째 대본은 쓰이지 않아야 한다
+    res = _run(Gateway(provider).parse_posting(ParseRequest(title="제목", raw_content=POSTING)))
+    assert isinstance(res, ParseFailure)
+    assert len(provider.calls) == 1
+
+
+def test_deadline_skips_draft_retries_and_still_answers(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """답이 조금 나쁜 것이, BE 타임아웃에 걸려 통째로 버려지는 것보다 낫다."""
+    monkeypatch.setattr(settings, "request_deadline_s", 0.0)
+    formal = "Spring 백엔드를 맡았습니다. 공고 분석 서비스를 만들었습니다."
+    provider = FakeProvider(_j(answer=formal))  # 대본 하나 — 재요청하면 AssertionError
+    res = _run(Gateway(provider).draft_answer(_draft_req().model_copy(update={"tone": "casual"})))
+    assert res.answer == formal  # 문체는 어겼지만 답은 나간다
+    assert len(provider.calls) == 1
+    assert res.fact_check is not None and not res.fact_check.fallback
+
+
+def test_deadline_still_enforces_the_char_limit_by_trimming(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """글자 수 상한은 계약이다 — 재요청을 못 해도 규칙 절단으로 지킨다."""
+    monkeypatch.setattr(settings, "request_deadline_s", 0.0)
+    long = "Spring 백엔드를 맡았습니다. " * 20
+    provider = FakeProvider(_j(answer=long))
+    res = _run(Gateway(provider).draft_answer(_draft_req(max_chars=60)))
+    assert res.char_count <= 60
+    assert len(provider.calls) == 1
+
+
+def test_deadline_skips_the_fact_check_retry_but_keeps_the_guard(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """재요청은 포기해도 날조는 통과시키지 않는다 — 문장 제거·안전 초안은 규칙이라 공짜다."""
+    monkeypatch.setattr(settings, "request_deadline_s", 0.0)
+    lie = "Redis 로 응답 속도를 40% 줄였습니다."
+    provider = FakeProvider(_j(answer=lie))
+    res = _run(Gateway(provider).draft_answer(_draft_req()))
+    assert len(provider.calls) == 1
+    assert "Redis" not in res.answer and "40%" not in res.answer
+    assert res.fact_check is not None and res.fact_check.passed
+
+
+def test_cached_completion_does_not_block_retries(monkeypatch: pytest.MonkeyPatch) -> None:
+    """리플레이 캐시 히트는 0초다 — 녹화된 지연(수 초)으로 재요청을 막으면 평가가 달라진다."""
+    from app.gateway import Deadline
+    from app.gateway import Gateway as _G
+
+    slow_cached = Completion(text="{}", latency_ms=9_000, cached=True)
+    assert _G._can_retry(Deadline(budget_s=5.0), [slow_cached], "테스트")
+    fresh = Completion(text="{}", latency_ms=9_000)
+    assert not _G._can_retry(Deadline(budget_s=5.0), [fresh], "테스트")
 
 
 def test_budget_blocks_before_calling_when_limit_would_be_exceeded(tmp_path: Path) -> None:
