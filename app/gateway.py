@@ -14,6 +14,8 @@ from __future__ import annotations
 import json
 import logging
 import re
+import time
+from dataclasses import dataclass, field
 from datetime import date
 from typing import Any, TypeVar
 
@@ -65,6 +67,15 @@ logger = logging.getLogger("careercompass.ai.gateway")
 MAX_KEYWORDS = 10
 MIN_KEYWORDS = 3
 MAX_QUESTIONS = 10  # FE #413
+MAX_COMMENT_SENTENCES = 2
+"""코멘트 항목 하나의 문장 수 상한 (계약 §2.2 「1~3줄」·프롬프트)."""
+SHORT_GROUND_CHARS = 3
+"""이 길이 이하의 근거는 「경험」「설계」「환경」처럼 낱말 하나다 — 역량의 증거가 못 된다.
+
+BE `SuitabilityCalculator` 가 우대 조건을 토큰 부분일치로 충족 처리해서(HANDOFF §5) 이런 근거가
+실제로 온다. 09-21 실측에서 모델은 근거 「설계」를 받아 「설계 능력이 있습니다」라고 썼다 —
+사용자는 해본 적 없는 일이다. 프롬프트로는 안 막혀서(v2 에 적었는데도 나왔다) 규칙으로 막는다.
+"""
 LLM_BODY_CHARS = 16_000
 """LLM 에 넣는 본문 상한. 계약의 40,000 은 받는 상한이고, 이건 비용 상한이다."""
 DEFAULT_DRAFT_CHARS = 600
@@ -95,6 +106,35 @@ TONE_RULES = {
     "사실은 경험 요약 그대로",
 }
 TONE_LABEL = {"formal": "「~습니다」체", "casual": "「~해요」체", "confident": "「~니다」체"}
+
+RETRY_MARGIN_S = 1.0
+"""재요청이 직전 호출만큼 걸린다고 보고, 그 위에 이만큼 여유가 더 있어야 시작한다."""
+CACHED_CALL_S = 0.2
+"""리플레이 캐시 히트는 사실상 0초다 — 녹화된 지연으로 재요청을 막지 않는다."""
+FIRST_CALL_ESTIMATE_S = 3.0
+"""직전 호출 기록이 없을 때의 추정(실측 p50 1.8~3.0초)."""
+
+
+@dataclass
+class Deadline:
+    """엔드포인트 하나의 전체 시간 예산.
+
+    `CC_LLM_TIMEOUT_S` 는 HTTP 요청 **하나당**이라 재요청이 붙으면 합계를 아무도 안 본다.
+    파싱은 스키마 재요청 1회, 초안은 톤·단축·사실 재요청 셋이 붙을 수 있어 최악 6~8회다.
+    BE 읽기 타임아웃은 20초 — 넘기면 답이 버려지고 BE 가 재시도해 비용만 두 배가 된다.
+    """
+
+    budget_s: float
+    started: float = field(default_factory=time.perf_counter)
+
+    @property
+    def remaining_s(self) -> float:
+        return self.budget_s - (time.perf_counter() - self.started)
+
+    def allows(self, estimate_s: float) -> bool:
+        """이만큼 걸릴 호출을 지금 시작해도 되는가. 예산이 0 이하면 아무것도 허용하지 않는다."""
+        return self.remaining_s >= estimate_s + RETRY_MARGIN_S
+
 
 _T = TypeVar("_T", bound=BaseModel)
 
@@ -204,6 +244,30 @@ class Gateway:
             self.budget.record(cost_krw(self.provider, completion))
         return completion
 
+    @staticmethod
+    def _can_retry(deadline: Deadline | None, completions: list[Completion], what: str) -> bool:
+        """재요청을 시작해도 되는가 — 직전 호출만큼 더 걸린다고 본다.
+
+        모자라면 **재요청을 포기하고 지금 가진 답으로 끝낸다.** 답이 조금 나쁜 것이,
+        BE 타임아웃에 걸려 답이 통째로 버려지는 것보다 낫다.
+        """
+        if deadline is None:
+            return True
+        if completions:
+            last = completions[-1]
+            estimate = CACHED_CALL_S if last.cached else last.latency_ms / 1000
+        else:
+            estimate = FIRST_CALL_ESTIMATE_S
+        if deadline.allows(estimate):
+            return True
+        logger.warning(
+            "시간이 모자라 %s 재요청을 건너뛴다 — 남은 %.1f초, 직전 호출 %.1f초",
+            what,
+            deadline.remaining_s,
+            estimate,
+        )
+        return False
+
     async def _complete_json(
         self,
         prompt: Prompt,
@@ -212,12 +276,18 @@ class Gateway:
         *,
         max_tokens: int,
         temperature: float,
+        deadline: Deadline | None = None,
     ) -> tuple[_T, list[Completion]]:
-        """스키마를 어기면 **1회** 재요청. 그래도 어기면 `SchemaViolation` (#4)."""
+        """스키마를 어기면 **1회** 재요청. 그래도 어기면 `SchemaViolation` (#4).
+
+        시간이 모자라면 재요청하지 않고 바로 `SchemaViolation` — 호출자가 각자의 실패 경로로 간다.
+        """
         completions: list[Completion] = []
         attempt_user = user
         last_error = ""
         for attempt in range(2):
+            if attempt and not self._can_retry(deadline, completions, f"{prompt.name} 스키마"):
+                break
             completion = await self._complete(
                 prompt, attempt_user, max_tokens=max_tokens, temperature=temperature
             )
@@ -252,6 +322,7 @@ class Gateway:
     async def parse_posting(
         self, req: ParseRequest, prompt_version: str = "v1"
     ) -> ParseResult | ParseFailure:
+        deadline = Deadline(settings.request_deadline_s)
         pre = preprocess(req.raw_content)
         empty_usage = Usage(
             provider=self.provider.name, model=self.provider.model, prompt_version=prompt_version
@@ -285,7 +356,7 @@ class Gateway:
         user = prompt.render(title=req.title, body=pre.text[:LLM_BODY_CHARS])
         try:
             llm, completions = await self._complete_json(
-                prompt, user, _LlmParse, max_tokens=800, temperature=0.1
+                prompt, user, _LlmParse, max_tokens=800, temperature=0.1, deadline=deadline
             )
         except SchemaViolation as exc:
             logger.warning("파싱 스키마 최종 실패: %s", exc)
@@ -329,6 +400,7 @@ class Gateway:
     # ---- §2 코멘트 --------------------------------------------------------
 
     async def comments(self, req: CommentsRequest, prompt_version: str = "v1") -> CommentsResult:
+        deadline = Deadline(settings.request_deadline_s)
         grounds = [*req.matched_keywords, *req.matched_preferences]
         if req.top_experience_title:
             grounds.append(req.top_experience_title)
@@ -342,7 +414,7 @@ class Gateway:
                 )
             )
 
-        prompt = load_prompt("comments")
+        prompt = load_prompt("comments", settings.comments_prompt_version)
         user = prompt.render(
             matched_keywords=_jlist(req.matched_keywords),
             matched_preferences=_jlist(req.matched_preferences),
@@ -351,16 +423,40 @@ class Gateway:
         )
         try:
             llm, completions = await self._complete_json(
-                prompt, user, _LlmComments, max_tokens=300, temperature=0.3
+                prompt, user, _LlmComments, max_tokens=300, temperature=0.3, deadline=deadline
             )
         except SchemaViolation:
             # 코멘트는 없어도 점수는 나간다. 이상한 문장보다 null 이 낫다.
             return CommentsResult(usage=self._usage(prompt_version, []))
 
-        # #14 방어 — 근거를 하나도 지목하지 않은 문장은 버린다. BE 의 우대 매칭이 과대매칭이라
+        # #14 방어 — 근거를 지목하지 않은 **문장**을 버린다. BE 의 우대 매칭이 과대매칭이라
         # 근거 자체가 의심스러운데, 근거조차 안 나오는 문장은 확실히 빈말이다.
-        strength = _keep_if_cites(llm.strength, grounds)
-        weakness = _keep_if_cites(llm.weakness, req.missing_qualifications)
+        # 항목이 아니라 문장 단위다 (09-21 실측): 「…전문성을 입증하기 어렵습니다.
+        # 이를 보완하기 위해 관련 자격증 취득을 고려할 수 있습니다.」에서 뒤 문장만 근거가 없었다.
+        strength = _keep_cited_sentences(llm.strength, grounds)
+        weakness = _keep_cited_sentences(llm.weakness, req.missing_qualifications)
+
+        # 초안에만 있던 사실검증을 코멘트에도 건다 (09-21 실측). 「RDB 1년 이상」이라는 근거에서
+        # 「RDBMS(예: MySQL)를 1년 이상」이 나왔다 — 근거에 없는 기술명을 예시로 든 것이다.
+        # 초안과 달리 **재요청하지 않는다** — 코멘트는 null 이 허용되고 점수는 그대로 나간다 (§2.2).
+        for name, value in (("strength", strength), ("weakness", weakness)):
+            if not value:
+                continue
+            unverified = fact_check(value, grounds + req.missing_qualifications)
+            if not unverified:
+                continue
+            logger.warning("코멘트 %s 에 근거 없는 토큰 %s — 문장 제거", name, unverified)
+            kept = _keep_cited_sentences(drop_sentences_with(value, unverified), grounds)
+            if name == "strength":
+                strength = kept
+            else:
+                weakness = kept
+
+        # 근거를 넘어선 단정은 항목째 버린다 — 앞 문장을 빼면 뒷 문장의 「이러한 역량」이 뜬다.
+        if strength and (weak := _overclaims_capability(strength, grounds)):
+            logger.warning("근거 「%s」 하나로 역량을 단정 — 강점 코멘트를 버린다", weak)
+            strength = None
+
         strength = scrub_pii(strength)[0] if strength else None
         weakness = scrub_pii(weakness)[0] if weakness else None
         return CommentsResult(
@@ -370,6 +466,8 @@ class Gateway:
     # ---- §3 초안 ----------------------------------------------------------
 
     async def draft_answer(self, req: DraftRequest, prompt_version: str = "v1") -> DraftResult:
+        # 재요청이 가장 많이 붙는 엔드포인트다 — 톤·단축·사실 셋이 다 걸리면 8회까지 간다.
+        deadline = Deadline(settings.request_deadline_s)
         limit = req.max_chars if req.max_chars > 0 else 0
         # 상한만 말하면 짧게 끝낸다 — 하한도 준다. 상한만 아래서 실측으로 강제한다.
         ceiling = limit or DEFAULT_DRAFT_CHARS
@@ -430,7 +528,7 @@ class Gateway:
         fallback = False
         try:
             llm, completions = await self._complete_json(
-                prompt, user, _LlmDraft, max_tokens=max_tokens, temperature=0.7
+                prompt, user, _LlmDraft, max_tokens=max_tokens, temperature=0.7, deadline=deadline
             )
             answer = llm.answer.strip()
             used_raw = llm.usedIndexes
@@ -441,7 +539,11 @@ class Gateway:
             answer, used_raw, completions, fallback = "", [], [], True
 
         ratio = ending_ratio(answer, tone) if answer else None
-        if ratio is not None and ratio < TONE_MIN:
+        if (
+            ratio is not None
+            and ratio < TONE_MIN
+            and self._can_retry(deadline, completions, "문체")
+        ):
             # 프롬프트로 부탁한 문체를 실측으로 강제한다 (#18). v1 실측에서 casual 은 부탁만으로는
             # 14건 중 2건만 지켰다. 1회 재요청 — 어미 비율이 오르면 받는다.
             tone_user = (
@@ -451,7 +553,12 @@ class Gateway:
             )
             try:
                 retoned, more = await self._complete_json(
-                    prompt, tone_user, _LlmDraft, max_tokens=max_tokens, temperature=0.5
+                    prompt,
+                    tone_user,
+                    _LlmDraft,
+                    max_tokens=max_tokens,
+                    temperature=0.5,
+                    deadline=deadline,
                 )
                 completions.extend(more)
                 candidate = retoned.answer.strip()
@@ -463,25 +570,32 @@ class Gateway:
         if answer and limit and len(answer) > limit:
             # 프롬프트로 부탁한 것을 실측으로 강제한다 (#16).
             # 1회 단축 재요청 → 그래도 넘으면 문장 경계에서 자른다.
-            shorten_user = (
-                f"{user}\n\n(직전 초안이 {len(answer)}자다. {limit}자 이내로 줄여 다시 쓴다.)"
-            )
-            try:
-                shorter, more = await self._complete_json(
-                    prompt, shorten_user, _LlmDraft, max_tokens=max_tokens, temperature=0.5
+            # 시간이 모자라면 재요청을 건너뛰고 규칙 절단으로 — 상한은 계약이라 포기 못 한다.
+            if self._can_retry(deadline, completions, "글자 수"):
+                shorten_user = (
+                    f"{user}\n\n(직전 초안이 {len(answer)}자다. {limit}자 이내로 줄여 다시 쓴다.)"
                 )
-                completions.extend(more)
-                if len(shorter.answer.strip()) <= len(answer):
-                    answer, used_raw = shorter.answer.strip(), shorter.usedIndexes
-            except SchemaViolation:
-                pass
+                try:
+                    shorter, more = await self._complete_json(
+                        prompt,
+                        shorten_user,
+                        _LlmDraft,
+                        max_tokens=max_tokens,
+                        temperature=0.5,
+                        deadline=deadline,
+                    )
+                    completions.extend(more)
+                    if len(shorter.answer.strip()) <= len(answer):
+                        answer, used_raw = shorter.answer.strip(), shorter.usedIndexes
+                except SchemaViolation:
+                    pass
             answer = trim_to_limit(answer, limit)
 
         # 근거는 **사용자의 경험**이다. 공고 키워드는 근거가 아니다 — 첫 실측에서 keywords 의
         # Redis 를 「사용해 본 경험」으로 쓴 초안이 통과했다(#29). 공고 제목·질문은 회사명·주제가
         # 답에 나오는 것이 당연하므로 남긴다.
         unverified = fact_check(answer, sources) if answer else []
-        if unverified:
+        if unverified and self._can_retry(deadline, completions, "사실검증"):
             # ① 1회 재요청 — 무엇이 근거에 없는지 짚어서
             retry_user = (
                 f"{user}\n\n(직전 초안에 근거에 없는 표현이 있었다: {', '.join(unverified)}. "
@@ -489,7 +603,12 @@ class Gateway:
             )
             try:
                 redo, more = await self._complete_json(
-                    prompt, retry_user, _LlmDraft, max_tokens=max_tokens, temperature=0.5
+                    prompt,
+                    retry_user,
+                    _LlmDraft,
+                    max_tokens=max_tokens,
+                    temperature=0.5,
+                    deadline=deadline,
                 )
                 completions.extend(more)
                 candidate = redo.answer.strip()
@@ -557,6 +676,7 @@ def _posting_type(value: str | None) -> PostingType | None:
 
 
 _TOKEN = re.compile(r"[A-Za-z0-9+#.]{2,}|[가-힣]{2,}")
+_CAPABILITY = "(?:능력|역량|전문성|실력)"
 
 
 def _cites(text: str, ground: str) -> bool:
@@ -576,11 +696,32 @@ def _cites(text: str, ground: str) -> bool:
     return hits * 2 >= len(tokens)
 
 
-def _keep_if_cites(sentence: str | None, grounds: list[str]) -> str | None:
-    """문장이 근거 중 하나라도 지목해야 살린다. 최대 3줄."""
-    if not sentence or not sentence.strip():
-        return None
-    text = "\n".join(sentence.strip().splitlines()[:3])
-    if any(_cites(text, g) for g in grounds if g):
-        return text
+def _overclaims_capability(text: str, grounds: list[str]) -> str | None:
+    """짧은 근거 낱말에 「능력·역량」을 붙여 단정했는가. 그런 근거를 돌려준다 (#14).
+
+    「설계」라는 근거 하나로 「설계 능력을 보유하고 있습니다」를 쓰면, 문장은 근거를 지목했고
+    날조 토큰도 없지만 **사용자가 해본 적 없는 일**이 된다. 근거가 낱말 하나일 때만 본다 —
+    「Java/Kotlin 백엔드 경험」처럼 구체적인 근거에 「역량」을 붙이는 것은 정상이다.
+    """
+    for ground in grounds:
+        g = ground.strip()
+        if not g or len(g) > SHORT_GROUND_CHARS:
+            continue
+        if re.search(rf"{re.escape(g)}\s*(?:관련\s*)?{_CAPABILITY}", text):
+            return g
     return None
+
+
+def _keep_cited_sentences(text: str | None, grounds: list[str]) -> str | None:
+    """근거를 지목한 **문장만** 남긴다. 남는 것이 없으면 `None` — 빈말보다 침묵이 낫다.
+
+    항목 단위로 보던 것을 09-21 실측 뒤 문장 단위로 좁혔다. 항목 단위면 앞 문장이 근거를
+    지목한 덕에 뒷 문장의 빈말·날조가 같이 통과한다 — 실제로 그렇게 나왔다.
+    문장 하나가 근거를 지목하는 기준(`_cites`)은 그대로다: 글자 그대로 또는 토큰 절반.
+    """
+    if not text or not text.strip():
+        return None
+    kept = [s for s in sentences(text) if any(_cites(s, g) for g in grounds if g)]
+    if not kept:
+        return None
+    return " ".join(kept[:MAX_COMMENT_SENTENCES])

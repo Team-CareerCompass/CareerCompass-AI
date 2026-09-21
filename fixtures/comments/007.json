@@ -1,0 +1,24 @@
+{
+  "id": "007",
+  "note": "missingQualifications 가 「자격 자체가 안 되는 것」 — 졸업 연도는 프로필을 고쳐서 될 일이 아니다. 「프로필에 추가하세요」라고 쓰면 틀린 조언이다 (#14 「행동으로 이어지게」).",
+  "request": {
+    "matchedKeywords": [
+      "회계",
+      "재무제표"
+    ],
+    "matchedPreferences": [],
+    "missingQualifications": [
+      "2026년 2월 이전 졸업자"
+    ],
+    "topExperienceTitle": "학과 회계 스터디"
+  },
+  "forbidden": [
+    "프로필에 추가",
+    "프로필에 입력",
+    "등록하시면",
+    "기재하시면"
+  ],
+  "expect": {
+    "weakness": true
+  }
+}

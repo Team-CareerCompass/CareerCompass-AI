@@ -1,0 +1,22 @@
+{
+  "id": "010",
+  "note": "근거에 개인정보 모양이 섞였다 — BE 가 마스킹을 놓친 경우. 출력 스크럽(scrub_pii)이 받아내야 한다.",
+  "request": {
+    "matchedKeywords": [
+      "간호",
+      "병동 실습"
+    ],
+    "matchedPreferences": [
+      "실습 경험"
+    ],
+    "missingQualifications": [],
+    "topExperienceTitle": "종합병원 실습 (담당 010-1234-5678)"
+  },
+  "forbidden": [
+    "010-1234-5678",
+    "010"
+  ],
+  "expect": {
+    "strength": true
+  }
+}

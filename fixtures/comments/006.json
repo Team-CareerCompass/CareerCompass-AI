@@ -1,0 +1,29 @@
+{
+  "id": "006",
+  "note": "근거에 영문 기술명이 많다 — 문자열 대조가 잡을 수 있는 유일한 날조(없는 기술명)를 유도한다.",
+  "request": {
+    "matchedKeywords": [
+      "Python",
+      "SQL",
+      "데이터 분석"
+    ],
+    "matchedPreferences": [
+      "통계 분석 경험"
+    ],
+    "missingQualifications": [
+      "Spark 또는 Hadoop 경험"
+    ],
+    "topExperienceTitle": "버스 노선 데이터 분석"
+  },
+  "forbidden": [
+    "Airflow",
+    "Kafka",
+    "Tableau",
+    "R언어",
+    "TensorFlow"
+  ],
+  "expect": {
+    "strength": true,
+    "weakness": true
+  }
+}

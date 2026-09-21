@@ -1,0 +1,29 @@
+{
+  "id": "001",
+  "note": "기본형 — 강점·약점 근거가 둘 다 있다. 09-14 실측에서 「RDB 1년 이상」 근거로 「데이터베이스 관련 자격증이 부족」을 만든 바로 그 모양.",
+  "request": {
+    "matchedKeywords": [
+      "Spring",
+      "Kotlin",
+      "REST API"
+    ],
+    "matchedPreferences": [
+      "Java/Kotlin 백엔드 경험"
+    ],
+    "missingQualifications": [
+      "RDB 1년 이상"
+    ],
+    "topExperienceTitle": "중고거래 플랫폼 백엔드"
+  },
+  "forbidden": [
+    "자격증",
+    "토익",
+    "인턴",
+    "학점",
+    "졸업"
+  ],
+  "expect": {
+    "strength": true,
+    "weakness": true
+  }
+}

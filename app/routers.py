@@ -83,6 +83,8 @@ async def health() -> dict[str, Any]:
         "stubMode": stub,
         "provider": "stub" if stub else f"hcx/{settings.hcx_model}",
         "providerKeyPresent": bool(settings.hcx_api_key),
+        "deadlineS": settings.request_deadline_s,
+        "callTimeoutS": settings.llm_timeout_s,
     }
     if not stub:
         body["budget"] = service.budget().status().as_dict()
