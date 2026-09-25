@@ -7,6 +7,7 @@
 - `scrub_pii` — 출력에 섞인 이메일·전화·주민번호 모양을 지운다
 - `safe_draft` — 모델 없이, **입력 문자열만으로** 만든 초안. 검증을 끝내 못 통과했을 때의 답
 - `ending_ratio` — 문장 어미로 톤을 실측한다. 「~해요」를 부탁해도 모델은 「~합니다」로 쓴다 (#18)
+- `unsupported_claims` — 입력에 없는 **자격·수상·소속** 단정. 한국어 날조 중 잡을 수 있는 것만 (#29)
 """
 
 from __future__ import annotations
@@ -122,6 +123,48 @@ def ending_ratio(text: str, tone: str) -> float | None:
         return None
     hits = sum(bool(pattern.search(_TRAILING.sub("", s))) for s in sents)
     return hits / len(sents)
+
+
+CLAIM_WORDS: dict[str, tuple[str, ...]] = {
+    "자격": ("자격증", "면허", "수료증", "인증서", "취득", "기사"),
+    "수상": (
+        "수상",
+        "최우수",
+        "우수상",
+        "장려상",
+        "입상",
+        "금상",
+        "은상",
+        "대상을 받",
+        "대상 수상",
+    ),
+    "소속": ("입사", "재직", "근무 경험", "정규직", "인턴십을 수료"),
+}
+"""입력에 없으면 날조가 되는 **범주**. 한국어 고유명사 전체를 잡으려는 시도는 실패했다 (#29).
+
+221개 실측 답에 「입력에 없는 한국어 명사」를 전부 플래그해 봤더니 답 하나당 30건이었다 —
+「통해」「또한」「능력」 같은 말이 쏟아진다. 문서빈도로 걸러도 답당 10건에 재현율만 떨어졌다.
+**그래서 범주를 좁혔다.** 자격·수상·소속은 셋 다 「입력이 말하지 않았으면 지어낸 것」이 확실하고,
+같은 범주의 말이 입력에 있으면 봐준다 — 그래야 「정보처리기사 취득」(입력)을 「자격증을
+취득했습니다」(답)로 바꿔 쓴 것을 날조로 오해하지 않는다.
+
+재현율은 좁다. 회사명(「엔씨소프트에 입사한다면」)은 「입사」로 걸리지만 「타입스크립트」처럼
+영문의 한글 표기는 여기서 안 잡힌다 — 평가셋의 `forbidden` 이 사후에 잡는다.
+"""
+
+
+def unsupported_claims(text: str, sources: list[str]) -> list[str]:
+    """답이 말했는데 입력은 같은 범주를 한 번도 말하지 않은 자격·수상·소속 표현 (#29).
+
+    실측 221개 답에서 3건이 걸렸고 셋 다 진짜였다 — 오탐 0. 좁은 대신 확실하다.
+    """
+    haystack = " ".join(sources)
+    found: list[str] = []
+    for words in CLAIM_WORDS.values():
+        if any(w in haystack for w in words):
+            continue  # 입력이 같은 범주를 말했다면 답이 말하는 것도 근거가 있다
+        found += [w for w in words if w in text]
+    return list(dict.fromkeys(found))
 
 
 def scrub_pii(text: str) -> tuple[str, int]:

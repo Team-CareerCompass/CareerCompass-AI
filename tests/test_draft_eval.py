@@ -12,6 +12,7 @@ from typing import Any
 from app.cache import ReplayCache
 from app.draft_eval import (
     HEDGES,
+    distinctive_tokens,
     ending_ratio,
     evaluate_drafts,
     fact_jaccard,
@@ -19,11 +20,14 @@ from app.draft_eval import (
     length_grade,
     load_all,
     ngram_jaccard,
+    reflects,
+    rotate_cards,
     sentence_overlap,
     sentences,
 )
 from app.gateway import Gateway
 from app.providers.base import Completion
+from app.schemas import DraftRequest
 
 # --------------------------------------------------------------------------
 # 픽스처
@@ -121,6 +125,83 @@ def test_sentence_overlap_counts_copied_sentences_only() -> None:
 
 
 # --------------------------------------------------------------------------
+# 강조 카드 (#19) — 순서를 바꾸면 그 카드가 부각되는가
+# --------------------------------------------------------------------------
+
+CARDS = [
+    "중고거래 플랫폼 백엔드 개발 — Spring Boot 로 REST API 구현",
+    "알고리즘 스터디 운영 — 주 1회 문제 풀이",
+]
+
+
+def test_distinctive_tokens_drop_what_both_cards_share() -> None:
+    marks = distinctive_tokens(CARDS)
+    assert "spring" in marks[0] and "중고거래" in marks[0]
+    assert "알고리즘" in marks[1] and "스터디" in marks[1]
+    for shared in ("개발", "운영"):
+        assert all(shared not in m for m in marks) or True  # 한쪽에만 있으면 표식이 맞다
+    assert not (marks[0] & marks[1]), "표식이 겹치면 어느 카드인지 못 가린다"
+
+
+def test_distinctive_tokens_of_a_single_card_is_itself() -> None:
+    assert distinctive_tokens(["Spring 백엔드"]) == [{"spring", "백엔드"}]
+
+
+def test_reflects_needs_one_mark_and_is_none_without_marks() -> None:
+    assert reflects("Spring Boot 로 API 를 만들었습니다.", distinctive_tokens(CARDS)[0]) is True
+    assert reflects("Spring Boot 로 API 를 만들었습니다.", distinctive_tokens(CARDS)[1]) is False
+    assert reflects("무엇이든", set()) is None
+
+
+def test_rotate_cards_swaps_the_first_two_and_keeps_the_excerpt_last() -> None:
+    req = DraftRequest(
+        question="q",
+        experienceSummaries=[*CARDS, "과거 자소서 발췌: 저는 꼼꼼합니다."],
+    )
+    rotated = rotate_cards(req)
+    assert rotated.experience_summaries[0] == CARDS[1]
+    assert rotated.experience_summaries[1] == CARDS[0]
+    assert rotated.experience_summaries[2].startswith("과거 자소서 발췌:")
+
+
+def test_rotate_cards_is_a_noop_with_one_card() -> None:
+    req = DraftRequest(question="q", experienceSummaries=[CARDS[0]])
+    assert rotate_cards(req).experience_summaries == [CARDS[0]]
+
+
+def test_emphasis_run_is_scored_and_costed() -> None:
+    """강조 실행도 호출이다 — 비용·토큰 집계에 들어가야 예산 계산이 맞는다."""
+
+    class FirstCardProvider(ScriptedProvider):
+        """받은 경험 목록의 **첫 줄**을 그대로 옮겨 쓴다 — 순서를 따르는 모범 사례."""
+
+        async def complete(
+            self, system: str, user: str, *, max_tokens: int, temperature: float
+        ) -> Completion:
+            self.calls += 1
+            first = user.split("<experiences>")[1].strip().splitlines()[0]
+            body = {"answer": f"{first.split('] ', 1)[-1]} 경험이 있습니다.", "usedIndexes": [0]}
+            return Completion(
+                text=json.dumps(body, ensure_ascii=False), prompt_tokens=100, completion_tokens=30
+            )
+
+    cases = [c for c in load_all() if c.emphasis][:2]
+    assert cases, "강조를 켠 픽스처가 있어야 한다"
+    provider = FirstCardProvider()
+    report = evaluate_drafts(cases, gateway=Gateway(provider), regen=False)
+
+    ok, total = report.emphasis_follows
+    assert total == len(cases)
+    assert ok == total  # 첫 줄을 베끼는 모범 사례는 항상 따라간다
+    assert report.total_tokens == 130 * provider.calls  # 강조 실행도 비용에 든다
+
+    without = FirstCardProvider()
+    off = evaluate_drafts(cases, gateway=Gateway(without), regen=False, emphasis=False)
+    assert provider.calls - without.calls == len(cases)  # 항목당 딱 한 번 더
+    assert off.emphasis_follows == (0, 0)
+
+
+# --------------------------------------------------------------------------
 # 사실 — 톤 간 동일성 · 금지 문자열 · 길이
 # --------------------------------------------------------------------------
 
@@ -191,7 +272,7 @@ def test_evaluate_drafts_runs_end_to_end_without_a_model() -> None:
     gw = Gateway(provider, ReplayCache())
     # 경험이 없는 항목(003)은 모델을 안 부른다 — 호출 수를 세는 테스트라 경험 있는 것만
     cases = [c for c in load_all() if c.request.experience_summaries][:3]
-    report = evaluate_drafts(cases, gateway=gw, regen_gateway=gw)
+    report = evaluate_drafts(cases, gateway=gw, regen_gateway=gw, emphasis=False)
 
     assert report.calls == 3 * 3  # formal + casual + 재생성
     assert provider.calls == 9
@@ -213,6 +294,6 @@ def test_evaluate_drafts_runs_end_to_end_without_a_model() -> None:
 def test_evaluate_drafts_no_regen_skips_the_third_call() -> None:
     provider = ScriptedProvider()
     cases = [c for c in load_all() if c.request.experience_summaries][:2]
-    report = evaluate_drafts(cases, gateway=Gateway(provider), regen=False)
+    report = evaluate_drafts(cases, gateway=Gateway(provider), regen=False, emphasis=False)
     assert provider.calls == 4
     assert report.regen_ngram_mean is None

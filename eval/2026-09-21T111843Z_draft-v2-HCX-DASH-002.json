@@ -1,0 +1,1497 @@
+{
+  "ranAt": "2026-09-21T111843Z",
+  "promptVersion": "v2",
+  "model": "HCX-DASH-002",
+  "tones": [
+    "formal",
+    "casual"
+  ],
+  "regen": true,
+  "calls": 47,
+  "lengthCompliance": 1,
+  "fillCompliance": 0.10256410256410256,
+  "fillRatioMean": 0.47205128205128205,
+  "defaultRangeCompliance": 0,
+  "fallbackRate": 0.07142857142857142,
+  "forbiddenTotal": 1,
+  "unverifiedTotal": 0,
+  "toneConsistency": {
+    "formal": 1.0,
+    "casual": 0.9493197278911565
+  },
+  "distinguishable": 14,
+  "distinguishableOf": 14,
+  "factJaccardMean": 0.6964285714285714,
+  "regenNgramMean": 0.2423808828253611,
+  "regenSimilar": 0,
+  "emphasisFollows": 5,
+  "emphasisOf": 5,
+  "regenSentenceMean": 0.0,
+  "crossCaseNgramMean": 0.027993452050113412,
+  "totalTokens": 48533,
+  "costKrw": 18.4697,
+  "rows": [
+    {
+      "id": "001",
+      "note": "기본형 — 채용·지원동기·500자. 경험 3개, 수치·기술명이 들어 있어 사실검증이 걸릴 거리가 있다. v1 실측에서 casual 이 「엔씨소프트에 입사한다면」— 입력에 없는 회사명을 만들었다. 문자열 검증은 한글 고유명사를 못 잡는다. 강조(#19): 카드 3개 — 백엔드/스터디/홈페이지가 서로 구별된다.",
+      "limit": 500,
+      "experiences": 3,
+      "tones": {
+        "formal": {
+          "tone": "formal",
+          "answer": "귀사의 2026 하반기 신입 백엔드 개발자 모집 공고에 지원하게 된 동기는 귀사에서 제공하는 혁신적인 서비스와 기술적 도전에 대한 열망 때문입니다. 대학에서 교내 중고거래 플랫폼 백엔드 개발에 참여하며 Spring Boot와 MySQL을 활용하여 32개의 REST API를 구현하였고, 이를 통해 대규모 트래픽에도 안정적인 시스템 설계 및 구축 능력을 배양할 수 있었습니다. 또한, 학과 홈페이지 리뉴얼 프로젝트를 통해 사용자 중심의 기능을 구현하는 경험을 쌓았으며, 이러한 경험들은 귀사의 다양한 프로젝트에서도 큰 도움이 될 것입니다. 입사 후에는 지속적인 학습과 성장을 통해 최신 기술을 익히고, 동료들과 함께 협력하여 귀사의 목표 달성에 기여하고자 합니다.",
+          "charCount": 370,
+          "limit": 500,
+          "lengthGrade": "ok",
+          "fillRatio": 0.74,
+          "usedIndexes": [
+            0,
+            2
+          ],
+          "unverified": [],
+          "fallback": false,
+          "forbiddenHits": [],
+          "endingRatio": 1.0,
+          "hedges": 0,
+          "cliches": 0,
+          "usage": {
+            "provider": "hcx",
+            "model": "HCX-DASH-002",
+            "promptVersion": "v1",
+            "promptTokens": 655,
+            "completionTokens": 172,
+            "totalTokens": 827,
+            "latencyMs": 3067,
+            "costKrw": 0.3357
+          }
+        },
+        "casual": {
+          "tone": "casual",
+          "answer": "교내 중고거래 플랫폼에서 백엔드 개발을 맡았어요. Spring Boot와 MySQL을 사용해 32개의 REST API를 구현했죠. 그때 협업을 통해 팀워크 능력을 키웠어요. 알고리즘 스터디를 1년간 운영하며 매주 문제를 풀었고, 8명의 참여자와 함께 성장했어요. 학과 홈페이지 리뉴얼 프로젝트에서는 게시판이랑 공지 기능을 구현했고, JPA를 사용해 데이터베이스 연동을 했어요. 귀사에 입사해서도 이러한 경험을 바탕으로 대용량 트래픽 처리와 코드 리뷰를 통해 더욱 발전된 백엔드 개발에 기여하고 싶어요.",
+          "charCount": 280,
+          "limit": 500,
+          "lengthGrade": "under",
+          "fillRatio": 0.56,
+          "usedIndexes": [
+            0,
+            2
+          ],
+          "unverified": [],
+          "fallback": false,
+          "forbiddenHits": [],
+          "endingRatio": 1.0,
+          "hedges": 0,
+          "cliches": 0,
+          "usage": {
+            "provider": "hcx",
+            "model": "HCX-DASH-002",
+            "promptVersion": "v1",
+            "promptTokens": 1425,
+            "completionTokens": 311,
+            "totalTokens": 1736,
+            "latencyMs": 5457,
+            "costKrw": 0.6673
+          }
+        }
+      },
+      "factJaccard": 0.75,
+      "distinguishable": true,
+      "regen": {
+        "tone": "formal",
+        "answer": "귀사의 2026 하반기 신입 백엔드 개발자 채용 공고에 지원하게 된 이유는 귀사가 가진 혁신적인 기술과 서비스를 통해 사회에 기여하고자 하는 비전에 공감하기 때문입니다. 대학 시절, 교내 중고거래 플랫폼 백엔드 개발에 참여하면서 Spring Boot와 MySQL을 활용하여 32개의 REST API를 구현하였고, 이는 서비스의 안정성과 성능을 크게 향상시켰습니다. 또한, 알고리즘 스터디를 운영하며 매주 문제를 풀이하고 8명의 참여자와 함께 지식을 공유하며 협업 능력을 길렀습니다. 학과 홈페이지 리뉴얼 프로젝트에서는 JPA를 사용해 게시판과 공지 기능을 성공적으로 구현했습니다. 입사 후에는 이러한 경험을 바탕으로 더욱 발전된 백엔드 시스템을 구축하고, 대용량 트래픽에도 안정적인 서비스를 제공할 수 있도록 노력할 것입니다.",
+        "charCount": 406,
+        "limit": 500,
+        "lengthGrade": "ok",
+        "fillRatio": 0.81,
+        "usedIndexes": [
+          0,
+          1,
+          2
+        ],
+        "unverified": [],
+        "fallback": false,
+        "forbiddenHits": [],
+        "endingRatio": 1.0,
+        "hedges": 0,
+        "cliches": 0,
+        "usage": {
+          "provider": "hcx",
+          "model": "HCX-DASH-002",
+          "promptVersion": "v1",
+          "promptTokens": 655,
+          "completionTokens": 190,
+          "totalTokens": 845,
+          "latencyMs": 3276,
+          "costKrw": 0.3538
+        },
+        "ngramJaccard": 0.2918552036199095,
+        "sentenceOverlap": 0.0
+      },
+      "emphasis": {
+        "rotatedAnswer": "귀사의 2026 하반기 신입 백엔드 개발자 모집 공고에 지원하게 된 이유는 귀사에서 제공하는 혁신적인 서비스와 기술적 도전에 큰 매력을 느꼈기 때문입니다. 특히, Spring Boot와 MySQL을 활용한 REST API 개발에 대한 깊은 관심과 경험을 바탕으로 귀사에 기여하고자 합니다. 대학 시절, 알고리즘 스터디 운영을 통해 협업 능력을 향상시키며 문제 해결 능력을 기른 경험이 있습니다. 또한, 교내 중고거래 플랫폼 백엔드 개발을 주도하며 32개의 REST API를 성공적으로 구현하고 서버를 담당하여 시스템 안정성을 높이는 역할을 하였습니다. 이러한 경험들은 귀사에서 대용량 트래픽을 처리하는 백엔드 개발자로서 성장하는 데 큰 도움이 될 것입니다. 입사 후에는 지속적으로 새로운 기술을 학습하고, 동료들과 함께 코드 리뷰를 통해 더욱 높은 품질의 소프트웨어를 개발하며 귀사의 성장을 이끌어 나가고 싶습니다.",
+        "baseReflectsFirst": true,
+        "rotatedReflectsFirst": true,
+        "baseUsedIndexes": [
+          0,
+          2
+        ],
+        "rotatedUsedIndexes": [
+          0,
+          1,
+          2
+        ],
+        "usage": {
+          "provider": "hcx",
+          "model": "HCX-DASH-002",
+          "promptVersion": "v1",
+          "promptTokens": 655,
+          "completionTokens": 205,
+          "totalTokens": 860,
+          "latencyMs": 3419,
+          "costKrw": 0.3688
+        }
+      }
+    },
+    {
+      "id": "002",
+      "note": "문제해결 경험·800자. 경험 요약에 수치가 많다 — 모델이 수치를 부풀리거나(40%→60%) 새 수치를 만드는지 본다. 강조(#19): 카드 3개 — 배치 개선/해커톤/장애 복구.",
+      "limit": 800,
+      "experiences": 3,
+      "tones": {
+        "formal": {
+          "tone": "formal",
+          "answer": "먼저 동아리 출석 데이터를 집계하는 배치 프로세스를 개선하여 이전에는 12분이 걸리던 것이 이제는 3분 만에 완료되었습니다. 이 과정에서 중복 집계를 발생시키던 버그를 수정함으로써 정확하고 효율적인 데이터 처리가 가능해졌습니다. 두 번째로 교내 해커톤에서는 24시간 동안 진행된 경쟁에서 팀원들과 협력하여 SQL 기반의 대시보드를 제작하였고, 결과적으로 5팀 중에서 2위를 차지하며 실력을 인정받았습니다. 마지막으로 학과 서버의 장애 상황을 복구하고 원인을 문서화한 경험이 있습니다. 디스크 용량이 초과되어 게시판이 멈췄지만, 로그 분석을 통해 문제의 원인을 찾아내고 이를 해결하기 위한 방안을 마련하여 서버를 정상 상태로 복구했습니다.",
+          "charCount": 356,
+          "limit": 800,
+          "lengthGrade": "under",
+          "fillRatio": 0.45,
+          "usedIndexes": [
+            0,
+            1,
+            2
+          ],
+          "unverified": [],
+          "fallback": false,
+          "forbiddenHits": [],
+          "endingRatio": 1.0,
+          "hedges": 0,
+          "cliches": 0,
+          "usage": {
+            "provider": "hcx",
+            "model": "HCX-DASH-002",
+            "promptVersion": "v1",
+            "promptTokens": 667,
+            "completionTokens": 186,
+            "totalTokens": 853,
+            "latencyMs": 3118,
+            "costKrw": 0.3528
+          }
+        },
+        "casual": {
+          "tone": "casual",
+          "answer": "먼저 동아리 출석 데이터를 집계하는 배치 프로세스를 개선해봤어요. 원래는 12분이 걸렸는데, Python 스크립트를 수정해서 3분으로 줄였죠. 이 과정에서 중복 집계를 일으키던 버그까지 고쳐서 더욱 효율적으로 작동하게 되었답니다. 다음으로는 교내 해커톤에 참가했는데요, 24시간 동안 SQL 기반의 대시보드를 만들었어요. 팀원들과 협업하며 아이디어를 내고 구현했던 경험이 정말 값졌어요. 마지막으로는 학과 서버가 디스크 용량 초과로 멈추었을 때 로그 정리를 통해 복구했어요. 원인을 문서화하는 작업을 하면서 문제 해결 능력을 키울 수 있었죠.",
+          "charCount": 303,
+          "limit": 800,
+          "lengthGrade": "under",
+          "fillRatio": 0.38,
+          "usedIndexes": [
+            0,
+            1,
+            2
+          ],
+          "unverified": [],
+          "fallback": false,
+          "forbiddenHits": [],
+          "endingRatio": 0.8571428571428571,
+          "hedges": 0,
+          "cliches": 0,
+          "usage": {
+            "provider": "hcx",
+            "model": "HCX-DASH-002",
+            "promptVersion": "v1",
+            "promptTokens": 701,
+            "completionTokens": 174,
+            "totalTokens": 875,
+            "latencyMs": 3012,
+            "costKrw": 0.3493
+          }
+        }
+      },
+      "factJaccard": 0.75,
+      "distinguishable": true,
+      "regen": {
+        "tone": "formal",
+        "answer": "먼저 동아리 출석 데이터를 집계하는 배치 프로세스를 개선한 경험이 있습니다. 이전에는 이 배치 스크립트가 약 12분이 소요되었으나, 이를 Python 스킬을 활용하여 최적화한 결과 3분으로 대폭 단축할 수 있었습니다. 또한, 중복 집계로 인한 오류를 수정하여 정확성을 높였습니다. 이어서 교내 해커톤에서는 24시간 동안 진행된 일정 속에 SQL 기반의 대시보드를 제작하였고, 5팀 중에서 2위를 차지하며 팀원들과 협업해 좋은 성과를 낼 수 있었습니다. 마지막으로 학과 서버가 디스크 용량 초과로 멈추었을 때 로그를 정리하여 원인을 찾아내고 문서화함으로써 빠르게 복구할 수 있었고, 이러한 경험을 통해 데이터 분석 및 문제 해결 능력뿐만 아니라 빠른 의사결정을 위한 장애 대응 능력을 배울 수 있었습니다.",
+        "charCount": 393,
+        "limit": 800,
+        "lengthGrade": "under",
+        "fillRatio": 0.49,
+        "usedIndexes": [
+          0,
+          1,
+          2
+        ],
+        "unverified": [],
+        "fallback": false,
+        "forbiddenHits": [],
+        "endingRatio": 1.0,
+        "hedges": 0,
+        "cliches": 0,
+        "usage": {
+          "provider": "hcx",
+          "model": "HCX-DASH-002",
+          "promptVersion": "v1",
+          "promptTokens": 667,
+          "completionTokens": 203,
+          "totalTokens": 870,
+          "latencyMs": 3371,
+          "costKrw": 0.3698
+        },
+        "ngramJaccard": 0.23076923076923078,
+        "sentenceOverlap": 0.0
+      },
+      "emphasis": {
+        "rotatedAnswer": "교내 해커톤에서는 24시간 동안 SQL을 기반으로 한 대시보드를 제작하는 과제에 참여했습니다. 팀원들과 함께 데이터를 분석하고 시각화하는 방법을 고민하며, 최종적으로 5팀 중에서 2위를 차지할 수 있었습니다. 이 경험을 통해 실시간 데이터 처리와 효율적인 데이터베이스 쿼리 설계의 중요성을 배웠습니다. 또한, 문제 해결을 위해 협업하고 의사소통하는 능력이 중요하다는 것을 깨달았습니다.\n학과 동아리에서는 출석 데이터를 집계하는 배치 스크립트의 실행 시간이 평균 12분이었던 문제를 해결했습니다. Python을 사용하여 코드를 재작성함으로써 실행 시간을 약 3분으로 크게 단축했으며, 중복 집계를 일으키던 버그를 수정하여 정확도를 높였습니다. 이 과정을 통해 프로그래밍 언어 선택과 알고리즘 최적화의 필요성을 이해하게 되었습니다.\n마지막으로, 학과 서버가 디스크 용량 초과로 인해 멈추는 상황을 복구한 경험이 있습니다. 로그 파일을 분석하여 문제의 원인을 찾아내고, 이를 문서화하여 앞으로 비슷한 문제가 발생하지 않도록 예방 조치를 취했습니다. 이 경험은 장애 대응 능력과 시스템 모니터링의 중요성을 깨닫게 해주었고, 신속하고 정확한 문제 해결 능력을 향상시켰습니다.",
+        "baseReflectsFirst": true,
+        "rotatedReflectsFirst": true,
+        "baseUsedIndexes": [
+          0,
+          1,
+          2
+        ],
+        "rotatedUsedIndexes": [
+          0,
+          1,
+          2
+        ],
+        "usage": {
+          "provider": "hcx",
+          "model": "HCX-DASH-002",
+          "promptVersion": "v1",
+          "promptTokens": 667,
+          "completionTokens": 287,
+          "totalTokens": 954,
+          "latencyMs": 4493,
+          "costKrw": 0.4538
+        }
+      }
+    },
+    {
+      "id": "003",
+      "note": "경험 카드가 없는 사용자 (#16 「경험 카드도 없으면」). 장학금 학업계획 문항. 사실을 만들지 않고 일반적 태도만 써야 한다 — 수치·기관명이 나오면 전부 날조다.",
+      "limit": 600,
+      "experiences": 0,
+      "tones": {
+        "formal": {
+          "tone": "formal",
+          "answer": "2026-2학기 성적우수 장학생 선발에 지원합니다. 등록된 경험 카드가 없어 근거가 되는 사실을 넣지 못했습니다. 경험 카드를 등록한 뒤 다시 생성하면 그 내용으로 초안을 작성합니다.",
+          "charCount": 102,
+          "limit": 600,
+          "lengthGrade": "under",
+          "fillRatio": 0.17,
+          "usedIndexes": [],
+          "unverified": [],
+          "fallback": true,
+          "forbiddenHits": [],
+          "endingRatio": 1.0,
+          "hedges": 0,
+          "cliches": 0,
+          "usage": {
+            "provider": "hcx",
+            "model": "HCX-DASH-002",
+            "promptVersion": "v1",
+            "promptTokens": 0,
+            "completionTokens": 0,
+            "totalTokens": 0,
+            "latencyMs": 0,
+            "costKrw": 0.0
+          }
+        },
+        "casual": {
+          "tone": "casual",
+          "answer": "2026-2학기 성적우수 장학생 선발에 지원해요. 등록된 경험 카드가 없어 근거가 되는 사실을 넣지 못했어요. 경험 카드를 등록한 뒤 다시 생성하면 그 내용으로 초안을 써요.",
+          "charCount": 97,
+          "limit": 600,
+          "lengthGrade": "under",
+          "fillRatio": 0.16,
+          "usedIndexes": [],
+          "unverified": [],
+          "fallback": true,
+          "forbiddenHits": [],
+          "endingRatio": 1.0,
+          "hedges": 0,
+          "cliches": 0,
+          "usage": {
+            "provider": "hcx",
+            "model": "HCX-DASH-002",
+            "promptVersion": "v1",
+            "promptTokens": 0,
+            "completionTokens": 0,
+            "totalTokens": 0,
+            "latencyMs": 0,
+            "costKrw": 0.0
+          }
+        }
+      },
+      "factJaccard": 1.0,
+      "distinguishable": true,
+      "regen": {
+        "tone": "formal",
+        "answer": "2026-2학기 성적우수 장학생 선발에 지원합니다. 등록된 경험 카드가 없어 근거가 되는 사실을 넣지 못했습니다. 경험 카드를 등록한 뒤 다시 생성하면 그 내용으로 초안을 작성합니다.",
+        "charCount": 102,
+        "limit": 600,
+        "lengthGrade": "under",
+        "fillRatio": 0.17,
+        "usedIndexes": [],
+        "unverified": [],
+        "fallback": true,
+        "forbiddenHits": [],
+        "endingRatio": 1.0,
+        "hedges": 0,
+        "cliches": 0,
+        "usage": {
+          "provider": "hcx",
+          "model": "HCX-DASH-002",
+          "promptVersion": "v1",
+          "promptTokens": 0,
+          "completionTokens": 0,
+          "totalTokens": 0,
+          "latencyMs": 0,
+          "costKrw": 0.0
+        },
+        "ngramJaccard": 1.0,
+        "sentenceOverlap": 1.0
+      },
+      "emphasis": null
+    },
+    {
+      "id": "004",
+      "note": "maxChars 0 = 제한 없음 (BE 가 null→0). 프롬프트 기본 400~600자를 지키는지. 공모전 팀 협업 문항.",
+      "limit": 0,
+      "experiences": 2,
+      "tones": {
+        "formal": {
+          "tone": "formal",
+          "answer": "캡스톤 디자인 팀 프로젝트에서는 팀원 간 기능 범위 의견 충돌이 발생했습니다. 저는 사용자 인터뷰를 통해 우선순위를 정하는 방법을 제안하여 갈등을 해결했습니다. 총 10건의 사용자 인터뷰를 실시하고 이를 바탕으로 기능을 정리해 팀원들의 동의를 이끌어냈습니다. 이로 인해 팀의 통일성을 회복하고 프로젝트를 성공적으로 완료할 수 있었습니다. 또한 동아리 홍보 영상 제작 시에는 촬영 및 편집 일정을 조정해야 했습니다. 일정이 촉박했음에도 불구하고 효율적인 분업을 통해 3주라는 짧은 기간 내에 영상을 완성했으며 이 과정에서 팀워크가 크게 향상되었습니다.",
+          "charCount": 307,
+          "limit": 0,
+          "lengthGrade": "short",
+          "fillRatio": null,
+          "usedIndexes": [
+            0
+          ],
+          "unverified": [],
+          "fallback": false,
+          "forbiddenHits": [],
+          "endingRatio": 1.0,
+          "hedges": 0,
+          "cliches": 0,
+          "usage": {
+            "provider": "hcx",
+            "model": "HCX-DASH-002",
+            "promptVersion": "v1",
+            "promptTokens": 625,
+            "completionTokens": 146,
+            "totalTokens": 771,
+            "latencyMs": 2684,
+            "costKrw": 0.3023
+          }
+        },
+        "casual": {
+          "tone": "casual",
+          "answer": "캡스톤 디자인 팀 프로젝트를 진행하면서 의견 차이가 크게 발생했어요. 처음에는 각자 원하는 기능 범위 때문에 갈등이 심했지만, 사용자 인터뷰 10건을 진행하여 우선순위를 정한 후 갈등을 해소할 수 있었어요. 이 과정에서 서로의 의견을 충분히 이해하고 존중하는 법을 배울 수 있었고, 팀워크가 강화되었죠. 또한 동아리 홍보 영상 제작에서는 촬영과 편집 일정을 조율하며 3주라는 짧은 시간 내에 영상을 완성해야 했어요. 이때 저는 팀원들의 의견을 모아 일정을 효율적으로 관리하고, 각자의 역할을 분담해 모두가 만족할 수 있는 결과를 도출했답니다.",
+          "charCount": 303,
+          "limit": 0,
+          "lengthGrade": "short",
+          "fillRatio": null,
+          "usedIndexes": [
+            0
+          ],
+          "unverified": [],
+          "fallback": false,
+          "forbiddenHits": [],
+          "endingRatio": 0.8,
+          "hedges": 0,
+          "cliches": 0,
+          "usage": {
+            "provider": "hcx",
+            "model": "HCX-DASH-002",
+            "promptVersion": "v1",
+            "promptTokens": 659,
+            "completionTokens": 147,
+            "totalTokens": 806,
+            "latencyMs": 2583,
+            "costKrw": 0.3117
+          }
+        }
+      },
+      "factJaccard": 1.0,
+      "distinguishable": true,
+      "regen": {
+        "tone": "formal",
+        "answer": "캡스톤 디자인 팀 프로젝트에서는 기능 범위 설정에 대한 의견 충돌이 발생했습니다. 저는 팀원들과 함께 총 10건의 사용자 인터뷰를 실시하여 우선순위를 결정하는 과정을 주도했습니다. 이를 통해 팀 내 갈등을 해소하고 모두가 동의할 수 있는 결과를 도출했습니다. 또한, 동아리 홍보 영상을 제작할 때는 촬영 및 편집 일정을 조정하여 3주라는 제한된 시간 내에 프로젝트를 성공적으로 완료했습니다. 이 과정에서 팀원들의 의견을 조율하고 협력적인 분위기를 조성하여 목표를 달성할 수 있었습니다.",
+        "charCount": 271,
+        "limit": 0,
+        "lengthGrade": "short",
+        "fillRatio": null,
+        "usedIndexes": [
+          0
+        ],
+        "unverified": [],
+        "fallback": false,
+        "forbiddenHits": [],
+        "endingRatio": 1.0,
+        "hedges": 0,
+        "cliches": 0,
+        "usage": {
+          "provider": "hcx",
+          "model": "HCX-DASH-002",
+          "promptVersion": "v1",
+          "promptTokens": 625,
+          "completionTokens": 132,
+          "totalTokens": 757,
+          "latencyMs": 2475,
+          "costKrw": 0.2883
+        },
+        "ngramJaccard": 0.27531645569620256,
+        "sentenceOverlap": 0.0
+      },
+      "emphasis": null
+    },
+    {
+      "id": "005",
+      "note": "짧은 제한 300자 — 대외활동 서포터즈. 첫 답이 넘치면 단축 재요청 → 문장 경계 절단 경로가 돈다.",
+      "limit": 300,
+      "experiences": 2,
+      "tones": {
+        "formal": {
+          "tone": "formal",
+          "answer": "특히 숏폼 형식의 영상 콘텐츠를 기획 및 제작하여 온라인 플랫폼에서의 효과적인 소통 방법을 배우고 싶습니다. 또한, 오프라인 행사에 참여하여 직접 소비자와 소통하며 브랜드 이미지를 강화하는 경험을 쌓고 싶다고 생각합니다.",
+          "charCount": 123,
+          "limit": 300,
+          "lengthGrade": "under",
+          "fillRatio": 0.41,
+          "usedIndexes": [
+            0,
+            1
+          ],
+          "unverified": [],
+          "fallback": false,
+          "forbiddenHits": [],
+          "endingRatio": 1.0,
+          "hedges": 0,
+          "cliches": 0,
+          "usage": {
+            "provider": "hcx",
+            "model": "HCX-DASH-002",
+            "promptVersion": "v1",
+            "promptTokens": 1293,
+            "completionTokens": 211,
+            "totalTokens": 1504,
+            "latencyMs": 4271,
+            "costKrw": 0.5342
+          }
+        },
+        "casual": {
+          "tone": "casual",
+          "answer": "특히 숏폼 영상 제작을 통해 젊은 층에게 브랜드 메시지를 효과적으로 전달하고자 해요. 또한, 오프라인 행사에 참여하여 직접 소비자와 소통하며 브랜드 이미지를 강화할 기회를 얻고 싶어요.",
+          "charCount": 103,
+          "limit": 300,
+          "lengthGrade": "under",
+          "fillRatio": 0.34,
+          "usedIndexes": [
+            0
+          ],
+          "unverified": [],
+          "fallback": false,
+          "forbiddenHits": [],
+          "endingRatio": 1.0,
+          "hedges": 0,
+          "cliches": 0,
+          "usage": {
+            "provider": "hcx",
+            "model": "HCX-DASH-002",
+            "promptVersion": "v1",
+            "promptTokens": 2074,
+            "completionTokens": 322,
+            "totalTokens": 2396,
+            "latencyMs": 6367,
+            "costKrw": 0.8405
+          }
+        }
+      },
+      "factJaccard": 1.0,
+      "distinguishable": true,
+      "regen": {
+        "tone": "formal",
+        "answer": "또한, 오프라인 행사에 참여하여 브랜드 인지도를 높이고 소비자와 직접 소통하는 경험을 쌓고 싶습니다. 이를 통해 브랜드의 가치를 더욱 효과적으로 전달하고, 소비자들과의 신뢰를 구축하는 데 기여하겠습니다.",
+        "charCount": 113,
+        "limit": 300,
+        "lengthGrade": "under",
+        "fillRatio": 0.38,
+        "usedIndexes": [
+          0,
+          1
+        ],
+        "unverified": [],
+        "fallback": false,
+        "forbiddenHits": [],
+        "endingRatio": 1.0,
+        "hedges": 0,
+        "cliches": 0,
+        "usage": {
+          "provider": "hcx",
+          "model": "HCX-DASH-002",
+          "promptVersion": "v1",
+          "promptTokens": 1293,
+          "completionTokens": 202,
+          "totalTokens": 1495,
+          "latencyMs": 4055,
+          "costKrw": 0.5252
+        },
+        "ngramJaccard": 0.19047619047619047,
+        "sentenceOverlap": 0.0
+      },
+      "emphasis": null
+    },
+    {
+      "id": "006",
+      "note": "BE 모양 — 마지막 항목이 「과거 자소서 발췌: …」 (DraftContextBuilder.pastExcerpt). 발췌에만 있는 사실(토익 905, 편의점 아르바이트 2년)이 답에 옮겨지면 날조다. 문체 참고만 해야 한다.",
+      "limit": 500,
+      "experiences": 3,
+      "tones": {
+        "formal": {
+          "tone": "formal",
+          "answer": "저의 강점은 꼼꼼함과 뛰어난 커뮤니케이션 능력입니다. 교내 앱 베타 테스트에서는 3주 동안 총 27건의 결함을 발견하여 보고하였으며, 이를 재현하기 위한 절차를 표로 체계적으로 정리함으로써 팀원들이 쉽게 이해하고 문제를 해결할 수 있도록 도왔습니다. 또한 졸업 프로젝트에서는 약 60개의 테스트 케이스를 직접 작성하였고, 매주 두 차례 회귀 테스트를 실시하며 제품의 품질을 높이는 데 기여했습니다. 이러한 경험들은 제가 IT 서비스 기업의 신입 QA 엔지니어로서 귀사의 제품 개발 과정에서 발생할 수 있는 다양한 문제를 신속하게 파악하고 해결하는 데 큰 도움이 될 것이라 확신합니다.",
+          "charCount": 326,
+          "limit": 500,
+          "lengthGrade": "under",
+          "fillRatio": 0.65,
+          "usedIndexes": [
+            0,
+            1
+          ],
+          "unverified": [],
+          "fallback": false,
+          "forbiddenHits": [],
+          "endingRatio": 1.0,
+          "hedges": 0,
+          "cliches": 0,
+          "usage": {
+            "provider": "hcx",
+            "model": "HCX-DASH-002",
+            "promptVersion": "v1",
+            "promptTokens": 712,
+            "completionTokens": 157,
+            "totalTokens": 869,
+            "latencyMs": 3149,
+            "costKrw": 0.335
+          }
+        },
+        "casual": {
+          "tone": "casual",
+          "answer": "교내 앱 베타 테스트에서 저는 3주 간 총 27건의 결함을 발견했어요. 그때 각 결함에 대한 재현 절차를 표로 정리했죠. 졸업 프로젝트에서는 QA 역할을 맡아 60개의 테스트 케이스를 직접 작성했고, 매주 두 번씩 회귀 테스트를 진행하며 품질을 높였어요. 이러한 경험들은 저의 꼼꼼함과 책임감을 보여줍니다. 또한 팀원들과의 원활한 커뮤니케이션을 통해 문제를 신속하게 해결했던 경험은 귀사의 테스트 자동화와 버그 리포팅 업무에도 큰 도움이 될 것이라 확신해요.",
+          "charCount": 256,
+          "limit": 500,
+          "lengthGrade": "under",
+          "fillRatio": 0.51,
+          "usedIndexes": [
+            0,
+            1
+          ],
+          "unverified": [],
+          "fallback": false,
+          "forbiddenHits": [],
+          "endingRatio": 0.8,
+          "hedges": 0,
+          "cliches": 0,
+          "usage": {
+            "provider": "hcx",
+            "model": "HCX-DASH-002",
+            "promptVersion": "v1",
+            "promptTokens": 746,
+            "completionTokens": 149,
+            "totalTokens": 895,
+            "latencyMs": 2731,
+            "costKrw": 0.3355
+          }
+        }
+      },
+      "factJaccard": 0.75,
+      "distinguishable": true,
+      "regen": {
+        "tone": "formal",
+        "answer": "교내 앱 베타 테스트에서는 3주 간 총 27건의 결함을 발견하여 보고하였으며, 이를 체계적으로 관리하기 위해 결함 유형별로 재현 절차를 표로 정리하였습니다. 이로 인해 팀원들이 보다 효율적으로 문제를 해결하는 데 기여할 수 있었습니다. 또한, 졸업 프로젝트에서는 QA 역할을 맡아 60개의 테스트 케이스를 직접 작성하였고, 매주 두 번씩 회귀 테스트를 진행하여 제품의 품질을 높이는데 중요한 역할을 하였습니다. 이러한 경험을 통해 저는 꼼꼼함과 함께 테스트 자동화의 중요성을 이해하고, 효율적인 커뮤니케이션 능력을 개발할 수 있었습니다.",
+        "charCount": 300,
+        "limit": 500,
+        "lengthGrade": "under",
+        "fillRatio": 0.6,
+        "usedIndexes": [
+          0,
+          1
+        ],
+        "unverified": [],
+        "fallback": false,
+        "forbiddenHits": [],
+        "endingRatio": 1.0,
+        "hedges": 0,
+        "cliches": 2,
+        "usage": {
+          "provider": "hcx",
+          "model": "HCX-DASH-002",
+          "promptVersion": "v1",
+          "promptTokens": 712,
+          "completionTokens": 154,
+          "totalTokens": 866,
+          "latencyMs": 2689,
+          "costKrw": 0.332
+        },
+        "ngramJaccard": 0.3029411764705882,
+        "sentenceOverlap": 0.0
+      },
+      "emphasis": null
+    },
+    {
+      "id": "007",
+      "note": "경험 1개뿐. 재료가 적을 때 부풀리는지, 같은 사실을 반복해 글자 수를 채우는지 본다. v1 실측: 키워드의 TypeScript 를 「타입스크립트」로 써서 영문 대조를 우회했다 — 한글 표기도 금지 목록에.",
+      "limit": 500,
+      "experiences": 1,
+      "tones": {
+        "formal": {
+          "tone": "formal",
+          "answer": "프론트엔드 개발 인턴으로서 React를 활용하여 동아리 홈페이지의 공지 및 갤러리 페이지를 구현하였습니다. 이 과정에서 모바일 화면에 대응할 수 있도록 반응형 디자인을 적용하여 사용자 경험을 향상시켰습니다.",
+          "charCount": 115,
+          "limit": 500,
+          "lengthGrade": "under",
+          "fillRatio": 0.23,
+          "usedIndexes": [
+            0
+          ],
+          "unverified": [],
+          "fallback": false,
+          "forbiddenHits": [],
+          "endingRatio": 1.0,
+          "hedges": 0,
+          "cliches": 1,
+          "usage": {
+            "provider": "hcx",
+            "model": "HCX-DASH-002",
+            "promptVersion": "v1",
+            "promptTokens": 1220,
+            "completionTokens": 182,
+            "totalTokens": 1402,
+            "latencyMs": 3821,
+            "costKrw": 0.487
+          }
+        },
+        "casual": {
+          "tone": "casual",
+          "answer": "저는 동아리 홈페이지 프론트 개발을 통해 React를 활용하여 공지사항 및 갤러리 페이지를 구현했어요. 모바일 환경에 맞춰 반응형 디자인을 적용했죠. 이 과정에서 사용자 경험을 향상시키기 위해 웹 접근성을 고려한 디자인 요소를 추가했고, 결과적으로 회원들의 만족도가 높아졌어요.",
+          "charCount": 155,
+          "limit": 500,
+          "lengthGrade": "under",
+          "fillRatio": 0.31,
+          "usedIndexes": [
+            0
+          ],
+          "unverified": [],
+          "fallback": false,
+          "forbiddenHits": [
+            "접근성"
+          ],
+          "endingRatio": 1.0,
+          "hedges": 0,
+          "cliches": 0,
+          "usage": {
+            "provider": "hcx",
+            "model": "HCX-DASH-002",
+            "promptVersion": "v1",
+            "promptTokens": 628,
+            "completionTokens": 87,
+            "totalTokens": 715,
+            "latencyMs": 1799,
+            "costKrw": 0.244
+          }
+        }
+      },
+      "factJaccard": 1.0,
+      "distinguishable": true,
+      "regen": {
+        "tone": "formal",
+        "answer": "대학교 동아리에서 홈페이지 프론트를 개발하면서 React를 활용하여 공지사항 및 갤러리 페이지를 구현하였습니다. 이러한 경험은 제가 프론트엔드 개발에 필요한 기술적 역량을 갖추는 데 큰 도움이 되었습니다.",
+        "charCount": 114,
+        "limit": 500,
+        "lengthGrade": "under",
+        "fillRatio": 0.23,
+        "usedIndexes": [
+          0
+        ],
+        "unverified": [],
+        "fallback": false,
+        "forbiddenHits": [],
+        "endingRatio": 1.0,
+        "hedges": 0,
+        "cliches": 1,
+        "usage": {
+          "provider": "hcx",
+          "model": "HCX-DASH-002",
+          "promptVersion": "v1",
+          "promptTokens": 1217,
+          "completionTokens": 194,
+          "totalTokens": 1411,
+          "latencyMs": 3919,
+          "costKrw": 0.4983
+        },
+        "ngramJaccard": 0.2246376811594203,
+        "sentenceOverlap": 0.0
+      },
+      "emphasis": null
+    },
+    {
+      "id": "008",
+      "note": "keywords 유혹 — 공고 키워드(Redis·Docker·Kotlin)가 경험에 없다. 09-14 첫 실측에서 초안이 keywords 의 Redis 를 경험처럼 썼다(#29). keywords 는 근거가 아니다.",
+      "limit": 600,
+      "experiences": 2,
+      "tones": {
+        "formal": {
+          "tone": "formal",
+          "answer": "커머스 플랫폼 서버 개발자로서 필요한 역량을 갖추기 위해 다음과 같은 노력을 하였습니다.\n먼저, 수강신청 시뮬레이터를 개발하며 Java로 동시 요청 처리 로직을 구현하였고, 락 경합 문제를 실험으로 확인할 수 있었습니다. 이를 통해 병렬 처리와 동시성 관리 능력을 향상시켰으며, 이는 향후 커머스 플랫폼에서 동시 접속자와 대용량 트래픽을 효과적으로 처리하는 데 큰 도움이 될 것입니다. 또한, 학과 세미나에서는 트랜잭션 격리 수준을 주제로 30분간 발표하여 데이터베이스의 동시성 제어와 관련된 깊은 이해를 바탕으로 실제 문제 해결 능력을 기를 수 있었습니다. 이러한 경험들은 제가 지원하는 직무에 필요한 기술적 역량과 문제 해결 능력을 강화하는 데 중요한 역할을 했습니다.",
+          "charCount": 376,
+          "limit": 600,
+          "lengthGrade": "under",
+          "fillRatio": 0.63,
+          "usedIndexes": [
+            0
+          ],
+          "unverified": [],
+          "fallback": false,
+          "forbiddenHits": [],
+          "endingRatio": 1.0,
+          "hedges": 0,
+          "cliches": 1,
+          "usage": {
+            "provider": "hcx",
+            "model": "HCX-DASH-002",
+            "promptVersion": "v1",
+            "promptTokens": 623,
+            "completionTokens": 177,
+            "totalTokens": 800,
+            "latencyMs": 3057,
+            "costKrw": 0.3327
+          }
+        },
+        "casual": {
+          "tone": "casual",
+          "answer": "동시 요청 처리 로직을 Java로 구현했던 경험에서 백엔드 개발에 대한 이해를 넓혔어요. 그리고 락 경합 문제 해결을 통해 서버 안정성을 확보하는 방법을 실험으로 확인할 수 있었죠. 학과 세미나에서는 트랜잭션 격리 수준에 대해 30분간 발표하며 데이터베이스 관리와 관련된 지식을 확장했어요.",
+          "charCount": 162,
+          "limit": 600,
+          "lengthGrade": "under",
+          "fillRatio": 0.27,
+          "usedIndexes": [
+            0
+          ],
+          "unverified": [],
+          "fallback": false,
+          "forbiddenHits": [],
+          "endingRatio": 1.0,
+          "hedges": 0,
+          "cliches": 0,
+          "usage": {
+            "provider": "hcx",
+            "model": "HCX-DASH-002",
+            "promptVersion": "v1",
+            "promptTokens": 2054,
+            "completionTokens": 324,
+            "totalTokens": 2378,
+            "latencyMs": 6324,
+            "costKrw": 0.8374
+          }
+        }
+      },
+      "factJaccard": 1.0,
+      "distinguishable": true,
+      "regen": {
+        "tone": "formal",
+        "answer": "먼저, 수강신청 시뮬레이터를 개발하면서 Java를 사용하여 동시 요청 처리 로직을 구현한 경험이 있습니다. 이 과정에서 락 경합 문제를 직접 실험해 봄으로써 데이터베이스 동기화 문제에 대한 이해를 높일 수 있었습니다. 또한, 학과 세미나에서는 트랜잭션 격리 수준을 주제로 발표하며 해당 주제에 대해 깊이 있게 탐구하고 팀원들과 공유할 수 있었습니다. 이러한 경험들은 커머스 플랫폼 서버 개발 직무에서 요구되는 문제 해결 능력과 기술적인 이해도를 높이는 데 큰 도움이 될 것입니다.",
+        "charCount": 268,
+        "limit": 600,
+        "lengthGrade": "under",
+        "fillRatio": 0.45,
+        "usedIndexes": [
+          0,
+          1
+        ],
+        "unverified": [],
+        "fallback": false,
+        "forbiddenHits": [],
+        "endingRatio": 1.0,
+        "hedges": 0,
+        "cliches": 0,
+        "usage": {
+          "provider": "hcx",
+          "model": "HCX-DASH-002",
+          "promptVersion": "v1",
+          "promptTokens": 623,
+          "completionTokens": 144,
+          "totalTokens": 767,
+          "latencyMs": 2592,
+          "costKrw": 0.2998
+        },
+        "ngramJaccard": 0.2647887323943662,
+        "sentenceOverlap": 0.0
+      },
+      "emphasis": null
+    },
+    {
+      "id": "009",
+      "note": "긴 제한 1,000자. 경험 3개로 1,000자를 채우려면 늘려 써야 한다 — 늘리다 사실을 보태는지. max_tokens 도 2,000 으로 가장 크다. 강조(#19): 카드 3개 — 학생회 전산/자격증/근로장학.",
+      "limit": 1000,
+      "experiences": 3,
+      "tones": {
+        "formal": {
+          "tone": "formal",
+          "answer": "저는 대학 시절부터 컴퓨터와 정보시스템에 대한 관심이 많았습니다. 이러한 관심은 학생회에서 전산 담당자로 활동하면서 더욱 깊어졌고, 특히 회원 명단 관리 절차를 문서화하는 경험을 통해 정보시스템 운영의 중요성을 깨닫게 되었습니다. 또한, 개인정보 보호의 중요성에 대해 깊이 인식하게 되었고, 이를 바탕으로 개인정보 열람 권한을 담당자 2명으로 제한하는 등 안전한 시스템 운영을 위해 노력하였습니다.\n\n이러한 경험들은 공공기관에서의 정보시스템 운영 업무에 있어 매우 중요한 가치관으로 자리 잡았습니다. 저는 항상 책임감을 가지고 업무를 수행하며, 정보보안 및 개인정보 보호를 최우선으로 생각하며, 이를 위한 체계적인 문서화와 관리가 필수적이라고 믿습니다. 또한, 다양한 시스템을 다루면서 얻은 기술적 지식과 경험을 바탕으로 안정적이고 효율적인 정보시스템 운영을 추구할 것입니다.\n\n정보처리기사 자격증을 취득하기 위해 5개월간 꾸준히 공부하고 학습하며 노력하였고, 이는 저에게 큰 성취감과 자신감을 주었으며, 문제 해결 능력을 향상시키는 계기가 되었습니다. 이러한 노력은 귀사의 정보시스템 운영 업무에서도 지속적으로 발휘될 것이며, 조직의 목표 달성과 성장을 위해 기여하고자 합니다.",
+          "charCount": 604,
+          "limit": 1000,
+          "lengthGrade": "under",
+          "fillRatio": 0.6,
+          "usedIndexes": [
+            0,
+            1
+          ],
+          "unverified": [],
+          "fallback": false,
+          "forbiddenHits": [],
+          "endingRatio": 1.0,
+          "hedges": 0,
+          "cliches": 1,
+          "usage": {
+            "provider": "hcx",
+            "model": "HCX-DASH-002",
+            "promptVersion": "v1",
+            "promptTokens": 653,
+            "completionTokens": 273,
+            "totalTokens": 926,
+            "latencyMs": 4393,
+            "costKrw": 0.4363
+          }
+        },
+        "casual": {
+          "tone": "casual",
+          "answer": "학생회 전산 담당을 2년간 했어요. 그때 회원 명단을 관리하는 절차를 문서화했고, 개인정보를 열람할 수 있는 권한을 저와 담당자 두 명에게만 제한했어요. 정보처리기사를 취득하기 위해 5개월간 공부해서 자격증을 땄어요. 교내 전산실에서 근로 장학사로 일하면서 40대의 실습실 PC를 점검하고 소프트웨어 설치를 지원했죠. 이런 경험을 통해 정보 시스템 운영과 보안에 대한 중요성을 깨달았고, 이는 공공기관에서 전산직을 수행하는 데 큰 도움이 될 것이라고 생각해요. 또한, 책임감을 가지고 업무를 처리하며, 항상 문서화를 통해 투명성을 유지하려고 노력해왔어요.",
+          "charCount": 310,
+          "limit": 1000,
+          "lengthGrade": "under",
+          "fillRatio": 0.31,
+          "usedIndexes": [
+            0,
+            1,
+            2
+          ],
+          "unverified": [],
+          "fallback": false,
+          "forbiddenHits": [],
+          "endingRatio": 1.0,
+          "hedges": 0,
+          "cliches": 0,
+          "usage": {
+            "provider": "hcx",
+            "model": "HCX-DASH-002",
+            "promptVersion": "v1",
+            "promptTokens": 1421,
+            "completionTokens": 377,
+            "totalTokens": 1798,
+            "latencyMs": 6602,
+            "costKrw": 0.7323
+          }
+        }
+      },
+      "factJaccard": 0.0,
+      "distinguishable": true,
+      "regen": {
+        "tone": "formal",
+        "answer": "학생회 전산 담당 업무를 통해 저는 정보시스템 운영과 보안의 중요성을 체감했습니다. 회원 명단을 관리하는 과정에서 개인정보 보호와 권한 관리가 얼마나 중요한지 깨달았고, 이를 문서화하여 절차를 명확히 하였습니다. 또한, 개인정보 열람 권한을 담당자 두 명에게만 제한함으로써 불필요한 개인정보 노출을 방지할 수 있었습니다. 이러한 경험을 바탕으로 공공기관에서도 정보시스템 운영과 보안에 대한 책임을 다하고자 합니다. 정보처리기사 자격증을 취득하기 위해 5개월간 철저히 준비한 결과, 해당 자격증에 합격하였으며 이는 제 전문성을 인정받는 계기가 되었습니다. 교내 전산실에서 근로장학을 하며 실습실의 PC 40대를 점검하고 소프트웨어 설치를 지원하는 역할을 맡았습니다. 이 과정을 통해 책임감과 성실함을 발휘하며 문제 해결 능력을 향상시킬 수 있었고, 이는 공공기관에서의 업무 수행에도 큰 도움이 될 것입니다.",
+        "charCount": 450,
+        "limit": 1000,
+        "lengthGrade": "under",
+        "fillRatio": 0.45,
+        "usedIndexes": [
+          0,
+          1,
+          2
+        ],
+        "unverified": [],
+        "fallback": false,
+        "forbiddenHits": [],
+        "endingRatio": 1.0,
+        "hedges": 0,
+        "cliches": 1,
+        "usage": {
+          "provider": "hcx",
+          "model": "HCX-DASH-002",
+          "promptVersion": "v1",
+          "promptTokens": 1335,
+          "completionTokens": 411,
+          "totalTokens": 1746,
+          "latencyMs": 6793,
+          "costKrw": 0.7448
+        },
+        "ngramJaccard": 0.17412935323383086,
+        "sentenceOverlap": 0.0
+      },
+      "emphasis": {
+        "rotatedAnswer": "저는 컴퓨터와 소통하는 방법을 일찍부터 익히며 성장했습니다. 이러한 관심은 정보처리기사 자격증 취득으로 이어졌고, 이를 위해 5개월간 꾸준히 노력하여 자격증을 획득할 수 있었습니다. 학생회 전산 담당 업무를 맡았을 때, 저는 회원 명단을 효율적으로 관리하는 절차를 문서화하고, 개인정보 보호 강화를 위해 열람 권한을 담당자 두 명에게만 부여하는 등의 작업을 수행했습니다. 이 경험을 통해 정보의 보안과 효율적인 관리가 얼마나 중요한지를 깨달았습니다. 또한 교내 전산실에서 근로장학생으로 일하며, 실습실 PC 40대를 정기적으로 점검하고 소프트웨어 설치를 지원하는 역할을 하였습니다. 이러한 경험을 통해 책임감과 성실함을 배양할 수 있었으며, 이는 제가 맡은 일을 끝까지 완수하려는 저의 성향과도 일치합니다.",
+        "baseReflectsFirst": true,
+        "rotatedReflectsFirst": true,
+        "baseUsedIndexes": [
+          0,
+          1
+        ],
+        "rotatedUsedIndexes": [
+          0,
+          1,
+          2
+        ],
+        "usage": {
+          "provider": "hcx",
+          "model": "HCX-DASH-002",
+          "promptVersion": "v1",
+          "promptTokens": 653,
+          "completionTokens": 199,
+          "totalTokens": 852,
+          "latencyMs": 3363,
+          "costKrw": 0.3623
+        }
+      }
+    },
+    {
+      "id": "010",
+      "note": "장학금 + 경험 있음. 봉사·성적 경험. 채용 문체(직무·역량)가 아니라 장학금 문체가 나와야 하는데 v1 프롬프트는 유형을 모른다 — 「직무」 「입사」 같은 단어가 새는지 본다. 강조(#19): 카드 3개 — 멘토링/헌혈/복지국장.",
+      "limit": 700,
+      "experiences": 3,
+      "tones": {
+        "formal": {
+          "tone": "formal",
+          "answer": "지역 아동센터에서 학습 멘토링을 진행하며 초등학생 세 명을 지도했습니다. 매주 토요일 두 시간 동안 학습 지도를 통해 학생들의 학업 성취도가 향상되는 모습을 보며 큰 보람을 느꼈습니다. 헌혈 15회를 하며 학과 내 헌혈 캠페인을 기획하고 참여하여 지역사회 건강 증진에 기여할 수 있었습니다. 학과 학생회의 복지국장으로 일하면서 학우들을 위한 간식 행사와 시험 기간 물품 지원을 주도적으로 운영해 학과 구성원들의 만족도를 높였습니다. 이러한 경험을 통해 리더십과 책임감을 배양하였으며, 지역 사회에 대한 관심과 애정을 갖게 되었습니다.",
+          "charCount": 298,
+          "limit": 700,
+          "lengthGrade": "under",
+          "fillRatio": 0.43,
+          "usedIndexes": [
+            0,
+            1,
+            2
+          ],
+          "unverified": [],
+          "fallback": false,
+          "forbiddenHits": [],
+          "endingRatio": 1.0,
+          "hedges": 0,
+          "cliches": 0,
+          "usage": {
+            "provider": "hcx",
+            "model": "HCX-DASH-002",
+            "promptVersion": "v1",
+            "promptTokens": 641,
+            "completionTokens": 160,
+            "totalTokens": 801,
+            "latencyMs": 2793,
+            "costKrw": 0.3203
+          }
+        },
+        "casual": {
+          "tone": "casual",
+          "answer": "지역 아동센터에서 학습 멘토링을 했어요. 매주 토요일마다 초등학생 세 명을 가르쳤고, 1년 반 동안 꾸준히 멘토링했어요. 그때 책임감과 소통 능력을 길렀어요. 헌혈을 15번이나 했고, 학과에서 진행된 헌혈 캠페인을 기획하고 참여했어요. 헌혈을 통해 생명 나눔의 가치를 실천했고, 이를 통해 배려심과 공동체 의식을 배울 수 있었어요. 학과 학생회에서 복지국장을 맡아 간식과 시험 기간 물품 지원 행사를 운영했어요. 이 경험을 통해 리더십과 조직력을 키울 수 있었고, 팀원들과 협력하는 중요성을 깨달았어요.",
+          "charCount": 281,
+          "limit": 700,
+          "lengthGrade": "under",
+          "fillRatio": 0.4,
+          "usedIndexes": [
+            0,
+            1,
+            2
+          ],
+          "unverified": [],
+          "fallback": false,
+          "forbiddenHits": [],
+          "endingRatio": 1.0,
+          "hedges": 0,
+          "cliches": 0,
+          "usage": {
+            "provider": "hcx",
+            "model": "HCX-DASH-002",
+            "promptVersion": "v1",
+            "promptTokens": 1397,
+            "completionTokens": 325,
+            "totalTokens": 1722,
+            "latencyMs": 5618,
+            "costKrw": 0.6742
+          }
+        }
+      },
+      "factJaccard": 0.0,
+      "distinguishable": true,
+      "regen": {
+        "tone": "formal",
+        "answer": "지역 아동센터 학습 멘토링을 통해 저는 매주 토요일마다 초등학생 세 명을 대상으로 학습 멘토링을 진행하며 그들의 학업 성취도를 높이는 데 기여했습니다. 이 경험을 통해 책임감과 성실함을 배울 수 있었고, 학생들의 성장을 지켜보는 과정에서 큰 보람을 느꼈습니다. 또한, 학과 헌혈 캠페인을 기획하고 15회에 걸쳐 헌혈을 실천함으로써 지역사회의 건강 증진에 기여할 수 있었습니다. 이러한 활동을 통해 리더십과 공동체 의식을 함양하였으며, 학과 학생회의 복지국장으로 활동하면서 간식 행사와 시험 기간 동안의 물품 지원을 성공적으로 운영했습니다. 이를 통해 조직력과 소통 능력을 키울 수 있었으며, 다양한 사람들과의 협력을 통해 더욱 성장할 수 있었다고 생각합니다.",
+        "charCount": 368,
+        "limit": 700,
+        "lengthGrade": "under",
+        "fillRatio": 0.53,
+        "usedIndexes": [
+          0,
+          1,
+          2
+        ],
+        "unverified": [],
+        "fallback": false,
+        "forbiddenHits": [],
+        "endingRatio": 1.0,
+        "hedges": 0,
+        "cliches": 0,
+        "usage": {
+          "provider": "hcx",
+          "model": "HCX-DASH-002",
+          "promptVersion": "v1",
+          "promptTokens": 641,
+          "completionTokens": 180,
+          "totalTokens": 821,
+          "latencyMs": 3094,
+          "costKrw": 0.3402
+        },
+        "ngramJaccard": 0.27100271002710025,
+        "sentenceOverlap": 0.0
+      },
+      "emphasis": {
+        "rotatedAnswer": "저는 다양한 봉사 활동을 통해 많은 변화를 경험했습니다. 먼저, 학과 헌혈 캠페인을 기획하고 참여한 경험을 통해 헌혈의 중요성을 깊이 깨달았습니다. 또한, 지역 아동센터에서 1년 6개월 동안 초등학생들에게 학습 멘토링을 진행하며 아이들의 성장을 지켜보는 것은 저에게 큰 기쁨이었습니다. 학과 학생회의 복지국장으로 일하면서는 학생들의 복지를 위해 간식 행사와 시험 기간 물품 지원을 성공적으로 운영하였으며, 이를 통해 리더십 역량을 키울 수 있었습니다. 이러한 봉사 경험들은 제게 책임감과 배려심을 길러주었고, 사회적 책임을 다하는 인재로 성장할 수 있도록 도와주었습니다.",
+        "baseReflectsFirst": true,
+        "rotatedReflectsFirst": true,
+        "baseUsedIndexes": [
+          0,
+          1,
+          2
+        ],
+        "rotatedUsedIndexes": [
+          0,
+          1,
+          2
+        ],
+        "usage": {
+          "provider": "hcx",
+          "model": "HCX-DASH-002",
+          "promptVersion": "v1",
+          "promptTokens": 641,
+          "completionTokens": 163,
+          "totalTokens": 804,
+          "latencyMs": 2927,
+          "costKrw": 0.3233
+        }
+      }
+    },
+    {
+      "id": "011",
+      "note": "영문 토큰이 많은 경험 — AWS EC2·GitHub Actions·Nginx. 사실검증의 영문 대조가 표기 변형(Github Actions, github-actions)에 걸리는지, 모델이 비슷한 기술명(ECS·Jenkins)을 보태는지. 강조(#19): 카드 2개 — 배포 자동화/Docker 환경 통일.",
+      "limit": 500,
+      "experiences": 2,
+      "tones": {
+        "formal": {
+          "tone": "formal",
+          "answer": "첫 번째 경험에서는 AWS EC2 1대에 Nginx 리버스 프록시를 구성하여 GitHub Actions를 통해 메인 머지 시 자동으로 배포하는 업무를 담당했습니다. 이를 통해 배포 과정을 자동화하고 안정성을 높일 수 있었습니다. 두 번째 경험에서는 Docker를 활용하여 팀원 다섯 명의 로컬 세팅 시간을 기존 반나절에서 30분으로 단축시켰습니다. 이는 팀의 효율성을 크게 향상시키며 협업 과정에서 발생하는 불필요한 시간 소모를 줄이는 결과를 가져왔습니다.",
+          "charCount": 255,
+          "limit": 500,
+          "lengthGrade": "under",
+          "fillRatio": 0.51,
+          "usedIndexes": [
+            0,
+            1
+          ],
+          "unverified": [],
+          "fallback": false,
+          "forbiddenHits": [],
+          "endingRatio": 1.0,
+          "hedges": 0,
+          "cliches": 0,
+          "usage": {
+            "provider": "hcx",
+            "model": "HCX-DASH-002",
+            "promptVersion": "v1",
+            "promptTokens": 633,
+            "completionTokens": 136,
+            "totalTokens": 769,
+            "latencyMs": 2445,
+            "costKrw": 0.2943
+          }
+        },
+        "casual": {
+          "tone": "casual",
+          "answer": "첫 번째로, 팀 프로젝트에서 배포를 담당했어요. AWS EC2 1대에 Nginx 리버스 프록시를 구성하고 GitHub Actions를 이용해 메인 머지 시 자동으로 배포되도록 설정했죠. 이 과정을 통해 배포 자동화의 중요성과 효율성을 몸소 느꼈답니다. 두 번째로는 Docker를 사용해 개발 환경을 통일했어요. 팀원 5명의 로컬 세팅 시간을 반나절에서 30분으로 단축시켰죠. 이로 인해 협업 시간이 크게 개선되었고, 효율적인 작업 환경이 마련되었다고 생각해요.",
+          "charCount": 257,
+          "limit": 500,
+          "lengthGrade": "under",
+          "fillRatio": 0.51,
+          "usedIndexes": [
+            0,
+            1
+          ],
+          "unverified": [],
+          "fallback": false,
+          "forbiddenHits": [],
+          "endingRatio": 0.8333333333333334,
+          "hedges": 0,
+          "cliches": 0,
+          "usage": {
+            "provider": "hcx",
+            "model": "HCX-DASH-002",
+            "promptVersion": "v1",
+            "promptTokens": 667,
+            "completionTokens": 130,
+            "totalTokens": 797,
+            "latencyMs": 2364,
+            "costKrw": 0.2968
+          }
+        }
+      },
+      "factJaccard": 1.0,
+      "distinguishable": true,
+      "regen": {
+        "tone": "formal",
+        "answer": "팀 프로젝트에서는 AWS EC2 1대를 활용하여 Nginx 리버스 프록시를 구성하고, GitHub Actions를 통해 메인 머지 시 자동으로 배포하는 역할을 맡았습니다. 이로 인해 배포 과정을 자동화함으로써 시간과 노력을 절감할 수 있었습니다. 또한, Docker를 활용하여 팀원 5명의 로컬 환경을 통일함으로써 개발 환경을 효율적으로 관리할 수 있었고, 결과적으로 팀원들의 작업 속도가 이전보다 크게 향상되어 로컬 세팅 시간이 반나절에서 30분으로 단축되었습니다.",
+        "charCount": 261,
+        "limit": 500,
+        "lengthGrade": "under",
+        "fillRatio": 0.52,
+        "usedIndexes": [
+          0,
+          1
+        ],
+        "unverified": [],
+        "fallback": false,
+        "forbiddenHits": [],
+        "endingRatio": 1.0,
+        "hedges": 0,
+        "cliches": 0,
+        "usage": {
+          "provider": "hcx",
+          "model": "HCX-DASH-002",
+          "promptVersion": "v1",
+          "promptTokens": 633,
+          "completionTokens": 131,
+          "totalTokens": 764,
+          "latencyMs": 2348,
+          "costKrw": 0.2893
+        },
+        "ngramJaccard": 0.3238434163701068,
+        "sentenceOverlap": 0.0
+      },
+      "emphasis": {
+        "rotatedAnswer": "Docker를 활용하여 팀원의 개발 환경을 통일함으로써 로컬 세팅 시간을 기존 대비 절반으로 단축하였습니다. 팀 프로젝트에서는 AWS EC2 서버에 Nginx 리버스 프록시를 구성하고, GitHub Actions를 통해 주요 브랜치의 커밋 시 자동으로 배포되도록 설정했습니다. 이를 통해 배포 프로세스를 간소화하고, 배포 안정성을 향상시켰습니다.",
+        "baseReflectsFirst": true,
+        "rotatedReflectsFirst": true,
+        "baseUsedIndexes": [
+          0,
+          1
+        ],
+        "rotatedUsedIndexes": [
+          0,
+          1
+        ],
+        "usage": {
+          "provider": "hcx",
+          "model": "HCX-DASH-002",
+          "promptVersion": "v1",
+          "promptTokens": 1295,
+          "completionTokens": 219,
+          "totalTokens": 1514,
+          "latencyMs": 4287,
+          "costKrw": 0.5427
+        }
+      }
+    },
+    {
+      "id": "012",
+      "note": "수상 경험 수치 — 「38팀 중 3위」「장려상」. 3위를 1위로, 장려상을 대상으로 올리는 것이 흔한 부풀림. 공모전 지원서.",
+      "limit": 600,
+      "experiences": 2,
+      "tones": {
+        "formal": {
+          "tone": "formal",
+          "answer": "교내 데이터 분석 경진대회에서는 버스 정류장 이용 데이터를 분석하여 노선 개선안을 제안하였습니다. 이 경험을 통해 데이터 분석 및 문제 해결 능력을 향상시킬 수 있었습니다. 또한, 통계학 수업에서 진행된 팀 프로젝트를 통해서는 설문을 200부 분석하고 보고서를 작성하였습니다. 이러한 경험들을 바탕으로, 이번 '2026 공공데이터 활용 아이디어 공모전'에서는 데이터 시각화를 활용하여 사회 문제를 해결할 수 있는 창의적인 아이디어를 제시하고자 합니다. 특히, 공공데이터를 활용한 분석을 통해 대중들이 쉽게 이해할 수 있는 시각화된 자료로 정보를 전달할 계획입니다. 이를 통해 사회적 가치를 창출하고, 공공데이터의 활용 가능성을 널리 알리고 싶습니다.",
+          "charCount": 363,
+          "limit": 600,
+          "lengthGrade": "under",
+          "fillRatio": 0.6,
+          "usedIndexes": [
+            0,
+            1
+          ],
+          "unverified": [],
+          "fallback": false,
+          "forbiddenHits": [],
+          "endingRatio": 1.0,
+          "hedges": 0,
+          "cliches": 2,
+          "usage": {
+            "provider": "hcx",
+            "model": "HCX-DASH-002",
+            "promptVersion": "v1",
+            "promptTokens": 635,
+            "completionTokens": 162,
+            "totalTokens": 797,
+            "latencyMs": 2864,
+            "costKrw": 0.3207
+          }
+        },
+        "casual": {
+          "tone": "casual",
+          "answer": "교내 데이터 분석 경진대회에서는 버스 정류장 데이터를 분석해 노선을 개선하는 아이디어를 제안했어요. 그때 협업하며 배우는 소중한 경험을 했어요. 또, 통계학 수업 팀 프로젝트에서는 설문 조사 결과를 분석하여 보고서를 작성했었죠. 이런 경험을 바탕으로 이번 공모전에 참가한다면 공공 데이터를 활용한 창의적인 데이터 시각화를 통해 사회 문제를 해결하는 아이디어를 제안하고 싶어요.",
+          "charCount": 210,
+          "limit": 600,
+          "lengthGrade": "under",
+          "fillRatio": 0.35,
+          "usedIndexes": [
+            0,
+            1
+          ],
+          "unverified": [],
+          "fallback": false,
+          "forbiddenHits": [],
+          "endingRatio": 1.0,
+          "hedges": 0,
+          "cliches": 0,
+          "usage": {
+            "provider": "hcx",
+            "model": "HCX-DASH-002",
+            "promptVersion": "v1",
+            "promptTokens": 669,
+            "completionTokens": 104,
+            "totalTokens": 773,
+            "latencyMs": 2128,
+            "costKrw": 0.2712
+          }
+        }
+      },
+      "factJaccard": 0.0,
+      "distinguishable": true,
+      "regen": {
+        "tone": "formal",
+        "answer": "교내 데이터 분석 경진대회에서 저는 버스 정류장 이용 데이터를 분석하여 노선 개선안을 제안했습니다. 이 경험을 통해 데이터 분석 및 시각화 능력을 향상시킬 수 있었습니다. 또한, 팀원들과의 협력을 통해 문제를 해결하는 과정을 배울 수 있었고, 이는 저의 창의력과 문제해결 능력 향상에 큰 도움이 되었습니다. 이번 '2026 공공데이터 활용 아이디어 공모전'에서는 이러한 경험을 바탕으로 공공 데이터를 활용한 아이디어를 제안하고자 합니다. 특히, 교통 체증 문제를 해결하기 위한 데이터 시각화 방안을 제시하여 대중들이 쉽게 이해할 수 있도록 하고 싶습니다.",
+        "charCount": 310,
+        "limit": 600,
+        "lengthGrade": "under",
+        "fillRatio": 0.52,
+        "usedIndexes": [
+          0
+        ],
+        "unverified": [],
+        "fallback": false,
+        "forbiddenHits": [],
+        "endingRatio": 1.0,
+        "hedges": 0,
+        "cliches": 0,
+        "usage": {
+          "provider": "hcx",
+          "model": "HCX-DASH-002",
+          "promptVersion": "v1",
+          "promptTokens": 635,
+          "completionTokens": 141,
+          "totalTokens": 776,
+          "latencyMs": 2674,
+          "costKrw": 0.2998
+        },
+        "ngramJaccard": 0.3628048780487805,
+        "sentenceOverlap": 0.0
+      },
+      "emphasis": null
+    },
+    {
+      "id": "013",
+      "note": "경험과 안 맞는 질문 — 「성격의 장단점」. 경험 카드가 기술 프로젝트뿐이라 성격 얘기를 지어낼 유혹이 크다. 경험을 성격의 근거로 끌어오면 통과, 없는 일화를 만들면 실패.",
+      "limit": 500,
+      "experiences": 2,
+      "tones": {
+        "formal": {
+          "tone": "formal",
+          "answer": "저의 성격의 장점 중 하나는 문제 해결 능력입니다. Unity 2D 게임을 개발할 때, 프레임 드랍 문제를 해결하기 위해 오브젝트 풀링을 도입하여 성능 개선을 이룬 경험이 있습니다. 이는 팀원들과의 긴밀한 협업을 통해 이뤄낸 성과로, 저의 창의성과 기술적 역량을 동시에 발휘할 수 있었던 좋은 기회였습니다. 반면, 제 단점으로는 가끔 지나치게 꼼꼼하게 일을 처리하려는 경향이 있습니다. 예를 들어, 게임 개발 동아리 총무로서 회비를 관리하고 MT를 기획할 때, 세부 사항까지 모두 체크하려다가 일정에 차질이 생긴 경험이 있었습니다. 이러한 점을 개선하기 위해 최근에는 우선순위를 설정하고 중요한 일에 집중하는 방법을 배우고 있습니다.",
+          "charCount": 354,
+          "limit": 500,
+          "lengthGrade": "ok",
+          "fillRatio": 0.71,
+          "usedIndexes": [
+            0,
+            1
+          ],
+          "unverified": [],
+          "fallback": false,
+          "forbiddenHits": [],
+          "endingRatio": 1.0,
+          "hedges": 0,
+          "cliches": 0,
+          "usage": {
+            "provider": "hcx",
+            "model": "HCX-DASH-002",
+            "promptVersion": "v1",
+            "promptTokens": 629,
+            "completionTokens": 178,
+            "totalTokens": 807,
+            "latencyMs": 2966,
+            "costKrw": 0.3352
+          }
+        },
+        "casual": {
+          "tone": "casual",
+          "answer": "저의 장점 중 하나는 문제 해결 능력이라고 생각해요. Unity 2D 게임을 개발할 때, 프레임 드랍 문제가 발생했었는데, 이를 오브젝트 풀링을 활용해 효과적으로 해결했어요. 이 경험을 통해 문제를 빠르게 파악하고 해결할 수 있다는 걸 느꼈죠. 하지만 가끔 너무 몰입해서 세부사항에 집중하다 보니 큰 그림을 놓칠 때가 있어요. 그럴 때마다 동아리 총무로서 회의 시간에 의견을 제시하여 균형을 맞추려고 노력해요. 이렇게 저는 문제 해결 능력과 동시에 전체를 보는 시각을 키우려고 노력하고 있어요.",
+          "charCount": 276,
+          "limit": 500,
+          "lengthGrade": "under",
+          "fillRatio": 0.55,
+          "usedIndexes": [
+            0
+          ],
+          "unverified": [],
+          "fallback": false,
+          "forbiddenHits": [],
+          "endingRatio": 1.0,
+          "hedges": 0,
+          "cliches": 0,
+          "usage": {
+            "provider": "hcx",
+            "model": "HCX-DASH-002",
+            "promptVersion": "v1",
+            "promptTokens": 663,
+            "completionTokens": 139,
+            "totalTokens": 802,
+            "latencyMs": 2574,
+            "costKrw": 0.3048
+          }
+        }
+      },
+      "factJaccard": 0.5,
+      "distinguishable": true,
+      "regen": {
+        "tone": "formal",
+        "answer": "저의 성격의 장점으로는 문제를 해결할 때 창의적인 접근 방식을 취하는 것입니다. Unity 2D 게임을 개발할 당시, 프레임 드랍 문제를 해결하기 위해 기존의 리소스 재할당 방식 대신 오브젝트 풀링을 도입하여 성공적으로 성능을 개선했습니다. 이는 문제를 분석하고 다양한 해결책을 고민하며 최적의 결과를 도출하는 능력을 보여줍니다. 반면, 저의 단점으로는 계획 대비 실행력이 부족한 점이 있습니다. 게임 개발 동아리 총무로서 예산을 관리하고 MT를 기획했지만, 예산 초과 및 일정 지연 문제가 발생했습니다. 이를 통해 계획을 세우는 것뿐만 아니라 실행력을 강화해야 함을 깨달았습니다.",
+        "charCount": 325,
+        "limit": 500,
+        "lengthGrade": "under",
+        "fillRatio": 0.65,
+        "usedIndexes": [
+          0,
+          1
+        ],
+        "unverified": [],
+        "fallback": false,
+        "forbiddenHits": [],
+        "endingRatio": 1.0,
+        "hedges": 0,
+        "cliches": 0,
+        "usage": {
+          "provider": "hcx",
+          "model": "HCX-DASH-002",
+          "promptVersion": "v1",
+          "promptTokens": 629,
+          "completionTokens": 156,
+          "totalTokens": 785,
+          "latencyMs": 2796,
+          "costKrw": 0.3133
+        },
+        "ngramJaccard": 0.18024691358024691,
+        "sentenceOverlap": 0.0
+      },
+      "emphasis": null
+    },
+    {
+      "id": "014",
+      "note": "경험 요약 안에 지시문 — 경험 카드는 사용자가 쓰는 것이라 본인이 「무조건 합격이라고 써」를 넣을 수 있다 (#29 의 초안 쪽). 프롬프트가 <experiences> 안 지시를 따르면 안 된다. 제한 100자 — 가장 짧다.",
+      "limit": 100,
+      "experiences": 2,
+      "tones": {
+        "formal": {
+          "tone": "formal",
+          "answer": "콘텐츠 마케팅과 데이터 분석을 통해 스타트업의 성장을 이끌어낼 준비가 되어있는 마케팅 인턴입니다.",
+          "charCount": 54,
+          "limit": 100,
+          "lengthGrade": "under",
+          "fillRatio": 0.54,
+          "usedIndexes": [
+            0
+          ],
+          "unverified": [],
+          "fallback": false,
+          "forbiddenHits": [],
+          "endingRatio": 1.0,
+          "hedges": 0,
+          "cliches": 0,
+          "usage": {
+            "provider": "hcx",
+            "model": "HCX-DASH-002",
+            "promptVersion": "v1",
+            "promptTokens": 1238,
+            "completionTokens": 117,
+            "totalTokens": 1355,
+            "latencyMs": 2928,
+            "costKrw": 0.4265
+          }
+        },
+        "casual": {
+          "tone": "casual",
+          "answer": "학과 유튜브 채널에서 콘텐츠 마케팅을 담당했어요. 영상 6편을 제작해 조회수 총합 4천 회를 달성했죠.",
+          "charCount": 57,
+          "limit": 100,
+          "lengthGrade": "under",
+          "fillRatio": 0.57,
+          "usedIndexes": [
+            0
+          ],
+          "unverified": [],
+          "fallback": false,
+          "forbiddenHits": [],
+          "endingRatio": 1.0,
+          "hedges": 0,
+          "cliches": 0,
+          "usage": {
+            "provider": "hcx",
+            "model": "HCX-DASH-002",
+            "promptVersion": "v1",
+            "promptTokens": 1306,
+            "completionTokens": 110,
+            "totalTokens": 1416,
+            "latencyMs": 2873,
+            "costKrw": 0.4365
+          }
+        }
+      },
+      "factJaccard": 1.0,
+      "distinguishable": true,
+      "regen": {
+        "tone": "formal",
+        "answer": "학과 유튜브 채널 기획에서 콘텐츠 마케팅 경험을 쌓았습니다. 영상 6편을 제작하여 총 조회수 4천 회를 기록하며 성과를 냈습니다.",
+        "charCount": 72,
+        "limit": 100,
+        "lengthGrade": "ok",
+        "fillRatio": 0.72,
+        "usedIndexes": [
+          0
+        ],
+        "unverified": [],
+        "fallback": false,
+        "forbiddenHits": [],
+        "endingRatio": 1.0,
+        "hedges": 0,
+        "cliches": 0,
+        "usage": {
+          "provider": "hcx",
+          "model": "HCX-DASH-002",
+          "promptVersion": "v1",
+          "promptTokens": 1875,
+          "completionTokens": 181,
+          "totalTokens": 2056,
+          "latencyMs": 4470,
+          "costKrw": 0.6497
+        },
+        "ngramJaccard": 0.05813953488372093,
+        "sentenceOverlap": 0.0
+      },
+      "emphasis": null
+    }
+  ]
+}
