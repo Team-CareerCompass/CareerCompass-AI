@@ -47,6 +47,9 @@ POSTING = """
 """
 
 
+NEWLINE = "\n"
+
+
 class FakeProvider:
     name = "fake"
     model = "fake-1"
@@ -324,6 +327,89 @@ def test_comments_fact_check_keeps_the_clean_sentence() -> None:
         Gateway(provider).comments(CommentsRequest(matchedKeywords=["Python", "데이터 분석"]))
     )
     assert res.strength == "Python 데이터 분석 경험이 맞습니다."
+
+
+def test_draft_drops_a_sentence_with_a_slur() -> None:
+    """실측 0건이지만 나오면 내보낼 수 없다 (#29)."""
+    answer = "CareerCompass 에서 Spring 백엔드를 맡았습니다. 같은 팀 병신들 때문에 고생했습니다."
+    provider = FakeProvider(_j(answer=answer), _j(answer=answer))
+    res = _run(Gateway(provider).draft_answer(_draft_req()))
+    assert "병신" not in res.answer
+    assert "Spring 백엔드" in res.answer
+
+
+def test_draft_keeps_ordinary_self_reflection() -> None:
+    """「미친 듯이」「부족함을」은 자소서의 보통 말이다 — 거르면 진짜 문장이 사라진다."""
+    answer = "미친 듯이 매달려 문제를 풀었고, 제 부족함을 알게 됐습니다."
+    provider = FakeProvider(_j(answer=answer))
+    res = _run(Gateway(provider).draft_answer(_draft_req()))
+    assert res.answer == answer
+
+
+def test_comments_drop_an_item_with_a_slur() -> None:
+    provider = FakeProvider(
+        _j(strength="Spring 경험은 있지만 실력은 병신 수준입니다.", weakness=None)
+    )
+    res = _run(Gateway(provider).comments(CommentsRequest(matchedKeywords=["Spring"])))
+    assert res.strength is None
+
+
+def test_parse_drops_discriminatory_preferences_and_questions() -> None:
+    """채용절차법이 금지한 요구는 공고에 있어도 우리가 옮기지 않는다 (#29).
+
+    옮기면 BE 적합도 계산과 코멘트를 타고 사용자에게 「탈락 사유」로 도착한다.
+    """
+    from app.fixtures import load
+
+    fx = load(Path("fixtures/postings/033.md"))
+    provider = FakeProvider(
+        _j(
+            type="recruit",
+            keywords=["사무보조", "총무팀", "엑셀"],
+            preferences=["회계 관련 자격증 소지자", "용모 단정한 미혼 여성"],
+            formQuestions=[],
+        )
+    )
+    res = _run(
+        Gateway(provider).parse_posting(
+            ParseRequest(title=fx.title, rawContent=fx.body, collectedAt="2026-09-25")
+        )
+    )
+    assert isinstance(res, ParseResult)
+    assert res.preferences == ["회계 관련 자격증 소지자", "엑셀 함수 활용 가능자"]
+    assert [q.question for q in res.form_questions] == ["지원 동기와 입사 후 포부를 기술해 주세요."]
+
+
+def test_parse_drops_discriminatory_preferences_from_the_model_too() -> None:
+    """규칙이 우대를 못 찾아 모델 것을 쓸 때도 같은 그물을 지난다."""
+    provider = FakeProvider(
+        _j(
+            type="recruit",
+            keywords=["사무보조", "총무", "엑셀"],
+            preferences=["엑셀 능숙자", "미혼 여성 우대", "부모의 직업이 안정적인 자"],
+            formQuestions=[],
+        )
+    )
+    # 규칙이 우대 헤딩을 못 찾게 그 절만 뺀다 — 그러면 게이트웨이가 모델의 우대를 쓴다
+    drop = ("우대사항", "- 관련 분야", "- 영어")
+    body = NEWLINE.join(ln for ln in POSTING.splitlines() if not ln.startswith(drop))
+    res = _run(
+        Gateway(provider).parse_posting(ParseRequest(title="사무보조 채용", rawContent=body))
+    )
+    assert isinstance(res, ParseResult)
+    assert res.preferences == ["엑셀 능숙자"]
+
+
+def test_comments_drop_an_item_that_cites_a_discriminatory_requirement() -> None:
+    """BE 가 차별 조건을 근거로 보내와도 문장으로 옮기지 않는다 — null 이 낫다."""
+    provider = FakeProvider(
+        _j(
+            strength=None,
+            weakness="미혼 여성 요건을 충족하지 못해 지원이 어렵습니다.",
+        )
+    )
+    res = _run(Gateway(provider).comments(CommentsRequest(missingQualifications=["미혼 여성"])))
+    assert res.weakness is None
 
 
 def test_comments_drop_capability_claimed_from_a_bare_word() -> None:
