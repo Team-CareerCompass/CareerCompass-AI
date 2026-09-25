@@ -170,3 +170,79 @@ def test_single_paragraph_injection_keeps_line_structure() -> None:
     out, removed = pp.strip_injections(text)
     assert removed == 1 and out.count(NL) == 1
     assert out.startswith("가.") and out.endswith("9/11")
+
+
+# --------------------------------------------------------------------------
+# 차별 요구 (#29) — 낱말이 아니라 맥락
+# --------------------------------------------------------------------------
+
+
+def test_discriminatory_hits_catches_what_the_law_forbids() -> None:
+    from app.guard import discriminatory_hits
+
+    assert discriminatory_hits("용모 단정한 미혼 여성") == ["신체조건", "혼인"]
+    assert discriminatory_hits("가족사항(부모님의 직업과 재산)을 기재") == ["가족"]
+    assert discriminatory_hits("서울 및 수도권 거주자에 한함") == ["출신지역"]
+    assert discriminatory_hits("여성만 지원 가능") == ["성별지정"]
+
+
+def test_discriminatory_hits_leaves_lawful_conditions_alone() -> None:
+    """실물 공고 31건에서 검출 0 이었다 — 병역·연령은 법에 근거가 따로 있다 (#29)."""
+    from app.guard import discriminatory_hits
+
+    for lawful in (
+        "병역필 또는 면제자, 해외 근무에 결격사유 없는 자",
+        "해외여행(출장)에 결격사유가 없는 분 (남성의 경우 군필 또는 면제)",
+        "학력ㆍ연령ㆍ성별 : 제한없음",
+        "만 34세 이하 청년",
+        "금신장학재단에서 장학생을 선발합니다",
+        "기본적인 IT/보안 개념에 대한 이해",
+    ):
+        assert discriminatory_hits(lawful) == [], lawful
+
+
+def test_slurs_are_unambiguous_only() -> None:
+    """보험이라 오탐이 0 이어야 한다 — 자소서에 정상적으로 쓰이는 말은 목록에 없다 (#29)."""
+    from app.guard import slurs_in
+
+    assert slurs_in("같은 팀 병신들 때문에") == ["병신"]
+    for ordinary in (
+        "미친 듯이 매달렸습니다",
+        "제 무능함을 느꼈습니다",
+        "한심하게 느껴졌습니다",
+        "새로운 것을 배웠습니다",
+    ):
+        assert slurs_in(ordinary) == [], ordinary
+
+
+def test_recorded_answers_have_no_slurs() -> None:
+    """09-25 실측: 기록된 답 278개에 0건. 이 테스트는 그 사실을 회귀로 고정한다."""
+    import json
+    from pathlib import Path
+
+    from app.guard import slurs_in
+
+    answers: list[str] = []
+    for path in Path("eval").glob("*draft-*.json"):
+        data = json.loads(path.read_text(encoding="utf-8"))
+        for row in data["rows"]:
+            answers += [r["answer"] for r in row["tones"].values()]
+    assert answers, "초안 기록이 있어야 의미가 있다"
+    assert [a for a in answers if slurs_in(a)] == []
+
+
+def test_real_postings_have_no_discriminatory_output() -> None:
+    """실물 픽스처에서 우리가 내보내는 우대·문항에 차별 요구가 없어야 한다 (오탐 감시)."""
+    from app.fixtures import load_all
+    from app.guard import discriminatory_hits
+    from app.preprocess import preprocess
+    from app.rules import extract_form_questions, extract_preferences
+
+    for fx in load_all():
+        if fx.id == "033":
+            continue  # 일부러 심은 합성본
+        pre = preprocess(fx.body)
+        for p in extract_preferences(pre.text):
+            assert not discriminatory_hits(p), (fx.id, p)
+        for q in extract_form_questions(pre.text):
+            assert not discriminatory_hits(q.question), (fx.id, q.question)

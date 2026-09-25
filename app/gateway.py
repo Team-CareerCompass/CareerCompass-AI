@@ -27,6 +27,7 @@ from app.cache import CacheMiss, ReplayCache
 from app.config import settings
 from app.contract import FAIL_MESSAGES, ErrorCode, ParseFailReason, ServiceError
 from app.guard import (
+    discriminatory_hits,
     drop_sentences_with,
     ending_ratio,
     extract_json,
@@ -34,6 +35,7 @@ from app.guard import (
     safe_draft,
     scrub_pii,
     sentences,
+    slurs_in,
     trim_to_limit,
     unsupported_claims,
 )
@@ -363,9 +365,12 @@ class Gateway:
             logger.warning("파싱 스키마 최종 실패: %s", exc)
             return fail(ParseFailReason.NO_KEYWORDS)
 
-        # 40자 넘는 「키워드」는 문장이다 — 주입된 지시문이 키워드 자리로 새는 길을 막는다
+        # 40자 넘는 「키워드」는 문장이다 — 주입된 지시문이 키워드 자리로 새는 길을 막는다.
+        # 차별 요구도 키워드로 새면 BE 의 분야 유사도 계산에 들어간다 (#29).
         keywords = _dedupe(
-            k.strip() for k in llm.keywords if k and k.strip() and len(k.strip()) <= 40
+            k.strip()
+            for k in llm.keywords
+            if k and k.strip() and len(k.strip()) <= 40 and not discriminatory_hits(k)
         )[:MAX_KEYWORDS]
         if len(keywords) < MIN_KEYWORDS:
             failure = fail(ParseFailReason.NO_KEYWORDS)
@@ -373,21 +378,30 @@ class Gateway:
             return failure
 
         # 합치기 — 규칙이 낸 값이 우선이다. LLM 문항은 민감정보 요구를 거른다 (#29).
+        # 차별 요구(용모·혼인·출신지역·가족 재산)는 규칙이 뽑았든 모델이 뽑았든 내보내지 않는다 —
+        # 우리가 옮기면 BE 적합도 계산과 코멘트를 타고 사용자에게 「탈락 사유」로 도착한다.
         questions = rule_questions or [
             rules.FormQuestion(order=i + 1, question=q.question.strip(), max_chars=q.maxChars)
             for i, q in enumerate(
                 q for q in llm.formQuestions if not rules.SENSITIVE_QUESTION.search(q.question)
             )
         ]
+        questions = [q for q in questions if not discriminatory_hits(q.question)]
+        preferences = _dedupe(p.strip() for p in (rule_prefs or llm.preferences) if p.strip())
+        kept_prefs = [p for p in preferences if not discriminatory_hits(p)]
+        if len(kept_prefs) != len(preferences):
+            logger.warning(
+                "차별 요구가 든 우대 조건 %d개 제거 (postingId=%s)",
+                len(preferences) - len(kept_prefs),
+                req.posting_id,
+            )
         return ParseResult(
             type=_posting_type(rule_type) or _posting_type(llm.type),
             keywords=keywords,
             qualification_year=quals.year,
             qualification_gpa=quals.gpa,
             qualification_major=quals.major,
-            preferences=(rule_prefs or _dedupe(p.strip() for p in llm.preferences if p.strip()))[
-                :MAX_KEYWORDS
-            ],
+            preferences=kept_prefs[:MAX_KEYWORDS],
             due_date=due.iso,
             due_date_raw=due.raw,
             form_questions=[
@@ -453,6 +467,22 @@ class Gateway:
                 strength = kept
             else:
                 weakness = kept
+
+        # 차별 요구가 근거로 와도 문장으로 옮기지 않는다 (#29). BE 가 공고에서 뽑은 것을 그대로
+        # 실어 보내므로 여기까지 온다 — 「미혼이 아니라 요건을 충족하지 못합니다」를 쓰면 안 된다.
+        for name, value in (("strength", strength), ("weakness", weakness)):
+            if not value:
+                continue
+            kinds = discriminatory_hits(value) + slurs_in(value)
+            if not kinds:
+                continue
+            logger.warning(
+                "코멘트 %s 에 차별·유해 표현(%s) — 항목을 버린다", name, ", ".join(kinds)
+            )
+            if name == "strength":
+                strength = None
+            else:
+                weakness = None
 
         # 근거를 넘어선 단정은 항목째 버린다 — 앞 문장을 빼면 뒷 문장의 「이러한 역량」이 뜬다.
         if strength and (weak := _overclaims_capability(strength, grounds)):
@@ -645,6 +675,16 @@ class Gateway:
             )
             used_raw = [i for i, _ in cards[:3]]
             unverified, fallback = [], True
+
+        if answer and (slurs := slurs_in(answer)):
+            # 실측 0건이지만 나오면 내보낼 수 없다 (#29). 문장을 빼고, 남는 게 없으면 안전 초안
+            logger.error("초안에 유해 표현 %s — 문장 제거", slurs)
+            answer = drop_sentences_with(answer, slurs)
+            if not answer.strip():
+                answer = safe_draft(
+                    req.question, req.posting_title, [x for _, x in cards], tone=tone, limit=limit
+                )
+                used_raw, fallback = [i for i, _ in cards[:3]], True
 
         answer, pii_hits = scrub_pii(answer)
         if pii_hits:
