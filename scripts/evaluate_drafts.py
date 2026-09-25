@@ -35,6 +35,9 @@ def main() -> int:
     parser.add_argument("--save", action="store_true", help="eval/ 에 결과를 기록한다")
     parser.add_argument("--no-regen", action="store_true", help="재생성 겹침 측정을 생략한다")
     parser.add_argument(
+        "--no-emphasis", action="store_true", help="강조 카드(순서 바꿔 한 번 더) 측정을 생략한다"
+    )
+    parser.add_argument(
         "--tones", nargs="+", default=["formal", "casual"], help="돌릴 톤. 첫 톤으로 재생성한다"
     )
     parser.add_argument("--answers", action="store_true", help="답 본문도 출력한다")
@@ -46,7 +49,12 @@ def main() -> int:
         from app.draft_eval import load_all
 
         cases = [c for c in load_all() if c.id in set(args.only)]
-    report = evaluate_drafts(cases, tones=tuple(args.tones), regen=not args.no_regen)
+    report = evaluate_drafts(
+        cases,
+        tones=tuple(args.tones),
+        regen=not args.no_regen,
+        emphasis=not args.no_emphasis,
+    )
     if not report.rows:
         print("픽스처가 없다. fixtures/drafts/ 를 채운다.")
         return 1
@@ -77,6 +85,16 @@ def main() -> int:
             )
             if args.answers:
                 print(f"     └ {r['answer']}")
+        if row.get("emphasis"):
+            e = row["emphasis"]
+            mark = "O" if e["baseReflectsFirst"] and e["rotatedReflectsFirst"] else "X"
+            print(
+                f"     강조 {mark} · 원래 순서 첫 카드 반영 {e['baseReflectsFirst']}"
+                f" · 바꾼 순서 {e['rotatedReflectsFirst']}"
+                f" · idx {e['baseUsedIndexes']} → {e['rotatedUsedIndexes']}"
+            )
+            if args.answers:
+                print(f"     └ (순서 바꿈) {e['rotatedAnswer']}")
         if row.get("factJaccard") is not None:
             mark = "O" if row["distinguishable"] else "X"
             print(f"     톤 구별 {mark} · 사실 Jaccard {row['factJaccard']:.2f}")
@@ -98,6 +116,9 @@ def main() -> int:
         print(
             f"톤 구별        {ok}/{total} · 톤 간 사실 Jaccard 평균 {_f2(report.fact_jaccard_mean)}"
         )
+    emph_ok, emph_total = report.emphasis_follows
+    if emph_total:
+        print(f"강조 카드     순서를 바꾸면 그 카드가 부각된 항목 {emph_ok}/{emph_total}")
     if report.regen:
         similar, n = report.regen_similar
         print(

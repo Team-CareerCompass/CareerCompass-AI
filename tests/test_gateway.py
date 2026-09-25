@@ -360,6 +360,38 @@ def test_comments_capability_from_a_specific_ground_is_fine() -> None:
     assert res.strength is not None
 
 
+def test_draft_unsupported_credential_claim_is_dropped() -> None:
+    """입력이 자격·수상·소속을 한 번도 말하지 않았는데 답이 말하면 그 문장을 뺀다 (#29)."""
+    answer = (
+        "CareerCompass 에서 Spring 백엔드를 맡았습니다. "
+        "정보처리기사 자격증을 취득해 전문성을 갖췄습니다."
+    )
+    provider = FakeProvider(_j(answer=answer), _j(answer=answer))
+    res = _run(Gateway(provider).draft_answer(_draft_req()))
+    assert "자격증" not in res.answer
+    assert "Spring 백엔드" in res.answer
+
+
+def test_draft_keeps_a_credential_the_input_already_names() -> None:
+    """입력이 같은 범주를 말했으면 답이 말해도 된다 — 표현을 바꿔 쓴 것까지 날조로 보면 안 된다."""
+    answer = "정보처리기사 자격증을 취득하며 꾸준함을 길렀습니다."
+    provider = FakeProvider(_j(answer=answer))
+    req = _draft_req().model_copy(
+        update={"experience_summaries": ["정보처리기사 취득 — 시험 준비 5개월"]}
+    )
+    res = _run(Gateway(provider).draft_answer(req))
+    assert "자격증" in res.answer
+    assert len(provider.calls) == 1
+
+
+def test_unsupported_claims_ignores_homonyms() -> None:
+    """「초등학생을 대상으로」는 수상이 아니다 — 221개 실측에서 이것만 오탐이었다."""
+    from app.guard import unsupported_claims
+
+    assert unsupported_claims("초등학생 세 명을 대상으로 멘토링했습니다.", ["멘토링"]) == []
+    assert unsupported_claims("대상을 받았습니다.", ["멘토링"]) == ["대상을 받"]
+
+
 def test_comments_keep_at_most_two_sentences() -> None:
     provider = FakeProvider(
         _j(

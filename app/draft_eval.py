@@ -25,6 +25,7 @@ from pathlib import Path
 from statistics import mean
 from typing import Any
 
+from app.gateway import _TOKEN, PAST_EXCERPT_PREFIX
 from app.guard import _LATIN, _NUMBER, _TRAILING, _normalize, ending_ratio, sentences
 from app.schemas import DraftRequest
 
@@ -44,6 +45,11 @@ class DraftCase:
     request: DraftRequest
     forbidden: list[str]
     path: Path
+    emphasis: bool = False
+    """카드 순서를 바꿔 한 번 더 돌린다 (#19 「강조할 경험 카드를 바꾸면 부각되는지」).
+
+    BE 는 경험 카드를 매칭도 순으로 보내고, 사용자가 강조 카드를 고르면 그 순서가 바뀐다.
+    카드가 둘 이상이고 서로 구별되는 낱말을 가진 항목에만 켠다."""
 
 
 def load(path: Path) -> DraftCase:
@@ -54,6 +60,7 @@ def load(path: Path) -> DraftCase:
         request=DraftRequest.model_validate(data["request"]),
         forbidden=list(data.get("forbidden", [])),
         path=path,
+        emphasis=bool(data.get("emphasis", False)),
     )
 
 
@@ -133,6 +140,45 @@ def fact_jaccard(a: str, b: str) -> float:
     return len(x & y) / len(x | y)
 
 
+def distinctive_tokens(cards: list[str]) -> list[set[str]]:
+    """카드마다 **그 카드에만 있는** 토큰. 카드가 부각됐는지 보려면 겹치는 말은 소용없다.
+
+    「Spring 백엔드」와 「알고리즘 스터디」가 나란히 있을 때 「경험」「프로젝트」는 어느 쪽도
+    가리키지 않는다. 다른 카드에 없는 토큰만 그 카드의 표식이다.
+    """
+    per_card = [{_normalize(t) for t in _TOKEN.findall(c)} for c in cards]
+    return [
+        tokens - set().union(*(per_card[:i] + per_card[i + 1 :])) if len(per_card) > 1 else tokens
+        for i, tokens in enumerate(per_card)
+    ]
+
+
+def reflects(answer: str, tokens: set[str]) -> bool | None:
+    """그 카드의 표식이 답에 하나라도 나왔는가. 표식이 없는 카드면 잴 수 없다(None)."""
+    if not tokens:
+        return None
+    compact = _normalize(answer)
+    return any(t in compact for t in tokens)
+
+
+def _cards_of(req: DraftRequest) -> list[str]:
+    """경험 카드만 — 「과거 자소서 발췌:」는 경험이 아니다."""
+    return [x for x in req.experience_summaries if not x.startswith(PAST_EXCERPT_PREFIX)]
+
+
+def rotate_cards(req: DraftRequest) -> DraftRequest:
+    """둘째 경험 카드를 맨 앞으로 — 사용자가 다른 카드를 강조한 상황.
+
+    「과거 자소서 발췌:」 항목은 경험이 아니므로 자리를 지킨다 (BE `DraftContextBuilder`).
+    """
+    cards = [x for x in req.experience_summaries if not x.startswith(PAST_EXCERPT_PREFIX)]
+    excerpts = [x for x in req.experience_summaries if x.startswith(PAST_EXCERPT_PREFIX)]
+    if len(cards) < 2:
+        return req
+    rotated = [cards[1], cards[0], *cards[2:]]
+    return req.model_copy(update={"experience_summaries": [*rotated, *excerpts]})
+
+
 def forbidden_hits(answer: str, forbidden: list[str]) -> list[str]:
     compact = _normalize(answer)
     return [f for f in forbidden if f and _normalize(f) in compact]
@@ -159,9 +205,14 @@ def length_grade(char_count: int, limit: int) -> str:
 # --------------------------------------------------------------------------
 
 
-def run_case(case: DraftCase, gateway: Any, tone: str) -> dict[str, Any]:
-    """게이트웨이를 한 번 불러 규칙 지표를 매긴 행. `answer` 도 남긴다 — 사람이 읽어야 한다."""
-    req = case.request.model_copy(update={"tone": tone})
+def run_case(
+    case: DraftCase, gateway: Any, tone: str, request: DraftRequest | None = None
+) -> dict[str, Any]:
+    """게이트웨이를 한 번 불러 규칙 지표를 매긴 행. `answer` 도 남긴다 — 사람이 읽어야 한다.
+
+    `request` 를 주면 그것으로 부른다 — 카드 순서를 바꾼 강조 실행 (#19).
+    """
+    req = (request or case.request).model_copy(update={"tone": tone})
     res = asyncio.run(gateway.draft_answer(req))
     fc = res.fact_check
     return {
@@ -205,8 +256,16 @@ class DraftReport:
         return out
 
     @property
+    def emphasis_follows(self) -> tuple[int, int]:
+        """(두 실행 모두 자기 첫 카드를 반영한 항목 수, 강조를 잰 항목 수) — #19."""
+        rows = [row["emphasis"] for row in self.rows if row.get("emphasis")]
+        ok = sum(bool(e["baseReflectsFirst"]) and bool(e["rotatedReflectsFirst"]) for e in rows)
+        return ok, len(rows)
+
+    @property
     def calls(self) -> int:
-        return len(self._tone_rows())
+        """엔드포인트를 부른 횟수 — 강조 실행도 호출이다. 재요청은 여기 안 센다(한 호출의 안쪽)."""
+        return len(self._all_usages())
 
     @property
     def length_compliance(self) -> float | None:
@@ -297,13 +356,22 @@ class DraftReport:
         ]
         return mean(pairs) if pairs else None
 
+    def _all_usages(self) -> list[dict[str, Any]]:
+        out = [r["usage"] for r in self._tone_rows() if r.get("usage")]
+        out += [
+            row["emphasis"]["usage"]
+            for row in self.rows
+            if row.get("emphasis") and row["emphasis"].get("usage")
+        ]
+        return out
+
     @property
     def cost_krw(self) -> float:
-        return round(sum(r["usage"]["costKrw"] for r in self._tone_rows() if r.get("usage")), 4)
+        return round(sum(u["costKrw"] for u in self._all_usages()), 4)
 
     @property
     def total_tokens(self) -> int:
-        return sum(r["usage"]["totalTokens"] for r in self._tone_rows() if r.get("usage"))
+        return sum(u["totalTokens"] for u in self._all_usages())
 
     def as_dict(self) -> dict[str, Any]:
         ok, total = self.distinguishable
@@ -326,6 +394,8 @@ class DraftReport:
             "factJaccardMean": self.fact_jaccard_mean,
             "regenNgramMean": self.regen_ngram_mean,
             "regenSimilar": self.regen_similar[0],
+            "emphasisFollows": self.emphasis_follows[0],
+            "emphasisOf": self.emphasis_follows[1],
             "regenSentenceMean": self.regen_sentence_mean,
             "crossCaseNgramMean": self.cross_case_ngram_mean,
             "totalTokens": self.total_tokens,
@@ -341,6 +411,7 @@ def evaluate_drafts(
     regen_gateway: Any = None,
     tones: tuple[str, ...] = ("formal", "casual"),
     regen: bool = True,
+    emphasis: bool = True,
 ) -> DraftReport:
     """항목마다 톤별로 한 번, 첫 톤으로 한 번 더(재생성). 지표는 행에, 집계는 `DraftReport` 에.
 
@@ -377,11 +448,29 @@ def evaluate_drafts(
             "factJaccard": None,
             "distinguishable": None,
             "regen": None,
+            "emphasis": None,
         }
         if len(tones) >= 2:
             a, b = tone_rows[tones[0]], tone_rows[tones[1]]
             row["factJaccard"] = fact_jaccard(a["answer"], b["answer"])
             row["distinguishable"] = all((r["endingRatio"] or 0.0) >= TONE_TARGET for r in (a, b))
+        if case.emphasis and emphasis:
+            # 같은 카드, 순서만 바꿔 한 번 더. 각 실행이 **자기 첫 카드**를 반영해야 한다 (#19).
+            base_req = case.request
+            rotated_req = rotate_cards(base_req)
+            rotated = run_case(case, gateway, tones[0], rotated_req)
+            base_marks = distinctive_tokens(_cards_of(base_req))
+            rot_marks = distinctive_tokens(_cards_of(rotated_req))
+            base_answer = tone_rows[tones[0]]["answer"]
+            row["emphasis"] = {
+                "rotatedAnswer": rotated["answer"],
+                "baseReflectsFirst": reflects(base_answer, base_marks[0]),
+                "rotatedReflectsFirst": reflects(rotated["answer"], rot_marks[0]),
+                "baseUsedIndexes": tone_rows[tones[0]]["usedIndexes"],
+                "rotatedUsedIndexes": rotated["usedIndexes"],
+                "usage": rotated["usage"],
+            }
+
         if regen:
             first = tone_rows[tones[0]]
             again = run_case(case, regen_gateway, tones[0])
