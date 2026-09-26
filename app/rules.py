@@ -11,6 +11,8 @@ import re
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 
+from app.guard import discriminatory_hits
+
 # --------------------------------------------------------------------------
 # 마감일
 # --------------------------------------------------------------------------
@@ -229,7 +231,9 @@ def extract_form_questions(text: str) -> list[FormQuestion]:
         body = m.group("q").strip()
         if not _QUESTION_HINT.search(body) or _QUESTION_EXCLUDE.search(body):
             continue
-        if SENSITIVE_QUESTION.search(body):
+        if SENSITIVE_QUESTION.search(body) or discriminatory_hits(body):
+            # 채용절차법 4조의3 — 「가족사항(부모님의 직업과 재산)을 기재해 주세요」 같은 문항은
+            # 공고에 있어도 옮기지 않는다 (#29). 초안 생성까지 흘러가면 사용자가 쓰게 된다
             continue
         limit = extract_max_chars(m.group("limit") or "") or extract_max_chars(body)
         questions.append(FormQuestion(order=len(questions) + 1, question=body, max_chars=limit))
@@ -269,7 +273,10 @@ def extract_qualifications(text: str) -> Qualifications:
 
 
 def extract_preferences(text: str) -> list[str]:
-    """「우대 사항」 헤딩 아래의 불릿을 모은다. 헤딩이 없으면 빈 목록이다."""
+    """「우대 사항」 헤딩 아래의 불릿을 모은다. 헤딩이 없으면 빈 목록이다.
+
+    채용절차법이 금지한 요구가 든 항목은 뺀다 (#29).
+    """
     heading = _PREFERENCE_HEADING.search(text)
     if heading is None:
         return []
@@ -283,7 +290,10 @@ def extract_preferences(text: str) -> list[str]:
         m = _BULLET.match(line)
         if m is None:
             break
-        items.append(m.group("item").strip())
+        item = m.group("item").strip()
+        if discriminatory_hits(item):
+            continue  # 「부모의 직업이 안정적인 자」 같은 우대는 내보내지 않는다 (#29)
+        items.append(item)
         if len(items) >= 10:
             break
     return items
