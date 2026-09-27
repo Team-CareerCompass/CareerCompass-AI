@@ -1,0 +1,1883 @@
+{
+  "ranAt": "2026-09-27T113641Z",
+  "pipeline": "baseline",
+  "promptVersion": null,
+  "model": null,
+  "dueDate": {
+    "correct": 8,
+    "wrong": 14,
+    "missed": 3,
+    "skip": 5,
+    "correct_null": 2
+  },
+  "type": {
+    "correct": 21,
+    "skip": 7,
+    "wrong": 4
+  },
+  "formQuestions": {
+    "correct": 21,
+    "skip": 5,
+    "missed": 3,
+    "false_positive": 3
+  },
+  "posting": {
+    "correct": 25,
+    "skip": 3,
+    "false_positive": 4
+  },
+  "dueAccuracy": 0.37037037037037035,
+  "typeAccuracy": 0.84,
+  "questionAccuracy": 0.7777777777777778,
+  "postingAccuracy": 0.8620689655172413,
+  "qualifications": {
+    "correct_null": 65,
+    "correct": 4,
+    "wrong": 2,
+    "missed": 8,
+    "hallucinated": 2
+  },
+  "qualificationAccuracy": 0.8518518518518519,
+  "qualificationHallucinated": 2,
+  "keywords": {
+    "gold": 166,
+    "hit": 84,
+    "pred": 258,
+    "predHit": 102,
+    "forbidden": 12
+  },
+  "keywordRecall": 0.5060240963855421,
+  "keywordPrecision": 0.3953488372093023,
+  "keywordForbidden": 12,
+  "preferences": {
+    "gold": 62,
+    "hit": 13,
+    "pred": 18,
+    "predHit": 8,
+    "forbidden": 0
+  },
+  "preferenceRecall": 0.20967741935483872,
+  "preferencePrecision": 0.4444444444444444,
+  "rows": [
+    {
+      "id": "001",
+      "dueGrade": "correct",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "qualificationGrades": {
+        "year": "correct_null",
+        "gpa": "correct",
+        "major": "correct_null"
+      },
+      "keywordGrade": {
+        "gold": 6,
+        "hit": 4,
+        "pred": 10,
+        "predHit": 4,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 0,
+        "hit": 0,
+        "pred": 0,
+        "predHit": 0,
+        "forbidden": 0
+      },
+      "dueDate": "2026-09-15",
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": null,
+      "type": "scholarship",
+      "formQuestions": [],
+      "qualifications": {
+        "year": null,
+        "gpa": "학점 3.7",
+        "major": null
+      },
+      "preferences": [],
+      "keywords": [
+        "용복장학회",
+        "월정김용복장학금",
+        "월정생활비장학금",
+        "장학생",
+        "가.",
+        "선발",
+        "나.",
+        "장학회",
+        "교외",
+        "학년도"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "resegmented": false,
+      "imageOnly": false
+    },
+    {
+      "id": "002",
+      "dueGrade": "wrong",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "qualificationGrades": {
+        "year": "correct_null",
+        "gpa": "wrong",
+        "major": "correct_null"
+      },
+      "keywordGrade": {
+        "gold": 5,
+        "hit": 3,
+        "pred": 10,
+        "predHit": 3,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 0,
+        "hit": 0,
+        "pred": 0,
+        "predHit": 0,
+        "forbidden": 0
+      },
+      "dueDate": "2026-09-30",
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": null,
+      "type": "scholarship",
+      "formQuestions": [],
+      "qualifications": {
+        "year": null,
+        "gpa": "평점 4.5",
+        "major": null
+      },
+      "preferences": [],
+      "keywords": [
+        "금신사랑장학생",
+        "선발",
+        "금신장학재단",
+        "생활비",
+        "교외",
+        "학년도",
+        "기준",
+        "학기",
+        "www.keumsin.or.kr",
+        "직전학기"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "resegmented": false,
+      "imageOnly": false
+    },
+    {
+      "id": "003",
+      "dueGrade": "wrong",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "qualificationGrades": {
+        "year": "missed",
+        "gpa": "missed",
+        "major": "correct_null"
+      },
+      "keywordGrade": {
+        "gold": 4,
+        "hit": 3,
+        "pred": 10,
+        "predHit": 4,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 2,
+        "hit": 2,
+        "pred": 2,
+        "predHit": 2,
+        "forbidden": 0
+      },
+      "dueDate": "2026-09-28",
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": null,
+      "type": "scholarship",
+      "formQuestions": [],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "preferences": [
+        "3) 어학, 예체능, 과학 기술 등 특정 분야의 재능을 증명할 수 있는 공인성적이나 수상 경력이 있는 학생 우대",
+        "4) 2026학년도 2학기 학자금 지원구간이 낮은 학생 우대"
+      ],
+      "keywords": [
+        "학기",
+        "학년도",
+        "미래인재육성재단",
+        "학생",
+        "선발",
+        "교외",
+        "생활비",
+        "장학생",
+        "학교추천",
+        "추천"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "resegmented": false,
+      "imageOnly": false
+    },
+    {
+      "id": "004",
+      "dueGrade": "missed",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "qualificationGrades": {
+        "year": "correct_null",
+        "gpa": "correct_null",
+        "major": "correct_null"
+      },
+      "keywordGrade": {
+        "gold": 9,
+        "hit": 2,
+        "pred": 10,
+        "predHit": 3,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 0,
+        "hit": 0,
+        "pred": 0,
+        "predHit": 0,
+        "forbidden": 0
+      },
+      "dueDate": null,
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": null,
+      "type": "recruit",
+      "formQuestions": [],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "preferences": [],
+      "keywords": [
+        "현대자동차",
+        "신입",
+        "하반기",
+        "연구개발",
+        "부문",
+        "abit.ly",
+        "개발",
+        "플랫폼",
+        "설계",
+        "시스템"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "resegmented": false,
+      "imageOnly": false
+    },
+    {
+      "id": "005",
+      "dueGrade": "skip",
+      "typeGrade": "skip",
+      "questionGrade": "skip",
+      "postingGrade": "skip",
+      "qualificationGrades": {},
+      "keywordGrade": null,
+      "preferenceGrade": null,
+      "dueDate": null,
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": null,
+      "type": "recruit",
+      "formQuestions": [],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "preferences": [],
+      "keywords": [
+        "한국전력공사",
+        "년도",
+        "하반기",
+        "직급",
+        "대졸수준"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "resegmented": false,
+      "imageOnly": true
+    },
+    {
+      "id": "006",
+      "dueGrade": "wrong",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "qualificationGrades": {
+        "year": "correct_null",
+        "gpa": "correct_null",
+        "major": "correct_null"
+      },
+      "keywordGrade": {
+        "gold": 7,
+        "hit": 3,
+        "pred": 10,
+        "predHit": 3,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 0,
+        "hit": 0,
+        "pred": 0,
+        "predHit": 0,
+        "forbidden": 0
+      },
+      "dueDate": "2026-08-24",
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": null,
+      "type": "contest",
+      "formQuestions": [],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "preferences": [],
+      "keywords": [
+        "조선",
+        "개팀",
+        "해커톤",
+        "AI",
+        "아이디어",
+        "참가",
+        "서류",
+        "대회",
+        "본선",
+        "도메인"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "resegmented": false,
+      "imageOnly": false
+    },
+    {
+      "id": "007",
+      "dueGrade": "correct_null",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "qualificationGrades": {
+        "year": "correct_null",
+        "gpa": "correct_null",
+        "major": "correct_null"
+      },
+      "keywordGrade": {
+        "gold": 6,
+        "hit": 4,
+        "pred": 10,
+        "predHit": 5,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 0,
+        "hit": 0,
+        "pred": 0,
+        "predHit": 0,
+        "forbidden": 0
+      },
+      "dueDate": null,
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": null,
+      "type": "contest",
+      "formQuestions": [],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "preferences": [],
+      "keywords": [
+        "인공지능",
+        "분석",
+        "제6회",
+        "제조데이터",
+        "경진대회",
+        "제조",
+        "AI",
+        "KAMP",
+        "중소",
+        "활용"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "resegmented": false,
+      "imageOnly": false
+    },
+    {
+      "id": "008",
+      "dueGrade": "wrong",
+      "typeGrade": "wrong",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "qualificationGrades": {
+        "year": "correct_null",
+        "gpa": "correct_null",
+        "major": "correct_null"
+      },
+      "keywordGrade": {
+        "gold": 5,
+        "hit": 4,
+        "pred": 6,
+        "predHit": 4,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 0,
+        "hit": 0,
+        "pred": 0,
+        "predHit": 0,
+        "forbidden": 0
+      },
+      "dueDate": "2026-09-14",
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": null,
+      "type": "contest",
+      "formQuestions": [],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "preferences": [],
+      "keywords": [
+        "서포터즈",
+        "마이컵",
+        "대학생",
+        "LG",
+        "텀블러",
+        "https"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "resegmented": false,
+      "imageOnly": false
+    },
+    {
+      "id": "009",
+      "dueGrade": "correct",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "qualificationGrades": {
+        "year": "correct_null",
+        "gpa": "correct_null",
+        "major": "wrong"
+      },
+      "keywordGrade": {
+        "gold": 10,
+        "hit": 4,
+        "pred": 10,
+        "predHit": 3,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 5,
+        "hit": 1,
+        "pred": 5,
+        "predHit": 1,
+        "forbidden": 0
+      },
+      "dueDate": "2026-09-21",
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": null,
+      "type": "recruit",
+      "formQuestions": [
+        {
+          "order": 1,
+          "question": "지원하는 회사와 분야(직무)에 대한 지원 동기를 자유롭게 기술하세요.",
+          "maxChars": 50
+        }
+      ],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": "이공계열"
+      },
+      "preferences": [
+        "[우대사항]",
+        "[우대사항]",
+        "[우대사항]",
+        "[우대사항]",
+        "국가보훈대상자 및 국가등록장애인은 관련 법에 의거하여 우대됩니다. (증빙 서류 제출 필요)"
+      ],
+      "keywords": [
+        "전공",
+        "수행",
+        "업무",
+        "두산에너빌리티",
+        "기계",
+        "원자력",
+        "분당",
+        "창원",
+        "설계",
+        "전기"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "resegmented": false,
+      "imageOnly": false
+    },
+    {
+      "id": "010",
+      "dueGrade": "skip",
+      "typeGrade": "skip",
+      "questionGrade": "skip",
+      "postingGrade": "false_positive",
+      "qualificationGrades": {},
+      "keywordGrade": null,
+      "preferenceGrade": null,
+      "dueDate": "2024-10-19",
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": null,
+      "type": null,
+      "formQuestions": [],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "preferences": [],
+      "keywords": [
+        "면제",
+        "기초교양",
+        "이수의무",
+        "교과목",
+        "이후",
+        "신청서",
+        "외국어영역",
+        "본인이",
+        "학년도",
+        "이메일"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "resegmented": false,
+      "imageOnly": false
+    },
+    {
+      "id": "011",
+      "dueGrade": "missed",
+      "typeGrade": "wrong",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "qualificationGrades": {
+        "year": "correct_null",
+        "gpa": "correct_null",
+        "major": "correct_null"
+      },
+      "keywordGrade": {
+        "gold": 5,
+        "hit": 4,
+        "pred": 10,
+        "predHit": 5,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 3,
+        "hit": 0,
+        "pred": 1,
+        "predHit": 0,
+        "forbidden": 0
+      },
+      "dueDate": null,
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": null,
+      "type": "contest",
+      "formQuestions": [],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "preferences": [
+        "📌 우대 사항"
+      ],
+      "keywords": [
+        "숏폼",
+        "아모레퍼시픽",
+        "프라임",
+        "믹솔로지",
+        "프리메라",
+        "크리에이터",
+        "브랜드",
+        "SNS",
+        "채널",
+        "온라인"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "resegmented": false,
+      "imageOnly": false
+    },
+    {
+      "id": "013",
+      "dueGrade": "correct_null",
+      "typeGrade": "wrong",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "qualificationGrades": {
+        "year": "correct_null",
+        "gpa": "correct_null",
+        "major": "correct_null"
+      },
+      "keywordGrade": {
+        "gold": 8,
+        "hit": 5,
+        "pred": 10,
+        "predHit": 5,
+        "forbidden": 1
+      },
+      "preferenceGrade": {
+        "gold": 4,
+        "hit": 0,
+        "pred": 1,
+        "predHit": 0,
+        "forbidden": 0
+      },
+      "dueDate": null,
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": null,
+      "type": "contest",
+      "formQuestions": [],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "preferences": [
+        "또는 AI 관련 분야(AI, 자율비행, 딥러닝 등) 연구개발 경력 2년 이상 보유자[우대사항]"
+      ],
+      "keywords": [
+        "AI",
+        "무인기",
+        "대한항공",
+        "항공우주",
+        "전문인력",
+        "상시모집",
+        "개발",
+        "기반",
+        "경험",
+        "데이터"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "resegmented": false,
+      "imageOnly": false
+    },
+    {
+      "id": "014",
+      "dueGrade": "skip",
+      "typeGrade": "skip",
+      "questionGrade": "skip",
+      "postingGrade": "false_positive",
+      "qualificationGrades": {},
+      "keywordGrade": null,
+      "preferenceGrade": null,
+      "dueDate": "2026-07-13",
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": null,
+      "type": null,
+      "formQuestions": [],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "preferences": [],
+      "keywords": [
+        "수강바구니",
+        "수강신청",
+        "일정",
+        "학년도",
+        "학기",
+        "유의사항",
+        "학년별",
+        "자동신청",
+        "방법",
+        "확인"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "resegmented": false,
+      "imageOnly": false
+    },
+    {
+      "id": "015",
+      "dueGrade": "wrong",
+      "typeGrade": "wrong",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "qualificationGrades": {
+        "year": "correct_null",
+        "gpa": "correct_null",
+        "major": "correct_null"
+      },
+      "keywordGrade": {
+        "gold": 5,
+        "hit": 4,
+        "pred": 6,
+        "predHit": 4,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 0,
+        "hit": 0,
+        "pred": 0,
+        "predHit": 0,
+        "forbidden": 0
+      },
+      "dueDate": "2099-12-31",
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": null,
+      "type": "contest",
+      "formQuestions": [],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "preferences": [],
+      "keywords": [
+        "서포터즈",
+        "마이컵",
+        "대학생",
+        "LG",
+        "텀블러",
+        "https"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "resegmented": false,
+      "imageOnly": false
+    },
+    {
+      "id": "016",
+      "dueGrade": "correct",
+      "typeGrade": "correct",
+      "questionGrade": "missed",
+      "postingGrade": "correct",
+      "qualificationGrades": {
+        "year": "correct_null",
+        "gpa": "correct_null",
+        "major": "missed"
+      },
+      "keywordGrade": {
+        "gold": 6,
+        "hit": 3,
+        "pred": 10,
+        "predHit": 5,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 4,
+        "hit": 3,
+        "pred": 1,
+        "predHit": 1,
+        "forbidden": 0
+      },
+      "dueDate": "2026-06-21",
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": null,
+      "type": "recruit",
+      "formQuestions": [],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "preferences": [
+        "보유역량 보훈대상자, 장애인우대, 취업보호대상자"
+      ],
+      "keywords": [
+        "신입",
+        "사이버보안",
+        "하반기",
+        "채용연계형",
+        "인턴",
+        "차량",
+        "관리",
+        "현대케피코",
+        "경험",
+        "정규직"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "resegmented": false,
+      "imageOnly": false
+    },
+    {
+      "id": "017",
+      "dueGrade": "correct",
+      "typeGrade": "correct",
+      "questionGrade": "missed",
+      "postingGrade": "correct",
+      "qualificationGrades": {
+        "year": "correct_null",
+        "gpa": "correct_null",
+        "major": "missed"
+      },
+      "keywordGrade": {
+        "gold": 7,
+        "hit": 4,
+        "pred": 10,
+        "predHit": 4,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 3,
+        "hit": 2,
+        "pred": 1,
+        "predHit": 1,
+        "forbidden": 0
+      },
+      "dueDate": "2026-06-10",
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": null,
+      "type": "recruit",
+      "formQuestions": [
+        {
+          "order": 1,
+          "question": "극지연구소에 지원하게 된 동기와 본인의 경험과 역량 등을 토대로 본인의 장점을 기술해 주십시오. (최소 200자, 최대 500자 입력가능)",
+          "maxChars": null
+        },
+        {
+          "order": 2,
+          "question": "지원한 분야에 대한 직무수행능력을 키우기 위해 노력했던 경험에 대해 서술해 주십시오. (최소 200자, 최대 500자 입력가능)",
+          "maxChars": null
+        }
+      ],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "preferences": [
+        "보유역량 국가유공자, 장애인우대"
+      ],
+      "keywords": [
+        "청년인턴",
+        "체험형",
+        "공개채용",
+        "정책업무",
+        "한국해양과학기술원부설극지연구소",
+        "문항",
+        "졸업",
+        "전형",
+        "없는",
+        "본인의"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "resegmented": false,
+      "imageOnly": false
+    },
+    {
+      "id": "018",
+      "dueGrade": "missed",
+      "typeGrade": "correct",
+      "questionGrade": "missed",
+      "postingGrade": "correct",
+      "qualificationGrades": {
+        "year": "correct_null",
+        "gpa": "correct_null",
+        "major": "correct"
+      },
+      "keywordGrade": {
+        "gold": 5,
+        "hit": 3,
+        "pred": 10,
+        "predHit": 2,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 3,
+        "hit": 3,
+        "pred": 1,
+        "predHit": 1,
+        "forbidden": 0
+      },
+      "dueDate": null,
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": null,
+      "type": "recruit",
+      "formQuestions": [],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": "공학계열"
+      },
+      "preferences": [
+        "보유역량 국가유공자, 보훈대상자, 장애인우대"
+      ],
+      "keywords": [
+        "작성해",
+        "상반기",
+        "직원",
+        "구조",
+        "문항",
+        "위해",
+        "한국원자력안전기술원",
+        "주십시오",
+        "최소",
+        "최대"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "resegmented": false,
+      "imageOnly": false
+    },
+    {
+      "id": "019",
+      "dueGrade": "wrong",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "qualificationGrades": {
+        "year": "missed",
+        "gpa": "correct",
+        "major": "hallucinated"
+      },
+      "keywordGrade": {
+        "gold": 5,
+        "hit": 1,
+        "pred": 10,
+        "predHit": 1,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 0,
+        "hit": 0,
+        "pred": 0,
+        "predHit": 0,
+        "forbidden": 0
+      },
+      "dueDate": "2025-11-03",
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": null,
+      "type": "scholarship",
+      "formQuestions": [],
+      "qualifications": {
+        "year": null,
+        "gpa": "평점 4.0",
+        "major": "이공계열"
+      },
+      "preferences": [],
+      "keywords": [
+        "장학생",
+        "선발",
+        "관정재단",
+        "학기",
+        "년도",
+        "기준",
+        "중복수혜",
+        "국내대학",
+        "예정자",
+        "추천인원"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "resegmented": false,
+      "imageOnly": false
+    },
+    {
+      "id": "020",
+      "dueGrade": "correct",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "qualificationGrades": {
+        "year": "missed",
+        "gpa": "missed",
+        "major": "correct_null"
+      },
+      "keywordGrade": {
+        "gold": 6,
+        "hit": 2,
+        "pred": 10,
+        "predHit": 2,
+        "forbidden": 1
+      },
+      "preferenceGrade": {
+        "gold": 6,
+        "hit": 1,
+        "pred": 2,
+        "predHit": 1,
+        "forbidden": 0
+      },
+      "dueDate": "2025-10-29",
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": null,
+      "type": "scholarship",
+      "formQuestions": [],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "preferences": [
+        "바 . 우대사항 : 리더십활동 유경험자 및 특별재능 보유자 ( 대학교 입학 이후 취득에 한함 )",
+        "다 . 제출서류 : 지원서 , 추천서 , 자기소개서 , 개인정보활용동의서 , 장학생 의무사항 참여 동의서 , 성적증명서 , 우대사항 증빙서류 ( 대상자에 한함 )"
+      ],
+      "keywords": [
+        "년도",
+        "한국지도자육성장학재단",
+        "신규장학생",
+        "선발",
+        "학기",
+        "미리보기",
+        "높은",
+        "기준",
+        "이수학점",
+        "대학"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "resegmented": false,
+      "imageOnly": false
+    },
+    {
+      "id": "021",
+      "dueGrade": "wrong",
+      "typeGrade": "skip",
+      "questionGrade": "correct",
+      "postingGrade": "skip",
+      "qualificationGrades": {
+        "year": "correct",
+        "gpa": "correct_null",
+        "major": "correct_null"
+      },
+      "keywordGrade": {
+        "gold": 3,
+        "hit": 1,
+        "pred": 8,
+        "predHit": 3,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 0,
+        "hit": 0,
+        "pred": 0,
+        "predHit": 0,
+        "forbidden": 0
+      },
+      "dueDate": "2026-08-31",
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": null,
+      "type": null,
+      "formQuestions": [],
+      "qualifications": {
+        "year": "4학년 재학",
+        "gpa": null,
+        "major": null
+      },
+      "preferences": [],
+      "keywords": [
+        "학기",
+        "학년도",
+        "현장실습학기제",
+        "학생취업처",
+        "현장실습지원센터",
+        "현장실습",
+        "온라인",
+        "시스템"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "resegmented": false,
+      "imageOnly": false
+    },
+    {
+      "id": "022",
+      "dueGrade": "skip",
+      "typeGrade": "skip",
+      "questionGrade": "skip",
+      "postingGrade": "false_positive",
+      "qualificationGrades": {},
+      "keywordGrade": null,
+      "preferenceGrade": null,
+      "dueDate": "2026-08-06",
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": null,
+      "type": null,
+      "formQuestions": [],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "preferences": [],
+      "keywords": [
+        "등록",
+        "학년도",
+        "학기",
+        "등록일정",
+        "재학생",
+        "학사정보시스템",
+        "일간",
+        "등록금",
+        "로그인",
+        "출력"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "resegmented": false,
+      "imageOnly": false
+    },
+    {
+      "id": "023",
+      "dueGrade": "wrong",
+      "typeGrade": "skip",
+      "questionGrade": "false_positive",
+      "postingGrade": "skip",
+      "qualificationGrades": {
+        "year": "missed",
+        "gpa": "correct_null",
+        "major": "correct_null"
+      },
+      "keywordGrade": {
+        "gold": 5,
+        "hit": 3,
+        "pred": 10,
+        "predHit": 3,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 0,
+        "hit": 0,
+        "pred": 0,
+        "predHit": 0,
+        "forbidden": 0
+      },
+      "dueDate": "2026-06-29",
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": null,
+      "type": null,
+      "formQuestions": [
+        {
+          "order": 3,
+          "question": "팀 신청서 작성 방법",
+          "maxChars": null
+        }
+      ],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "preferences": [],
+      "keywords": [
+        "팀원",
+        "탈락",
+        "서명",
+        "기준",
+        "신청서",
+        "학기",
+        "서류",
+        "평가",
+        "자기설계학기제",
+        "드림학기제"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "resegmented": false,
+      "imageOnly": false
+    },
+    {
+      "id": "024",
+      "dueGrade": "skip",
+      "typeGrade": "skip",
+      "questionGrade": "skip",
+      "postingGrade": "false_positive",
+      "qualificationGrades": {},
+      "keywordGrade": null,
+      "preferenceGrade": null,
+      "dueDate": null,
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": null,
+      "type": null,
+      "formQuestions": [],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "preferences": [],
+      "keywords": [
+        "학기",
+        "학년도",
+        "교과목",
+        "학사",
+        "군e러닝",
+        "삭제",
+        "본교",
+        "수강",
+        "최대"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "resegmented": false,
+      "imageOnly": false
+    },
+    {
+      "id": "025",
+      "dueGrade": "correct",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "qualificationGrades": {
+        "year": "correct_null",
+        "gpa": "correct_null",
+        "major": "correct_null"
+      },
+      "keywordGrade": {
+        "gold": 6,
+        "hit": 4,
+        "pred": 10,
+        "predHit": 6,
+        "forbidden": 2
+      },
+      "preferenceGrade": {
+        "gold": 6,
+        "hit": 0,
+        "pred": 1,
+        "predHit": 0,
+        "forbidden": 0
+      },
+      "dueDate": "2026-07-19",
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": null,
+      "type": "activity",
+      "formQuestions": [],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "preferences": [
+        "■우대 자격"
+      ],
+      "keywords": [
+        "네이버",
+        "플레이스",
+        "서포터즈",
+        "제작",
+        "활동",
+        "인당",
+        "사진",
+        "콘텐츠",
+        "수료증",
+        "캠퍼스"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "resegmented": false,
+      "imageOnly": false
+    },
+    {
+      "id": "026",
+      "dueGrade": "wrong",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "qualificationGrades": {
+        "year": "correct_null",
+        "gpa": "correct_null",
+        "major": "correct_null"
+      },
+      "keywordGrade": {
+        "gold": 6,
+        "hit": 5,
+        "pred": 10,
+        "predHit": 7,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 5,
+        "hit": 1,
+        "pred": 1,
+        "predHit": 1,
+        "forbidden": 0
+      },
+      "dueDate": "2026-03-21",
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": null,
+      "type": "activity",
+      "formQuestions": [],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "preferences": [
+        "우대사항: SNS 운영자, 대외활동 및 서포터즈 경력자"
+      ],
+      "keywords": [
+        "대학생",
+        "서포터즈",
+        "홍보",
+        "제5기",
+        "콘텐츠",
+        "지역",
+        "영상",
+        "도서관",
+        "SNS",
+        "제작"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "resegmented": false,
+      "imageOnly": false
+    },
+    {
+      "id": "027",
+      "dueGrade": "wrong",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "qualificationGrades": {
+        "year": "correct_null",
+        "gpa": "correct_null",
+        "major": "correct_null"
+      },
+      "keywordGrade": {
+        "gold": 7,
+        "hit": 3,
+        "pred": 10,
+        "predHit": 5,
+        "forbidden": 1
+      },
+      "preferenceGrade": {
+        "gold": 6,
+        "hit": 0,
+        "pred": 0,
+        "predHit": 0,
+        "forbidden": 0
+      },
+      "dueDate": "2026-01-29",
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": null,
+      "type": "activity",
+      "formQuestions": [],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "preferences": [],
+      "keywords": [
+        "초록우산",
+        "대학생",
+        "서포터즈",
+        "활동",
+        "아동권리옹호",
+        "대면",
+        "참여",
+        "아동권리옹호단",
+        "제공",
+        "일정"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "resegmented": false,
+      "imageOnly": false
+    },
+    {
+      "id": "028",
+      "dueGrade": "wrong",
+      "typeGrade": "correct",
+      "questionGrade": "false_positive",
+      "postingGrade": "correct",
+      "qualificationGrades": {
+        "year": "correct_null",
+        "gpa": "correct_null",
+        "major": "hallucinated"
+      },
+      "keywordGrade": {
+        "gold": 8,
+        "hit": 2,
+        "pred": 10,
+        "predHit": 2,
+        "forbidden": 3
+      },
+      "preferenceGrade": {
+        "gold": 2,
+        "hit": 0,
+        "pred": 0,
+        "predHit": 0,
+        "forbidden": 0
+      },
+      "dueDate": "2026-07-20",
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": null,
+      "type": "recruit",
+      "formQuestions": [
+        {
+          "order": 3,
+          "question": "연구성과사업화팀 5급 사무기술원",
+          "maxChars": null
+        },
+        {
+          "order": 4,
+          "question": "총무복지팀 5급 사무기술원",
+          "maxChars": null
+        },
+        {
+          "order": 5,
+          "question": "인사혁신팀 5급 사무기술원",
+          "maxChars": null
+        },
+        {
+          "order": 7,
+          "question": "시설팀(기계) 6급 사무기술원",
+          "maxChars": null
+        },
+        {
+          "order": 8,
+          "question": "RI인프라응용팀 5급 사무기술원",
+          "maxChars": null
+        }
+      ],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": "영상의학과"
+      },
+      "preferences": [],
+      "keywords": [
+        "최종",
+        "경쟁률",
+        "구분",
+        "선발인원",
+        "응시인원",
+        "결과",
+        "확정일",
+        "한국원자력의학원",
+        "제2026",
+        "정기직원채용"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "resegmented": false,
+      "imageOnly": false
+    },
+    {
+      "id": "029",
+      "dueGrade": "wrong",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "qualificationGrades": {
+        "year": "correct_null",
+        "gpa": "correct_null",
+        "major": "correct_null"
+      },
+      "keywordGrade": {
+        "gold": 7,
+        "hit": 2,
+        "pred": 10,
+        "predHit": 3,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 8,
+        "hit": 0,
+        "pred": 0,
+        "predHit": 0,
+        "forbidden": 0
+      },
+      "dueDate": "2026-07-15",
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": null,
+      "type": "recruit",
+      "formQuestions": [],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "preferences": [],
+      "keywords": [
+        "인턴",
+        "별정직",
+        "가점",
+        "채용형",
+        "당사",
+        "만점의",
+        "정규직",
+        "년도",
+        "최종",
+        "필기전형"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "resegmented": false,
+      "imageOnly": false
+    },
+    {
+      "id": "030",
+      "dueGrade": "wrong",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "qualificationGrades": {
+        "year": "correct_null",
+        "gpa": "correct_null",
+        "major": "correct_null"
+      },
+      "keywordGrade": {
+        "gold": 6,
+        "hit": 1,
+        "pred": 10,
+        "predHit": 4,
+        "forbidden": 3
+      },
+      "preferenceGrade": {
+        "gold": 3,
+        "hit": 0,
+        "pred": 0,
+        "predHit": 0,
+        "forbidden": 0
+      },
+      "dueDate": "2026-01-27",
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": null,
+      "type": "recruit",
+      "formQuestions": [],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "preferences": [],
+      "keywords": [
+        "전형단계별",
+        "선발인원",
+        "응시인원",
+        "결과확정일",
+        "제조업",
+        "안전한",
+        "일터",
+        "지킴이",
+        "최종",
+        "채용공고"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "resegmented": false,
+      "imageOnly": false
+    },
+    {
+      "id": "031",
+      "dueGrade": "wrong",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "qualificationGrades": {
+        "year": "correct_null",
+        "gpa": "correct_null",
+        "major": "correct_null"
+      },
+      "keywordGrade": {
+        "gold": 6,
+        "hit": 3,
+        "pred": 10,
+        "predHit": 3,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 0,
+        "hit": 0,
+        "pred": 0,
+        "predHit": 0,
+        "forbidden": 0
+      },
+      "dueDate": "2026-10-26",
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": null,
+      "type": "contest",
+      "formQuestions": [],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "preferences": [],
+      "keywords": [
+        "웹소설",
+        "대한민국",
+        "SF판타지",
+        "문피아",
+        "청소년",
+        "상금",
+        "홈페이지",
+        "반드시",
+        "주최사",
+        "홈페이지의"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "resegmented": false,
+      "imageOnly": false
+    },
+    {
+      "id": "032",
+      "dueGrade": "correct",
+      "typeGrade": "correct",
+      "questionGrade": "correct",
+      "postingGrade": "correct",
+      "qualificationGrades": {
+        "year": "correct_null",
+        "gpa": "correct_null",
+        "major": "correct_null"
+      },
+      "keywordGrade": {
+        "gold": 7,
+        "hit": 3,
+        "pred": 10,
+        "predHit": 5,
+        "forbidden": 1
+      },
+      "preferenceGrade": {
+        "gold": 0,
+        "hit": 0,
+        "pred": 0,
+        "predHit": 0,
+        "forbidden": 0
+      },
+      "dueDate": "2026-08-31",
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": null,
+      "type": "contest",
+      "formQuestions": [],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "preferences": [],
+      "keywords": [
+        "콘텐츠",
+        "희망브리지",
+        "대학생",
+        "부문",
+        "참가자",
+        "상장",
+        "일반",
+        "인공지능",
+        "AI",
+        "상금"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "resegmented": false,
+      "imageOnly": false
+    },
+    {
+      "id": "033",
+      "dueGrade": "correct",
+      "typeGrade": "correct",
+      "questionGrade": "false_positive",
+      "postingGrade": "correct",
+      "qualificationGrades": {
+        "year": "correct_null",
+        "gpa": "correct_null",
+        "major": "correct_null"
+      },
+      "keywordGrade": {
+        "gold": 6,
+        "hit": 4,
+        "pred": 8,
+        "predHit": 4,
+        "forbidden": 0
+      },
+      "preferenceGrade": {
+        "gold": 2,
+        "hit": 0,
+        "pred": 2,
+        "predHit": 0,
+        "forbidden": 0
+      },
+      "dueDate": "2026-09-30",
+      "dueDateRaw": null,
+      "yearInferred": false,
+      "dueReason": null,
+      "type": "recruit",
+      "formQuestions": [
+        {
+          "order": 1,
+          "question": "지원 동기와 입사 후 포부를 기술해 주세요.",
+          "maxChars": 500
+        },
+        {
+          "order": 2,
+          "question": "가족사항(부모님의 직업과 재산 정도)을 기재해 주세요.",
+          "maxChars": 200
+        },
+        {
+          "order": 3,
+          "question": "혼인 여부와 출산 계획을 작성해 주세요.",
+          "maxChars": 200
+        }
+      ],
+      "qualifications": {
+        "year": null,
+        "gpa": null,
+        "major": null
+      },
+      "preferences": [
+        "용모 단정한 미혼 여성 우대",
+        "■ 우대사항"
+      ],
+      "keywords": [
+        "사무보조",
+        "상반기",
+        "직원",
+        "주세요.",
+        "이내",
+        "총무팀",
+        "활용",
+        "엑셀"
+      ],
+      "likelyPosting": true,
+      "failReason": null,
+      "truncated": false,
+      "maskedContacts": 0,
+      "injectionsStripped": 0,
+      "resegmented": false,
+      "imageOnly": false
+    }
+  ]
+}

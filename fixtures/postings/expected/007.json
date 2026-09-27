@@ -13,5 +13,9 @@
   "keywordsNot": [],
   "preferences": [],
   "formQuestions": [],
-  "note": "본문에 접수기간이 없다. dueDate 가 null 인 것이 정답이다 (#8)."
+  "note": "본문에 접수기간이 없다. dueDate 가 null 인 것이 정답이다 (#8).",
+  "qualificationYear": null,
+  "qualificationGpa": null,
+  "qualificationMajor": null,
+  "labelNote": "자격 라벨 기준(09-27): 제한이 있을 때만 값. 「전공 무관」·「제한없음」·학력(전문대 이상)·졸업 예정 시점은 학년/전공/학점 제한이 아니므로 null. 공고 아님·이미지만은 라벨 없음."
 }

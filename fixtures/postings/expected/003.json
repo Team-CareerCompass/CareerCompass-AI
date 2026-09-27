@@ -19,5 +19,8 @@
   ],
   "formQuestions": [],
   "note": "마감이 09:00 이다. 날짜만 보고 하루를 더 주면 안 된다. 제출서류 예시에 학번 형식이 들어 있으나 예시값이다.",
-  "labelNote": "본문에 「우대」가 두 번 명시. 둘 다 preferences."
+  "labelNote": "본문에 「우대」가 두 번 명시. 둘 다 preferences. 자격 라벨 기준(09-27): 제한이 있을 때만 값. 「전공 무관」·「제한없음」·학력(전문대 이상)·졸업 예정 시점은 학년/전공/학점 제한이 아니므로 null. 공고 아님·이미지만은 라벨 없음.",
+  "qualificationYear": "2학년 1학기 진학 예정",
+  "qualificationGpa": "총평점평균이 백분위 90/100점 이상",
+  "qualificationMajor": null
 }

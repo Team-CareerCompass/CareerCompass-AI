@@ -3,9 +3,10 @@
 프롬프트나 규칙을 고쳤을 때 **좋아졌는지 나빠졌는지를 숫자로** 답하기 위한 것이다.
 눈으로 두세 개 보고 넘어가면 다른 유형에서 조용히 나빠진다.
 
-파이프라인은 둘이다 — `rules`(규칙 전용, 기준선) 와 `llm`(게이트웨이 = 규칙 + LLM 병합).
-같은 픽스처·같은 채점기라 「규칙 대비 LLM 이 얼마나 나은가」가 숫자로 나온다.
-BE 의 `HeuristicLlmGateway` 가 그 아래 기준선이다.
+파이프라인은 셋이다 — `baseline`(BE 휴리스틱 이식, `app/baseline.py`) · `rules`(우리 규칙 전용) ·
+`llm`(게이트웨이 = 규칙 + LLM 병합). 같은 픽스처·같은 채점기라 셋을 나란히 놓을 수 있다.
+**`baseline` 이 진짜 기준선이다** — BE 가 AI 서버 없이 돌리는 구현이고, 그 클래스 주석이
+「품질은 LLM 구현이 대체하는 것을 전제로 한 기준선」이라고 적어 뒀다.
 
 `llm` 은 실제로 모델을 부른다 — `CC_LLM_CACHE=record` 로 한 번 녹화해 두면 그 뒤는 공짜다.
 """
@@ -191,6 +192,36 @@ def grade_preferences(expected: dict[str, Any], actual: dict[str, Any]) -> dict[
     return grade_list(expected["preferences"], actual["preferences"], [])
 
 
+QUALIFICATION_FIELDS = (
+    ("qualificationYear", "year"),
+    ("qualificationGpa", "gpa"),
+    ("qualificationMajor", "major"),
+)
+
+
+def grade_qualifications(expected: dict[str, Any], actual: dict[str, Any]) -> dict[str, str]:
+    """학년·학점·전공을 각각 채점한다 (#5).
+
+    **없는 조건을 만드는 것이 못 읽는 것보다 나쁘다** — 마감일과 같은 원칙이다(#8). 규칙이
+    「10. 영상의학과 5급 의료기사」(모집 부서 목록)를 전공 조건으로 낸 것이 실제로 있었다.
+    문자열은 부분 일치로 본다 — 공고 표현을 그대로 옮기는 것이 목적이 아니라 같은 조건을
+    가리키는지가 목적이다.
+    """
+    grades: dict[str, str] = {}
+    quals = actual.get("qualifications") or {}
+    for key, name in QUALIFICATION_FIELDS:
+        if key not in expected:
+            continue
+        want, got = expected[key], quals.get(name)
+        if want is None:
+            grades[name] = "correct_null" if not got else "hallucinated"
+        elif not got:
+            grades[name] = "missed"
+        else:
+            grades[name] = "correct" if _matches(str(want), str(got)) else "wrong"
+    return grades
+
+
 def grade_questions(expected: dict[str, Any], actual: dict[str, Any]) -> str:
     """개수만 본다. 문항 내용 일치는 표본이 쌓인 뒤에 본다."""
     if expected.get("status") == "failed" or "formQuestions" not in expected:
@@ -212,6 +243,7 @@ class Report:
     type: Counter[str] = field(default_factory=Counter)
     form_questions: Counter[str] = field(default_factory=Counter)
     posting: Counter[str] = field(default_factory=Counter)
+    qualifications: Counter[str] = field(default_factory=Counter)
     keywords: Counter[str] = field(default_factory=Counter)
     preferences: Counter[str] = field(default_factory=Counter)
     rows: list[dict[str, Any]] = field(default_factory=list)
@@ -240,6 +272,16 @@ class Report:
     @staticmethod
     def _ratio(counter: Counter[str], num: str, den: str) -> float | None:
         return counter[num] / counter[den] if counter[den] else None
+
+    @property
+    def qualification_accuracy(self) -> float | None:
+        """학년·학점·전공 세 필드를 합친 정확도. 날조는 아래에서 따로 센다."""
+        return self._rate(self.qualifications, "correct", "correct_null")
+
+    @property
+    def qualification_hallucinated(self) -> int:
+        """없는 조건을 만든 수. **0 이어야 한다.**"""
+        return self.qualifications["hallucinated"]
 
     @property
     def keyword_recall(self) -> float | None:
@@ -282,6 +324,9 @@ class Report:
             "typeAccuracy": self.type_accuracy,
             "questionAccuracy": self.question_accuracy,
             "postingAccuracy": self.posting_accuracy,
+            "qualifications": dict(self.qualifications),
+            "qualificationAccuracy": self.qualification_accuracy,
+            "qualificationHallucinated": self.qualification_hallucinated,
             "keywords": dict(self.keywords),
             "keywordRecall": self.keyword_recall,
             "keywordPrecision": self.keyword_precision,
@@ -300,12 +345,16 @@ def evaluate(
     run: Callable[[Fixture], dict[str, Any]] | None = None,
     shape: str = "lines",
 ) -> Report:
-    """`run` 을 주면 그것으로, 아니면 `pipeline` 이름으로 고른다 (`rules` | `llm`).
+    """`run` 을 주면 그것으로, 아니면 `pipeline` 이름으로 고른다 (`baseline` | `rules` | `llm`).
 
     `shape="flat"` 이면 픽스처를 BE 모양(한 줄)으로 접어서 돌린다.
     """
     if run is None:
-        if pipeline == "llm":
+        if pipeline == "baseline":
+            from app.baseline import run_baseline
+
+            run = run_baseline
+        elif pipeline == "llm":
             from app.service import gateway  # 지연 임포트 — 키 없는 환경에서 rules 만 돌리려고
 
             gw = gateway("parse")
@@ -335,6 +384,8 @@ def evaluate(
         report.type[grades["typeGrade"]] += 1
         report.form_questions[grades["questionGrade"]] += 1
         report.posting[grades["postingGrade"]] += 1
+        qual_grades = grade_qualifications(fx.expected, actual)
+        report.qualifications.update(qual_grades.values())
         kw = grade_keywords(fx.expected, actual)
         pf = grade_preferences(fx.expected, actual)
         if kw is not None:
@@ -342,7 +393,14 @@ def evaluate(
         if pf is not None:
             report.preferences.update(pf)
         report.rows.append(
-            {"id": fx.id, **grades, "keywordGrade": kw, "preferenceGrade": pf, **actual}
+            {
+                "id": fx.id,
+                **grades,
+                "qualificationGrades": qual_grades,
+                "keywordGrade": kw,
+                "preferenceGrade": pf,
+                **actual,
+            }
         )
 
     return report

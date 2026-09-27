@@ -1,0 +1,27 @@
+{
+  "type": "activity",
+  "organization": "CJ제일제당",
+  "dueDate": "2026-09-30",
+  "dueDateRaw": "2026.09.16 ~ 2026.09.30",
+  "keywords": [
+    "CJ제일제당",
+    "마케팅",
+    "기획",
+    "아이디어"
+  ],
+  "keywordsNot": [
+    "공모분야",
+    "접수기간",
+    "활동혜택",
+    "기업형태"
+  ],
+  "preferences": [],
+  "formQuestions": [],
+  "qualificationYear": null,
+  "qualificationGpa": null,
+  "qualificationMajor": null,
+  "note": "**상세가 이미지로만 있는 공고** — 전처리 후 193자라 계약 §1.4(200자 미만)에 걸려 parsingFailed/EMPTY 가 정답이다. 005(이미지만)와 달리 메타는 남아 있어 마감일·유형이 읽히는 것처럼 보이는 것이 함정. 규칙 전용 파이프라인은 200자 규칙을 안 거쳐 이 공고를 「recruit」로 본다 — 활동혜택의 「인턴/정규직채용」 때문이다. 유형·마감일은 status=failed 라 채점에서 빠진다.",
+  "labelNote": "자격 라벨 기준(09-27): 제한이 있을 때만 값. 「전공 무관」·「제한없음」·학력·졸업 시점·모집 부서 목록은 null. 키워드는 주제·기관·대상 중심 6개 안팎, 금지어는 일반 사무 용어.",
+  "status": "failed",
+  "reason": "EMPTY"
+}
