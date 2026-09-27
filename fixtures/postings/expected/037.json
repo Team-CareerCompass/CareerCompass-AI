@@ -1,0 +1,29 @@
+{
+  "type": "contest",
+  "organization": "한국식품안전관리인증원",
+  "dueDate": "2026-09-30",
+  "dueDateRaw": "2026년 8월 31일 ~ 9월 30일",
+  "keywords": [
+    "공공데이터",
+    "데이터 분석",
+    "데이터 시각화",
+    "식품안전",
+    "한국식품안전관리인증원",
+    "축산물"
+  ],
+  "keywordsNot": [
+    "경진대회",
+    "모집",
+    "시상",
+    "상금",
+    "문의",
+    "심사"
+  ],
+  "preferences": [],
+  "formQuestions": [],
+  "qualificationYear": null,
+  "qualificationGpa": null,
+  "qualificationMajor": null,
+  "note": "「필수 요건」 절이 있지만 지원 자격이 아니라 과제 조건이다. 마감일에 연도가 없다(8월 31일 ~ 9월 30일).",
+  "labelNote": "자격 라벨 기준(09-27): 제한이 있을 때만 값. 「전공 무관」·「제한없음」·학력·졸업 시점·모집 부서 목록은 null. 키워드는 주제·기관·대상 중심 6개 안팎, 금지어는 일반 사무 용어."
+}

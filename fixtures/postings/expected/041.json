@@ -1,0 +1,29 @@
+{
+  "type": "contest",
+  "organization": "한국재무설계협회",
+  "dueDate": "2026-11-16",
+  "dueDateRaw": "2026년 9월 1일(화)부터 11월 16일(월) 오후 11시 59분까지",
+  "keywords": [
+    "재무설계",
+    "AI 활용",
+    "한국재무설계협회",
+    "한국FP학회",
+    "대학생",
+    "AFPK"
+  ],
+  "keywordsNot": [
+    "콘테스트",
+    "접수",
+    "시상",
+    "상금",
+    "심사",
+    "문의"
+  ],
+  "preferences": [],
+  "formQuestions": [],
+  "qualificationYear": null,
+  "qualificationGpa": null,
+  "qualificationMajor": null,
+  "note": "마감이 두 달 뒤(11/16)라 마감일 상한 규칙에 걸리지 않는지 본다. 「전공 무관」이므로 전공 자격은 null.",
+  "labelNote": "자격 라벨 기준(09-27): 제한이 있을 때만 값. 「전공 무관」·「제한없음」·학력·졸업 시점·모집 부서 목록은 null. 키워드는 주제·기관·대상 중심 6개 안팎, 금지어는 일반 사무 용어."
+}
