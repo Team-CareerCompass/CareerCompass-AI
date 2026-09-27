@@ -18,5 +18,8 @@
   "preferences": [],
   "formQuestions": [],
   "note": "연도가 없어 collectedAt 기준 추론이다. 줄바꿈이 거의 없이 이모지로 구분된 한 덩어리 텍스트.",
-  "labelNote": "「혜택」(활동비·수료증·시상)은 우대 조건이 아니다. 첫 실측에서 LLM 이 preferences 로 냈다."
+  "labelNote": "「혜택」(활동비·수료증·시상)은 우대 조건이 아니다. 첫 실측에서 LLM 이 preferences 로 냈다. 자격 라벨 기준(09-27): 제한이 있을 때만 값. 「전공 무관」·「제한없음」·학력(전문대 이상)·졸업 예정 시점은 학년/전공/학점 제한이 아니므로 null. 공고 아님·이미지만은 라벨 없음.",
+  "qualificationYear": null,
+  "qualificationGpa": null,
+  "qualificationMajor": null
 }

@@ -25,5 +25,9 @@
     "분산처리 및 클라우드 환경 개발 경험"
   ],
   "formQuestions": [],
-  "note": "상시채용 — dueDate null 이 정답이고 사유는 no_deadline 이다. 우대사항이 줄바꿈 없이 [대괄호] 섹션으로 뭉쳐 있다. 짧은 공고(378자)라 BE 휴리스틱은 키워드 3개 미달로 실패할 가능성."
+  "note": "상시채용 — dueDate null 이 정답이고 사유는 no_deadline 이다. 우대사항이 줄바꿈 없이 [대괄호] 섹션으로 뭉쳐 있다. 짧은 공고(378자)라 BE 휴리스틱은 키워드 3개 미달로 실패할 가능성.",
+  "qualificationYear": null,
+  "qualificationGpa": null,
+  "qualificationMajor": null,
+  "labelNote": "자격 라벨 기준(09-27): 제한이 있을 때만 값. 「전공 무관」·「제한없음」·학력(전문대 이상)·졸업 예정 시점은 학년/전공/학점 제한이 아니므로 null. 공고 아님·이미지만은 라벨 없음."
 }

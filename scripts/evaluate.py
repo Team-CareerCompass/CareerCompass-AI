@@ -1,6 +1,7 @@
 """평가셋 러너 CLI (#5).
 
-    python scripts/evaluate.py                    # 규칙 전용, 표만
+    python scripts/evaluate.py                    # 우리 규칙 전용, 표만
+    python scripts/evaluate.py --pipeline baseline  # BE 휴리스틱 이식본 (기준선, 0원)
     python scripts/evaluate.py --save             # eval/ 에 결과 기록
     python scripts/evaluate.py --pipeline llm     # 게이트웨이(규칙+LLM). 모델을 부른다
     python scripts/evaluate.py --shape flat       # BE 모양(한 줄)으로 접어서 — 실서버 회귀
@@ -35,7 +36,12 @@ _MARKS = {
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--save", action="store_true", help="eval/ 에 결과를 기록한다")
-    parser.add_argument("--pipeline", choices=["rules", "llm"], default="rules")
+    parser.add_argument(
+        "--pipeline",
+        choices=["baseline", "rules", "llm"],
+        default="rules",
+        help="baseline = BE HeuristicLlmGateway 이식본 (LLM 호출 0)",
+    )
     parser.add_argument(
         "--shape",
         choices=["lines", "flat"],
@@ -78,6 +84,7 @@ def main() -> int:
         ("유형  ", report.type_accuracy, report.type),
         ("문항  ", report.question_accuracy, report.form_questions),
         ("공고판별", report.posting_accuracy, report.posting),
+        ("자격  ", report.qualification_accuracy, report.qualifications),
     ):
         total = sum(v for k, v in counter.items() if k != "skip")
         rate = f"({accuracy:.0%})" if accuracy is not None else ""
@@ -88,6 +95,12 @@ def main() -> int:
             extra = f"  · 공고오인 {fp} · 공고누락 {fn}"
         print(f"{label}  정답 {hits}/{total} {rate}{extra}")
 
+    if report.qualifications:
+        print(
+            f"        자격 틀림 {report.qualifications['wrong']} · "
+            f"못읽음 {report.qualifications['missed']} · "
+            f"**날조 {report.qualification_hallucinated}**"
+        )
     print(
         f"        마감일 틀림 {report.due_date['wrong']} · "
         f"못읽음 {report.due_date['missed']} · **날조 {report.hallucinated}**"
