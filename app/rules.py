@@ -244,9 +244,96 @@ def extract_form_questions(text: str) -> list[FormQuestion]:
 # 자격·우대
 # --------------------------------------------------------------------------
 
-_YEAR_REQ = re.compile(r"(\d)\s*학년\s*(?:이상|이하|재학|만)")
-_GPA_REQ = re.compile(r"(?:학점|평점|성적)\s*(?:[^\n]{0,12}?)(\d\.\d+)\s*(?:이상|/|만점)")
-_MAJOR_REQ = re.compile(r"([가-힣]{2,12}(?:학과|학부|전공|계열))")
+# 자격 조건은 **줄 단위로** 본다. 본문 아무 데나 있는 「3학년」·「영상의학과」를 집으면 날조다 —
+# 평가셋에 정답을 붙이고 나서야 보였다 (#5). 어느 줄이 자격을 말하는지 먼저 가린다.
+
+_QUAL_HEADING = re.compile(
+    r"지원\s?자격|신청\s?자격|응시\s?자격|참가\s?자격|응모\s?자격|자격\s?요건|지원\s?요건|"
+    r"선발\s?대상|모집\s?대상|참여\s?대상|(?<!취업)지원\s?대상|"
+    r"성적\s?기준|학점\s?기준|이수\s?학점|학년\s?기준"
+)
+"""자격 절의 시작. 「취업**지원대상**자」가 헤딩으로 잡히던 것을 막았다 — 040 에서 우대 절이
+자격 절로 다시 열려 「환경관련학과」를 조건이라고 냈다."""
+
+_BULLET_LINE = re.compile(r"^\s*[-•*▶·ㅇ○◦]\s*")
+"""기호 불릿 줄은 **항목이지 헤딩이 아니다.** 번호(「3. 지원자격」)는 헤딩일 수 있다."""
+
+_SECTION_END = re.compile(
+    r"^[^\n]{0,4}(?:우대\s?(?:사항|조건|요건)?|가점|전형\s?(?:절차|일정|방법)?|제출\s?서류|"
+    r"접수\s?(?:방법|기간)|문의\s?(?:처)?|시상\s?(?:내역|규모)?|유의\s?사항|기타\s?사항)"
+    r"[^\n]{0,8}$"
+)
+"""여기서 자격 절이 끝난다 — **헤딩 줄일 때만**. 문장 속에 「전형」이 나왔다고 닫으면
+017 처럼 아직 오지 않은 전공 조건을 놓친다."""
+
+_LINE_SKIP = re.compile(
+    r"우대|가점|추천\s?인원|모집\s?인원|선발\s?인원|채용\s?인원|배수|합격자?\s?발표|"
+    r"시상|상금|장학금액|지원금|^\s*\d+\s*[.)]\s*[가-힣]{2,8}(?:과|실|팀|부|센터)\s"
+)
+"""이 줄 하나만 건너뛴다(절은 계속). 028 「10. 영상의학과 5급 의료기사」가 여기서 걸린다."""
+
+QUAL_BLOCK_LINES = 14
+"""헤딩 뒤 몇 줄까지 자격 절로 볼 것인가. 빈 줄로 끊지 않는다 — 003 처럼 항목 사이가
+한 줄씩 비어 있는 공지가 흔하다. 017 은 헤딩과 전공 줄 사이에 잡음이 9줄 있었다."""
+
+# 학년·학기. **학년을 먼저 본다** — 「2026 년도 1 학기 재학 예정인 … 3 학년 1 학기」에서
+# 학기를 먼저 찾으면 입학 연도의 학기를 집는다(020 에서 실제로 그랬다).
+# 「2027학년도」의 7을 학년으로 집지 않게 앞뒤를 막는다.
+_YEAR_GRADE = re.compile(
+    r"(?<!\d)\d\s*학년(?!도)(?:\s*\d\s*학기)?\s*(?:이상|이하|재학|진학|등록|편입)?"
+)
+_YEAR_SEMESTER = re.compile(
+    r"(?<!\d)\d\s*~\s*\d\s*학기\s*(?:재학|이상|진학)|(?<!년도\s)(?<!\d)\d\s*학기\s*(?:진학|재학)"
+)
+# 학점·평점. 「4.5만점 기준 3.5학점 이상」처럼 만점과 기준이 함께 오는 꼴을 **먼저** 본다 —
+# 앞에서부터 찾으면 002 에서 「12학점이상 이수 및 성적 4.5만점」을 집었다.
+_GPA_PATTERNS = (
+    # 「4.5만점 기준 3.5학점 이상」처럼 만점과 기준이 함께 오는 꼴을 **먼저** 본다.
+    # 교대(|)로 묶으면 정규식은 더 좋은 쪽이 아니라 **더 앞쪽**을 고른다 — 002 에서
+    # 「12학점이상 이수 및 성적 4.5만점」을 집었다.
+    re.compile(r"\d\.\d+\s*(?:\(|/)?\s*(?:만점)?[^\n]{0,10}?\d\.\d+\s*(?:학점|점)?\s*이상"),
+    re.compile(r"(?:백분위|백분율)[^\n]{0,14}?\d{2,3}(?:\s*/\s*100)?\s*점?\s*이상"),
+    re.compile(r"(?:학점|평점|성적)[^\n]{0,14}?\d\.\d+[^\n]{0,12}?(?:이상|만점)"),
+    re.compile(r"성적[^\n]{0,12}?\d{2,3}\s*점\s*이상"),
+)
+# 전공. 「전공 무관」이면 조건이 없는 것이다 — 1차에서 「무관, 고졸 이상 학사학위…」를 통째로
+# 전공 조건이라고 냈다(038·039·040). 목록은 **학문 이름처럼 생긴 것**만 받는다.
+_MAJOR_UNRESTRICTED = re.compile(r"전공[^\n]{0,24}?(?:무관|불문|상관\s?없|제한\s?없)")
+_MAJOR_ITEM = r"[가-힣A-Za-z]{2,12}"
+_MAJOR_LABEL = re.compile(
+    r"전공\s?(?:분야|계열)?\s*[:：]?\s*(?P<list>"  # noqa: RUF001
+    + _MAJOR_ITEM
+    + r"(?:\s?[/,·]\s?"
+    + _MAJOR_ITEM
+    + r"){1,7})"
+)
+_MAJOR_REQ = re.compile(
+    _MAJOR_ITEM
+    + r"(?:\s?[/,·]\s?"
+    + _MAJOR_ITEM
+    + r"){0,7}(?:\s?관련)?\s?(?:학과(?![장생])|학부(?!생)|전공|계열)"
+)
+_MAJOR_STOP = (
+    "자격요건",
+    "수행업무",
+    "지원자격",
+    "응시자격",
+    "모집",
+    "제한",
+    "무관",
+    "기타",
+    "서류",
+    "전형",
+    "경력",
+    "제외",
+    "졸업예정자",
+    "소지자",
+    "이상",
+    "포함",
+)
+"""전공 이름이 아닌 것. 목록에 이런 말이 섞이면 전공 조건이 아니다 —
+009 「수행업무/전공/자격요건」·002 「전공대, 대학원대 … 은 제외」가 그랬다."""
+_MAJOR_ANY = re.compile(r"전공|계열|학과|학부")
 
 _PREFERENCE_HEADING = re.compile(
     r"^[^\n]{0,6}(?:우대\s?(?:사항|조건|요건)|가점|우대)[^\n]{0,10}$", re.MULTILINE
@@ -261,15 +348,73 @@ class Qualifications:
     major: str | None = None
 
 
+def _qualification_lines(text: str) -> list[str]:
+    """자격을 말하는 줄만 고른다.
+
+    자격 헤딩(「지원자격」·「성적기준」 등)이 있는 줄과 그 뒤 몇 줄을 본다. 헤딩 줄 자체도
+    조건을 담는다 — 019 「3. 지원자격 : … 5학기 진학예정자, 현재 2학년」.
+    """
+    picked: list[str] = []
+    budget = 0
+    for raw in text.split("\n"):
+        line = raw.strip()
+        if not line:
+            continue
+        if _SECTION_END.match(line):
+            budget = 0  # 다음 절(우대·전형·제출서류)이 시작됐다
+            continue
+        if _LINE_SKIP.search(line):
+            continue  # 이 줄만 건너뛴다 — 절은 아직 열려 있다
+        if _QUAL_HEADING.search(line) and not _BULLET_LINE.match(line):
+            budget = QUAL_BLOCK_LINES
+            picked.append(line)
+            continue
+        if budget > 0:
+            budget -= 1
+            picked.append(line)
+    return picked
+
+
 def extract_qualifications(text: str) -> Qualifications:
-    year = _YEAR_REQ.search(text)
-    gpa = _GPA_REQ.search(text)
-    major = _MAJOR_REQ.search(text)
-    return Qualifications(
-        year=year.group().strip() if year else None,
-        gpa=gpa.group().strip() if gpa else None,
-        major=major.group(1) if major else None,
-    )
+    """학년·학점·전공. **자격을 말하는 줄에서만** 찾는다 (#7).
+
+    전에는 본문 전체에서 첫 정규식 일치를 집었다. 그래서 모집 인원 배분(「자연.이공계열 80%」)·
+    부서 목록(「10. 영상의학과 5급 의료기사」)·우대 문구(「환경관련학과」)를 자격 조건이라고 냈다.
+    평가셋에 정답 라벨을 붙이고 나서야 드러난 것들이다 (`docs/EVAL.md`).
+    """
+    lines = _qualification_lines(text)
+    year = gpa = major = None
+    for line in lines:
+        if year is None and (m := _YEAR_GRADE.search(line)):
+            year = m.group().strip()
+        if gpa is None:
+            for pattern in _GPA_PATTERNS:
+                if m := pattern.search(line):
+                    gpa = m.group().strip()
+                    break
+        if major is None:
+            major = _major_in(line)
+    if year is None:  # 학년으로 못 말한 공고는 학기로 말한다 (023 「5~8 학기 재학생」)
+        for line in lines:
+            if m := _YEAR_SEMESTER.search(line):
+                year = m.group().strip()
+                break
+    return Qualifications(year=year, gpa=gpa, major=major)
+
+
+def _major_in(line: str) -> str | None:
+    """이 줄이 전공 **조건**을 말하는가. 「전공 무관」은 조건이 아니다."""
+    if not _MAJOR_ANY.search(line) or _MAJOR_UNRESTRICTED.search(line):
+        return None
+    label = _MAJOR_LABEL.search(line)
+    candidate = None
+    if label:
+        candidate = label.group("list").strip().rstrip(".,·")
+    elif m := _MAJOR_REQ.search(line):
+        candidate = m.group().strip()
+    if candidate is None or any(stop in candidate for stop in _MAJOR_STOP):
+        return None
+    return candidate
 
 
 def extract_preferences(text: str) -> list[str]:

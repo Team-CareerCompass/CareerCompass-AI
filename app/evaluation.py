@@ -218,7 +218,10 @@ def grade_qualifications(expected: dict[str, Any], actual: dict[str, Any]) -> di
         elif not got:
             grades[name] = "missed"
         else:
-            grades[name] = "correct" if _matches(str(want), str(got)) else "wrong"
+            # 같은 조건을 공고가 두 가지로 적는 일이 있다(019 「3학년」 = 「5학기 진학예정자」).
+            # 정답을 목록으로 두고 **하나라도 가리키면** 맞는 것으로 본다.
+            wants = want if isinstance(want, list) else [want]
+            grades[name] = "correct" if any(_matches(str(w), str(got)) for w in wants) else "wrong"
     return grades
 
 
