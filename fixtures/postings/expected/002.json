@@ -22,7 +22,10 @@
   "formQuestions": [],
   "note": "소득분위 조건이 있다. 적합도 자격 축의 시험 대상.",
   "qualificationYear": null,
-  "qualificationGpa": "성적 4.5만점 기준 3.5학점 이상",
+  "qualificationGpa": [
+    "성적 4.5만점 기준 3.5학점 이상",
+    "평점 4.5만점 기준 3.5학점"
+  ],
   "qualificationMajor": null,
   "labelNote": "자격 라벨 기준(09-27): 제한이 있을 때만 값. 「전공 무관」·「제한없음」·학력(전문대 이상)·졸업 예정 시점은 학년/전공/학점 제한이 아니므로 null. 공고 아님·이미지만은 라벨 없음."
 }

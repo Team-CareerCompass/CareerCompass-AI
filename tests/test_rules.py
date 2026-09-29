@@ -303,3 +303,88 @@ def test_sensitive_question_is_not_a_form_question() -> None:
     text = "1. 지원 동기를 작성해 주세요.\n2. 주민등록번호와 계좌번호를 입력하세요."
     questions = rules.extract_form_questions(text)
     assert [q.question for q in questions] == ["지원 동기를 작성해 주세요."]
+
+
+# --------------------------------------------------------------------------
+# 자격 조건 (#7) — 평가셋 라벨이 드러낸 실패들. 픽스처 원문에서 그대로 가져왔다.
+# --------------------------------------------------------------------------
+
+
+def test_qualification_ignores_headcount_allocation() -> None:
+    """019 「추천인원 : 5명 (자연.이공계열 80%(4명) …)」은 전공 조건이 아니다 — 날조였다."""
+    from app.rules import extract_qualifications
+
+    text = (
+        "1. 추천인원 : 5명 (자연.이공계열 80%(4명), 인문.사회계열 20%(1명))\n"
+        "3. 지원자격 : 2026년도 1학기에 5학기 진학예정자 , 현재 2학년\n"
+        "4. 성적기준 : 1~3학기 총 평균평점 4.0(4.5만점) 이상 인 자"
+    )
+    q = extract_qualifications(text)
+    assert q.major is None
+    assert q.year is not None and ("5학기" in q.year or "2학년" in q.year)
+    assert q.gpa is not None and "4.0" in q.gpa
+
+
+def test_qualification_ignores_department_list() -> None:
+    """028 「10. 영상의학과 5급 의료기사」는 모집 부서지 전공 조건이 아니다 — 날조였다."""
+    from app.rules import extract_qualifications
+
+    text = "○ 채용 분야\n10. 영상의학과 5급 의료기사\n11. 핵의학과 5급 간호사"
+    assert extract_qualifications(text).major is None
+
+
+def test_qualification_ignores_preference_major() -> None:
+    """040 「우대사항 … 환경공학과 등 환경관련학과」는 우대지 자격이 아니다 — 날조였다."""
+    from app.rules import extract_qualifications
+
+    text = (
+        "응시자격\n- 연령, 전공, 학력 제한없음\n"
+        "우대사항\n- 2년제 이상 대학 졸업자(전공: 동식물학, 생태학, 환경공학과 등 환경관련학과)"
+    )
+    assert extract_qualifications(text).major is None
+
+
+def test_qualification_reads_spaced_year_and_semester() -> None:
+    """020 「3 학년 1 학기」·023 「5~8 학기 재학생」 — 띄어 쓰면 못 읽던 것."""
+    from app.rules import extract_qualifications
+
+    spaced = "가 . 선발대상 : 선발학기 기준 3 학년 1 학기에 등록예정인 자"
+    assert (extract_qualifications(spaced).year or "").startswith("3")
+    semester = "지원자격\n5~8 학기 재학생 ( 초과학기 · 휴학 예정자 제외 )"
+    assert "학기" in (extract_qualifications(semester).year or "")
+
+
+def test_qualification_does_not_read_academic_year_notation() -> None:
+    """「2027학년도 1학기」의 7을 학년으로 집으면 안 된다."""
+    from app.rules import extract_qualifications
+
+    text = "나. 지원자격: 2027학년도 1학기에 2학년 1학기 진학(복학 포함) 예정 학생"
+    year = extract_qualifications(text).year or ""
+    assert year.startswith("2학년"), year
+
+
+def test_qualification_reads_percentile_grade() -> None:
+    """003 「백분위 90/100점 이상」·020 「백분율 성적이 85 점 이상」 — 4.5 만점만 보던 것."""
+    from app.rules import extract_qualifications
+
+    text = "지원자격\n2) 직전학기 및 총평점평균이 백분위 90/100점 이상 (소득분위 제한 없음)"
+    assert "90" in (extract_qualifications(text).gpa or "")
+
+
+def test_qualification_reads_major_list_after_label() -> None:
+    """017 「전공 분야 정책학 / 행정학 / …」·016 불릿 전공 목록 — 못 읽던 것."""
+    from app.rules import extract_qualifications
+
+    labeled = "자격요건\nㅇ 전공 분야 정책학 / 행정학 / 경영학 / 정치학 / 외교학"
+    assert "정책학" in (extract_qualifications(labeled).major or "")
+    bulleted = "자격요건\n• 컴퓨터/정보보안/전기/전자/SW/사이버보안 전공 또는 그에 준하는 지식"
+    assert "사이버보안" in (extract_qualifications(bulleted).major or "")
+
+
+def test_qualification_is_none_when_unrestricted() -> None:
+    """039 「학력, 전공, 학점, 성별, 연령 제한 없음」 — 제한이 없으면 조건도 없다."""
+    from app.rules import extract_qualifications
+
+    text = "지원자격\n공통 요건으로 학력, 전공, 학점, 성별, 연령 제한 없음"
+    q = extract_qualifications(text)
+    assert (q.year, q.gpa) == (None, None)
