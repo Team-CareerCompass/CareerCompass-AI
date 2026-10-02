@@ -1,0 +1,41 @@
+{
+  "name": "draft-success",
+  "note": "글자 수는 프롬프트로 부탁하는 것이 아니라 **생성 후 실측해서** 지킨다 (#16).",
+  "endpoint": "POST /v1/draft-answer",
+  "headers": {
+    "X-Prompt-Version": "v1"
+  },
+  "request": {
+    "question": "지원 동기를 작성해 주세요",
+    "maxChars": 300,
+    "tone": "formal",
+    "postingTitle": "2026 카카오 SW 인턴십",
+    "keywords": [
+      "Spring",
+      "Kotlin"
+    ],
+    "experienceSummaries": [
+      "CareerCompass — 백엔드",
+      "동아리 프로젝트 — 안드로이드"
+    ]
+  },
+  "expect": {
+    "status": 200,
+    "required": [
+      "answer",
+      "charCount",
+      "usedIndexes",
+      "factCheck",
+      "usage"
+    ],
+    "types": {
+      "usedIndexes": "list",
+      "factCheck": "object"
+    },
+    "notes": [
+      "charCount == len(answer) 이고 maxChars 이하",
+      "usedIndexes 는 experienceSummaries 의 인덱스 — BE 가 id 를 안 보낸다",
+      "factCheck.passed/unverified/fallback"
+    ]
+  }
+}

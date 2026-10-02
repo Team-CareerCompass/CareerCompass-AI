@@ -1,0 +1,36 @@
+{
+  "name": "comments-success",
+  "note": "근거를 주면 두 문장이 온다. 받은 근거 안에서만 쓴다 (#14).",
+  "endpoint": "POST /v1/comments",
+  "headers": {
+    "X-Prompt-Version": "v1"
+  },
+  "request": {
+    "matchedKeywords": [
+      "Spring",
+      "Kotlin"
+    ],
+    "missingQualifications": [
+      "RDB 1년 이상"
+    ],
+    "matchedPreferences": [
+      "Java/Kotlin 백엔드 경험"
+    ],
+    "topExperienceTitle": "CareerCompass"
+  },
+  "expect": {
+    "status": 200,
+    "required": [
+      "strength",
+      "weakness",
+      "usage"
+    ],
+    "types": {
+      "strength": "string",
+      "weakness": "string"
+    },
+    "notes": [
+      "1~3줄. 입력에 없는 고유명사·수치가 나오면 계약 위반이다"
+    ]
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name": "comments-null-without-grounds",
+  "note": "근거가 비면 **빈말을 만들지 않고 null**. BE 는 코멘트 null 을 허용하고 점수는 정상으로 낸다.",
+  "endpoint": "POST /v1/comments",
+  "headers": {
+    "X-Prompt-Version": "v1"
+  },
+  "request": {
+    "matchedKeywords": [],
+    "missingQualifications": [],
+    "matchedPreferences": [],
+    "topExperienceTitle": ""
+  },
+  "expect": {
+    "status": 200,
+    "equals": {
+      "strength": null,
+      "weakness": null
+    },
+    "required": [
+      "strength",
+      "weakness",
+      "usage"
+    ],
+    "notes": [
+      "usage.totalTokens 는 0 — 모델을 부르지 않는다"
+    ]
+  }
+}

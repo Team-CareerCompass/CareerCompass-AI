@@ -1,0 +1,33 @@
+{
+  "name": "parse-fail-no-keywords",
+  "note": "파싱 실패(NO_KEYWORDS)는 **200 + 플래그**다. 4xx 로 내면 BE callWithRetry 가 LLM_UNAVAILABLE 로 바꿔 서버 장애로 둔갑한다.",
+  "endpoint": "POST /v1/parse-posting",
+  "headers": {
+    "X-Prompt-Version": "v1"
+  },
+  "request": {
+    "title": "[stub:NO_KEYWORDS] 공고",
+    "rawContent": "본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문"
+  },
+  "expect": {
+    "status": 200,
+    "equals": {
+      "parsingFailed": true,
+      "reasonCode": "NO_KEYWORDS"
+    },
+    "required": [
+      "parsingFailed",
+      "reason",
+      "reasonCode",
+      "usage"
+    ],
+    "absent": [
+      "ok",
+      "data",
+      "error"
+    ],
+    "notes": [
+      "reason 은 사람이 읽는 문장 — BE ParsingFailedException 메시지로 쓴다"
+    ]
+  }
+}

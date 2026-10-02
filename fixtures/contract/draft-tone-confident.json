@@ -1,0 +1,32 @@
+{
+  "name": "draft-tone-confident",
+  "note": "**tone 은 셋**이다 — formal/casual/confident (BE ApplicationService.TONES). FE 는 둘만 보내지만 API 로는 온다.",
+  "endpoint": "POST /v1/draft-answer",
+  "headers": {
+    "X-Prompt-Version": "v1"
+  },
+  "request": {
+    "question": "본인의 강점을 기술해 주세요",
+    "maxChars": 400,
+    "tone": "confident",
+    "postingTitle": "2026 카카오 SW 인턴십",
+    "keywords": [
+      "Spring"
+    ],
+    "experienceSummaries": [
+      "CareerCompass — 백엔드",
+      "과거 자소서 발췌: 저는 끝까지 확인하는 사람입니다."
+    ]
+  },
+  "expect": {
+    "status": 200,
+    "required": [
+      "answer",
+      "charCount",
+      "usedIndexes"
+    ],
+    "notes": [
+      "「과거 자소서 발췌:」 항목은 **경험이 아니다** — usedIndexes 에 그 인덱스가 오면 안 된다"
+    ]
+  }
+}

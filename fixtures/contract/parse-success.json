@@ -1,0 +1,45 @@
+{
+  "name": "parse-success",
+  "note": "BE ParsedPosting 과 1:1. **봉투가 없고 자격이 평평하다** — BE 는 node.path(\"keywords\") 로 최상위에서 읽는다.",
+  "endpoint": "POST /v1/parse-posting",
+  "headers": {
+    "X-Prompt-Version": "v1"
+  },
+  "request": {
+    "title": "테스트 공고",
+    "rawContent": "본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문"
+  },
+  "expect": {
+    "status": 200,
+    "equals": {
+      "parsingFailed": false
+    },
+    "required": [
+      "parsingFailed",
+      "type",
+      "keywords",
+      "qualificationYear",
+      "qualificationGpa",
+      "qualificationMajor",
+      "preferences",
+      "dueDate",
+      "formQuestions",
+      "usage"
+    ],
+    "absent": [
+      "ok",
+      "data",
+      "qualifications",
+      "error"
+    ],
+    "types": {
+      "keywords": "list",
+      "formQuestions": "list",
+      "preferences": "list",
+      "usage": "object"
+    },
+    "notes": [
+      "keywords 는 3개 이상 — 미만이면 BE 가 다시 실패로 판정한다"
+    ]
+  }
+}

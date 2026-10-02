@@ -4,11 +4,14 @@
 스텁을 실제 구현으로 바꿔도 이 테스트는 그대로 통과해야 한다.
 """
 
+import json
+from pathlib import Path
 from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
 
+from app.contract import ErrorCode, ServiceError, error_body
 from app.main import app
 
 HEADERS = {"X-Prompt-Version": "v1"}
@@ -231,3 +234,81 @@ def test_draft_reports_fact_check(client: TestClient) -> None:
 def test_removed_endpoints_are_gone(client: TestClient, path: str) -> None:
     """v0.1 의 경로들이다. 적합도·분류·추출·임베딩은 BE 가 한다 (계약 v0.2 §0)."""
     assert client.post(path, json={}, headers=HEADERS).status_code == 404
+
+
+# --------------------------------------------------------------------------
+# 공유 표본 (#30) — `fixtures/contract/*.json` 을 양쪽이 같이 본다
+# --------------------------------------------------------------------------
+
+CONTRACT_ROOT = Path(__file__).resolve().parent.parent / "fixtures" / "contract"
+
+_TYPES: dict[str, type | tuple[type, ...]] = {
+    "list": list,
+    "object": dict,
+    "string": str,
+    "number": (int, float),
+    "boolean": bool,
+}
+
+
+def _samples() -> list[dict[str, Any]]:
+    return [json.loads(p.read_text(encoding="utf-8")) for p in sorted(CONTRACT_ROOT.glob("*.json"))]
+
+
+def _http_samples() -> list[dict[str, Any]]:
+    """`request` 가 있는 표본만 — 장애 응답은 일부러 만들 수 없어 모양만 적어 뒀다."""
+    return [s for s in _samples() if s.get("request") is not None]
+
+
+def test_contract_samples_exist_and_cover_both_sides() -> None:
+    """표본이 비면 아래 테스트가 전부 조용히 통과한다. BE 에 건네는 것이기도 하다."""
+    names = {s["name"] for s in _samples()}
+    assert len(names) >= 12
+    for must in (
+        "parse-success",
+        "parse-fail-empty",
+        "parse-fail-not-a-posting",
+        "parse-invalid-request",
+        "comments-null-without-grounds",
+        "draft-unlimited",
+        "error-llm-unavailable",
+    ):
+        assert must in names, must
+    for sample in _samples():
+        assert sample["note"], sample["name"]
+        assert sample["expect"]["status"]
+
+
+@pytest.mark.parametrize("sample", _http_samples(), ids=lambda s: s["name"])
+def test_contract_sample_holds(client: TestClient, sample: dict[str, Any]) -> None:
+    """표본의 request 를 그대로 보내고 expect 를 그대로 확인한다.
+
+    **BE 도 같은 파일을 읽어 자기 쪽 HttpLlmGateway 를 검증하면 한쪽이 바꿀 때 양쪽이 깨진다** —
+    그게 이 이슈(#30)가 원한 것이다. 지금은 BE PR #51 이 머지되지 않아 이쪽만 쓴다.
+    """
+    expect = sample["expect"]
+    path = sample["endpoint"].split()[-1]
+    res = client.post(path, json=sample["request"], headers=sample.get("headers") or {})
+
+    assert res.status_code == expect["status"], f"{sample['name']}: {res.text[:200]}"
+    body = res.json()
+
+    for key, want in (expect.get("equals") or {}).items():
+        assert body.get(key) == want, f"{sample['name']}.{key}"
+    for key in expect.get("required") or []:
+        assert key in body, f"{sample['name']}: {key} 가 없다"
+    for key in expect.get("absent") or []:
+        assert key not in body, f"{sample['name']}: {key} 가 있으면 BE 가 못 읽는다"
+    for key, type_name in (expect.get("types") or {}).items():
+        assert isinstance(body[key], _TYPES[type_name]), f"{sample['name']}.{key}"
+
+
+def test_error_sample_matches_error_body() -> None:
+    """장애 응답은 HTTP 로 재현하지 않고 `contract.error_body` 모양으로 확인한다."""
+    sample = next(s for s in _samples() if s["name"] == "error-llm-unavailable")
+    body = error_body(ErrorCode.LLM_UNAVAILABLE, "프로바이더 장애")
+
+    for key in sample["expect"]["required"]:
+        assert key in body
+    assert body["code"] == sample["expect"]["equals"]["code"]
+    assert ServiceError(ErrorCode.LLM_UNAVAILABLE, "x").status_code == sample["expect"]["status"]

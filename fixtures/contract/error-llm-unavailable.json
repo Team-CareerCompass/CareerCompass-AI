@@ -1,0 +1,22 @@
+{
+  "name": "error-llm-unavailable",
+  "note": "프로바이더 장애·예산 초과·시한 초과. **503 + {error, code}** — BE callWithRetry 가 재시도한다. 이 표본은 HTTP 로 재현하지 않고 **본문 모양만** 고정한다(장애를 일부러 만들 수 없다).",
+  "endpoint": "POST /v1/* (장애 시)",
+  "headers": {
+    "X-Prompt-Version": "v1"
+  },
+  "request": null,
+  "expect": {
+    "status": 503,
+    "required": [
+      "error",
+      "code"
+    ],
+    "equals": {
+      "code": "LLM_UNAVAILABLE"
+    },
+    "notes": [
+      "429 는 code=RATE_LIMITED — BE 가 백오프한다"
+    ]
+  }
+}
