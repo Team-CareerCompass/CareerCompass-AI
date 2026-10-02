@@ -1026,12 +1026,28 @@ def test_budget_cache_hit_costs_nothing(tmp_path: Path) -> None:
 
 
 def test_budget_monthly_limit_counts_all_days(tmp_path: Path) -> None:
+    """월 합계는 **이번 달의 다른 날들**을 더한다.
+
+    날짜를 박아 두면 달이 바뀌는 순간 깨진다 — 2026-09 로 적어 둔 것이 10월 1일에 깨졌다.
+    오늘이 아닌 이번 달의 두 날을 쓴다(오늘로 쓰면 일일 상한이 먼저 걸려 scope 가 달라진다).
+    """
     import json
+    from datetime import UTC, datetime
 
     from app.budget import Budget, BudgetExceeded
 
+    today = datetime.now(UTC).date()
+    others = [day for day in (1, 2, 3) if day != today.day][:2]
     ledger = tmp_path / "b.json"
-    ledger.write_text(json.dumps({"2026-09-01": 600.0, "2026-09-02": 399.0}), encoding="utf-8")
+    ledger.write_text(
+        json.dumps(
+            {
+                today.replace(day=d).isoformat(): amount
+                for d, amount in zip(others, (600.0, 399.0), strict=True)
+            }
+        ),
+        encoding="utf-8",
+    )
     b = Budget(ledger, daily_krw=100, monthly_krw=1000)
     with pytest.raises(BudgetExceeded) as exc:
         b.check(2.0)
