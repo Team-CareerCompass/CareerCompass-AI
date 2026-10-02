@@ -1,0 +1,32 @@
+{
+  "name": "draft-unlimited",
+  "note": "**maxChars 0 = 제한 없음** (BE 가 null 을 0 으로 바꿔 보낸다). 0 을 상한으로 읽으면 빈 답이 나간다.",
+  "endpoint": "POST /v1/draft-answer",
+  "headers": {
+    "X-Prompt-Version": "v1"
+  },
+  "request": {
+    "question": "지원 동기를 작성해 주세요",
+    "maxChars": 0,
+    "tone": "formal",
+    "postingTitle": "2026 카카오 SW 인턴십",
+    "keywords": [
+      "Spring",
+      "Kotlin"
+    ],
+    "experienceSummaries": [
+      "CareerCompass — 백엔드",
+      "동아리 프로젝트 — 안드로이드"
+    ]
+  },
+  "expect": {
+    "status": 200,
+    "required": [
+      "answer",
+      "charCount"
+    ],
+    "notes": [
+      "400~600자. answer 가 비면 BE 는 LLM_UNAVAILABLE 로 본다"
+    ]
+  }
+}

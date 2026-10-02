@@ -1,0 +1,36 @@
+{
+  "name": "parse-success-partial",
+  "note": "마감일을 못 읽고 양식이 없는 정상 공고. **null 과 빈 배열이 정답인 경우**가 있다 (#8 #10).",
+  "endpoint": "POST /v1/parse-posting",
+  "headers": {
+    "X-Prompt-Version": "v1"
+  },
+  "request": {
+    "title": "[stub:PARTIAL] 장학 공지",
+    "rawContent": "본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문본문"
+  },
+  "expect": {
+    "status": 200,
+    "equals": {
+      "parsingFailed": false,
+      "dueDate": null,
+      "formQuestions": []
+    },
+    "required": [
+      "parsingFailed",
+      "type",
+      "keywords",
+      "qualificationYear",
+      "qualificationGpa",
+      "qualificationMajor",
+      "preferences",
+      "dueDate",
+      "formQuestions",
+      "usage"
+    ],
+    "absent": [
+      "ok",
+      "data"
+    ]
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "parse-invalid-request",
+  "note": "rawContent 가 없다. **400** 이다 — BE 는 이것을 재시도하지 않는다(버그라는 뜻).",
+  "endpoint": "POST /v1/parse-posting",
+  "headers": {
+    "X-Prompt-Version": "v1"
+  },
+  "request": {
+    "title": "제목만"
+  },
+  "expect": {
+    "status": 400,
+    "required": [
+      "error",
+      "code"
+    ],
+    "equals": {
+      "code": "INVALID_INPUT"
+    }
+  }
+}
