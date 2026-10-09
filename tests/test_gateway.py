@@ -478,6 +478,112 @@ def test_unsupported_claims_ignores_homonyms() -> None:
     assert unsupported_claims("대상을 받았습니다.", ["멘토링"]) == ["대상을 받"]
 
 
+def test_fact_check_catches_the_korean_spelling_of_a_technology() -> None:
+    """영문만 보던 대조를 「타입스크립트」가 그냥 지나갔다 — 초안 007 v1 실측 그대로 (#29)."""
+    sources = ["동아리 홈페이지 프론트 개발 — React 로 공지·갤러리 페이지 구현, 모바일 화면 대응"]
+    answer = "이 과정에서 타입스크립트를 사용해 안정성과 유지보수성을 높였습니다."
+    assert fact_check(answer, sources) == ["타입스크립트"]
+    assert fact_check("리액트로 갤러리 페이지를 만들었습니다.", sources) == []
+
+
+def test_fact_check_spelling_and_latin_ground_each_other() -> None:
+    """입력과 답이 다른 표기를 써도 같은 기술이면 근거가 있다 — 양쪽 다."""
+    assert fact_check("타입스크립트로 옮겼습니다.", ["TypeScript 전환"]) == []
+    assert fact_check("TypeScript 로 옮겼습니다.", ["타입스크립트 전환"]) == []
+
+
+def test_fact_check_spelling_takes_the_longest_match() -> None:
+    """「자바스크립트」 안의 「자바」를 따로 세지 않는다. 「스프링클러」는 Spring 이 아니다."""
+    assert fact_check("자바스크립트로 구현했습니다.", ["Java 수업"]) == ["자바스크립트"]
+    assert fact_check("스프링클러 점검을 맡았습니다.", ["시설 관리 아르바이트"]) == []
+
+
+def test_unsupported_outcome_only_in_past_clauses() -> None:
+    """입력에 없는 남의 반응은 **했다고** 쓸 때만 날조다. 포부는 정상이다 (#29, 초안 017)."""
+    from app.guard import unsupported_claims
+
+    sources = ["동아리 홈페이지 프론트 개발 — React 로 공지 페이지 구현"]
+    assert unsupported_claims("결과적으로 회원들의 만족도가 높아졌어요.", sources) == ["만족도"]
+    assert unsupported_claims("만족도를 높일 수 있었습니다.", sources) == ["만족도"]
+    assert unsupported_claims("고객 만족도를 높이는 데 기여하겠습니다.", sources) == []
+    assert unsupported_claims("고객 만족도를 높일 수 있습니다.", sources) == []
+    assert unsupported_claims("만족도 조사를 해 볼 계획입니다.", sources) == []
+    # 한 문장 안에서도 쉼표로 나눈 절마다 본다
+    assert unsupported_claims("회원 만족도가 높아졌고, 앞으로도 노력하겠습니다.", sources) == [
+        "만족도"
+    ]
+    assert unsupported_claims("React 를 익혔고, 앞으로 고객 만족도를 높이겠습니다.", sources) == []
+
+
+def test_outcome_grounds_are_checked_per_category() -> None:
+    """「5팀 중 2위」는 「인정받았다」의 근거지만 「피드백을 받았다」의 근거는 아니다 (초안 002)."""
+    from app.guard import unsupported_claims
+
+    sources = ["교내 해커톤 참가 — 24시간 동안 SQL 기반 대시보드 제작, 5팀 중 2위"]
+    assert unsupported_claims("5팀 중에서 2위를 차지하며 실력을 인정받았습니다.", sources) == []
+    assert unsupported_claims("운영진으로부터 긍정적인 피드백을 받았습니다.", sources) == [
+        "피드백을 받"
+    ]
+    # 입력이 그 범주를 말했으면 바꿔 쓴 것도 근거가 있다
+    assert unsupported_claims("멘토에게 피드백을 받아 고쳤습니다.", ["사용자 피드백 반영"]) == []
+
+
+@pytest.mark.parametrize(
+    ("sources", "answer", "expected"),
+    [
+        # 초안 003 — 경험 0개. 지원하는 그 장학금을 이미 받았다고 지어냈다
+        (
+            ["2026-2학기 성적우수 장학생 선발", "학업 계획과 장학금이 필요한 이유를 기술하십시오."],
+            "이러한 노력을 인정받아 이번 학기에도 성적 우수 장학생으로 선발되었습니다.",
+            ["인정받"],
+        ),
+        # 초안 010 — 행사를 운영했다는 것까지가 입력이다
+        (
+            [
+                "지역 아동센터 학습 멘토링 — 매주 토요일 2시간, 1년 6개월, 초등학생 3명 담당",
+                "헌혈 15회 — 학과 헌혈 캠페인 기획 참여",
+                "학과 학생회 복지국장 — 간식 행사·시험기간 물품 지원 운영",
+                "2026년 사회공헌 장학생 선발",
+                "봉사 활동 경험과 그것이 본인에게 준 변화를 서술하세요.",
+            ],
+            "학과 학생회의 복지국장으로 일하면서 학우들을 위한 간식 행사와 시험 기간 물품 "
+            "지원을 주도적으로 운영해 학과 구성원들의 만족도를 높였습니다.",
+            ["만족도"],
+        ),
+        # 초안 007 — 모바일 대응이 「사용자 만족도」가 됐다
+        (
+            [
+                "동아리 홈페이지 프론트 개발 — React 로 공지·갤러리 페이지 구현, 모바일 화면 대응",
+                "프론트엔드 개발 인턴",
+                "직무 관련 경험을 기술해 주세요.",
+            ],
+            "그 결과 사용자 만족도가 높아졌고, 동아리 홍보에도 큰 도움이 되었어요.",
+            ["만족도"],
+        ),
+    ],
+)
+def test_outcome_claims_seen_in_the_saved_answers(
+    sources: list[str], answer: str, expected: list[str]
+) -> None:
+    """저장된 답 299개에서 걸린 것 중 셋 — 실측 문장 그대로 (#29)."""
+    from app.guard import unsupported_claims
+
+    assert unsupported_claims(answer, sources) == expected
+
+
+def test_draft_drops_an_outcome_the_input_never_mentioned() -> None:
+    """「만족도가 높아졌습니다」는 입력이 말하지 않은 남의 반응이다 — 그 문장만 뺀다 (#29)."""
+    answer = (
+        "CareerCompass 에서 Spring 백엔드를 맡아 공고 분석 서비스를 만들었습니다. "
+        "그 결과 사용자 만족도가 크게 높아졌습니다."
+    )
+    provider = FakeProvider(_j(answer=answer), _j(answer=answer))
+    res = _run(Gateway(provider).draft_answer(_draft_req()))
+    assert "만족도" in provider.calls[1]["user"]  # 재요청이 무엇을 뺄지 짚는다
+    assert res.answer == "CareerCompass 에서 Spring 백엔드를 맡아 공고 분석 서비스를 만들었습니다."
+    assert res.fact_check.passed and not res.fact_check.fallback
+
+
 def test_comments_keep_at_most_two_sentences() -> None:
     provider = FakeProvider(
         _j(

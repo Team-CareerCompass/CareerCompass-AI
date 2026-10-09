@@ -1,13 +1,14 @@
 """모델 출력을 믿기 전에 거는 것들 (#4 #29) — 전부 규칙이다. LLM 으로 LLM 을 검증하지 않는다.
 
 - `extract_json` — 펜스·잡담을 벗기고 JSON 객체 하나를 꺼낸다
-- `fact_check` — 생성물의 수치·영문 고유명사가 입력에 있는지 문자열 대조
+- `fact_check` — 생성물의 수치·영문 고유명사(와 그 **한글 표기**)가 입력에 있는지 문자열 대조
 - `trim_to_limit` — 글자 수 상한을 문장 경계에서 지킨다
 - `drop_sentences_with` — 검증에 걸린 표현이 든 문장을 통째로 뺀다
 - `scrub_pii` — 출력에 섞인 이메일·전화·주민번호 모양을 지운다
 - `safe_draft` — 모델 없이, **입력 문자열만으로** 만든 초안. 검증을 끝내 못 통과했을 때의 답
 - `ending_ratio` — 문장 어미로 톤을 실측한다. 「~해요」를 부탁해도 모델은 「~합니다」로 쓴다 (#18)
-- `unsupported_claims` — 입력에 없는 **자격·수상·소속** 단정. 한국어 날조 중 잡을 수 있는 것만 (#29)
+- `unsupported_claims` — 입력에 없는 **자격·수상·소속·성과** 단정.
+  한국어 날조 중 잡을 수 있는 것만 (#29)
 - `discriminatory_hits` — 채용절차법이 금지한 요구(용모·혼인·출신지역·가족 재산)가 출력에 (#29)
 - `slurs_in` — 욕설·혐오 표현. 실측 0건이라 보험이다 — **오해의 여지가 없는 말만** 넣는다 (#29)
 """
@@ -58,11 +59,52 @@ def _normalize(s: str) -> str:
     return re.sub(r"[\s,]", "", s).lower()
 
 
+KOREAN_SPELLINGS: dict[str, tuple[str, ...]] = {
+    "타입스크립트": ("typescript",),
+    "자바스크립트": ("javascript",),
+    "리액트": ("react",),
+    "스프링부트": ("springboot",),
+    "스프링": ("spring",),
+    "쿠버네티스": ("kubernetes", "k8s"),
+    "도커": ("docker",),
+    "레디스": ("redis",),
+    "카프카": ("kafka",),
+    "파이썬": ("python",),
+    "코틀린": ("kotlin",),
+    "자바": ("java",),
+    "피그마": ("figma",),
+    "텐서플로": ("tensorflow",),
+    "파이토치": ("pytorch",),
+    "리눅스": ("linux",),
+    "젠킨스": ("jenkins",),
+    "테라폼": ("terraform",),
+    "그라파나": ("grafana",),
+    "언리얼": ("unreal",),
+    "유니티": ("unity",),
+    "깃허브": ("github",),
+    "유튜브": ("youtube",),
+    "틱톡": ("tiktok",),
+    "인스타그램": ("instagram",),
+}
+"""영문 고유명사의 **한글 표기** → 입력에서 찾을 영문(`_normalize` 한 꼴).
+
+`fact_check` 는 영문 토큰만 봤다 — v1 실측에서 공고 키워드의 TypeScript 를 「타입스크립트」로 써서
+대조를 그냥 지나갔다(초안 007). 저장된 답 299개에 대 보니 걸리는 것은 그 1건이고 오탐 0이다.
+**뜻이 하나뿐인 표기만 넣는다** — 「넥스트(스텝)」「노드」「뷰」「루비」「고」는 일반어와
+겹쳐서 뺐다.
+"""
+_SPELLING_OF = {alias: ko for ko, aliases in KOREAN_SPELLINGS.items() for alias in aliases}
+_NOT_SPELLINGS = ("스프링클러",)
+"""표기를 품고 있지만 기술명이 아닌 말. 대조 전에 지운다."""
+
+
 def fact_check(answer: str, sources: list[str]) -> list[str]:
-    """생성물에 나왔는데 입력 어디에도 없는 수치·영문 토큰. 비어 있으면 통과.
+    """생성물에 나왔는데 입력 어디에도 없는 수치·영문 토큰과 그 한글 표기. 비어 있으면 통과.
 
     한국어 고유명사는 형태 변화 때문에 문자열 대조가 안 된다 — 여기서는 잡지 않는다.
     **잡는 것만 확실히 잡는다.** 없는 수치(「매출 30% 증가」)와 없는 기술명이 가장 흔한 날조다.
+    영문과 한글 표기는 서로의 근거가 된다 — 입력이 「타입스크립트」면 답의 「TypeScript」는
+    통과한다.
     """
     haystack = _normalize(" ".join(sources))
     unverified: list[str] = []
@@ -74,11 +116,28 @@ def fact_check(answer: str, sources: list[str]) -> list[str]:
         if _normalize(token) not in haystack and digits not in haystack:
             unverified.append(token)
     for m in _LATIN.finditer(answer):
-        token = m.group(0)
-        if _normalize(token) not in haystack:
-            unverified.append(token)
+        token = _normalize(m.group(0))
+        spelling = _SPELLING_OF.get(token)
+        if token not in haystack and not (spelling and spelling in haystack):
+            unverified.append(m.group(0))
+    unverified += _unverified_spellings(answer, haystack)
     # 순서 유지 중복 제거
     return list(dict.fromkeys(unverified))
+
+
+def _unverified_spellings(answer: str, haystack: str) -> list[str]:
+    text = answer
+    for word in _NOT_SPELLINGS:
+        text = text.replace(word, " ")
+    found: list[str] = []
+    # 긴 표기부터 — 「자바스크립트」 안의 「자바」를 따로 세지 않게 찾은 것은 지운다
+    for ko in sorted(KOREAN_SPELLINGS, key=len, reverse=True):
+        if ko not in text:
+            continue
+        if ko not in haystack and not any(a in haystack for a in KOREAN_SPELLINGS[ko]):
+            found.append(ko)
+        text = text.replace(ko, " ")
+    return found
 
 
 def trim_to_limit(text: str, limit: int) -> str:
@@ -150,8 +209,14 @@ CLAIM_WORDS: dict[str, tuple[str, ...]] = {
 같은 범주의 말이 입력에 있으면 봐준다 — 그래야 「정보처리기사 취득」(입력)을 「자격증을
 취득했습니다」(답)로 바꿔 쓴 것을 날조로 오해하지 않는다.
 
-재현율은 좁다. 회사명(「엔씨소프트에 입사한다면」)은 「입사」로 걸리지만 「타입스크립트」처럼
-영문의 한글 표기는 여기서 안 잡힌다 — 평가셋의 `forbidden` 이 사후에 잡는다.
+재현율은 좁다. 회사명(「엔씨소프트에 입사한다면」)은 「입사」로 걸린다. 「타입스크립트」처럼
+영문의 한글 표기는 여기가 아니라 `fact_check` 가 `KOREAN_SPELLINGS` 로 잡는다(10-09).
+공고 키워드를 경험처럼 쓰는 것(「웹 접근성을 고려하였습니다」)은 **규칙으로 못 잡는다** —
+저장된 답 299개에 「근거에 없는 공고 키워드 + 과거형」을 대 보니 134건이 걸렸고 거의 다
+「책임감을 가지고 임했으며」 같은 정상 문장이었다. 실행 동사(고려·개선·강화…)로 좁혀도 5건 중
+2건만 진짜였다 — 「열람 권한을 두 명으로 제한해 보안을 강화했습니다」는 실제 경험의 정당한
+요약이고 「모바일 대응으로 접근성을 개선했습니다」는 날조인데, 문자열 모양이 같다. 차이는 도메인
+지식이다. 평가셋의 `forbidden` 이 사후에 잡는다.
 """
 
 
@@ -228,10 +293,82 @@ def discriminatory_hits(text: str) -> list[str]:
     return [name for name, pattern in DISCRIMINATORY.items() if pattern.search(text)]
 
 
-def unsupported_claims(text: str, sources: list[str]) -> list[str]:
-    """답이 말했는데 입력은 같은 범주를 한 번도 말하지 않은 자격·수상·소속 표현 (#29).
+OUTCOME_CLAIMS: dict[str, tuple[tuple[str, ...], re.Pattern[str]]] = {
+    "반응": (
+        (
+            "만족도",
+            "호평",
+            "피드백을 받",
+            "좋은 반응",
+            "긍정적인 반응",
+            "칭찬",
+            "감사 인사",
+            "감사의 인사",
+        ),
+        re.compile(r"만족|호평|피드백|반응(?!형)|칭찬|감사|후기|설문"),
+    ),
+    "인정": (
+        ("인정을 받", "인정받", "높은 평가"),
+        re.compile(r"인정|평가|수상|입상|우승|\d+\s?위"),
+    ),
+}
+"""남이 내린 **반응·인정** — 「회원들의 만족도가 높아졌어요」「운영진으로부터 긍정적인 피드백을
+받았습니다」. 10-02 에 「규칙 넷 다 못 잡는 범주」라고 적었던 것이다(초안 017).
 
-    실측 221개 답에서 3건이 걸렸고 셋 다 진짜였다 — 오탐 0. 좁은 대신 확실하다.
+자격·수상·소속과 같은 방식이다 — 입력이 이 범주를 한 번도 말하지 않았는데 답이 말하면 지어낸
+것이다. 범주마다 (답에서 찾을 말, 입력에서 찾을 근거)다. 저장된 답 299개에서 6건이 걸렸고
+여섯 다 입력에 없는 성과였다(경험이 0개인데 「이번 학기에도 장학생으로 선발되었습니다」까지).
+코멘트 답 55개는 0건.
+
+자격·수상·소속과 다른 점 셋.
+- **과거형 절에서만 잡는다.** 「고객 만족도를 높이는 데 기여하겠습니다」는 포부라 정상이다.
+  쉼표로 나눈 절이 과거형이고 미래형이 아닐 때만 — 「높일 수 있었습니다」는 잡고
+  「높일 수 있습니다」는 둔다.
+- **근거는 말보다 넓게 본다.** 입력에 「사용자 피드백 반영」이 있으면 답의 「피드백을 받아」는
+  근거가 있다. 넓게 볼수록 덜 잡는다 — 지우는 가드는 그쪽이 안전하다.
+- **반응과 인정을 가른다.** 「5팀 중 2위」(입력)는 「실력을 인정받았습니다」의 근거지만
+  「운영진으로부터 긍정적인 피드백을 받았습니다」의 근거는 아니다. 한 범주로 묶었더니 앞의 것이
+  오탐이 됐다(초안 002) — 묶은 채로 「2위」를 근거에 넣으면 뒤의 진짜 날조를 놓친다.
+"""
+_FUTURE = re.compile(r"겠|싶|예정|계획|고자")
+_ADNOMINAL_THING = re.compile(r"([가-힣])\s?(?:것|수\s?있(?!었))")
+_FINAL_SS, _FINAL_L = 20, 8  # 받침 ㅆ · ㄹ 의 종성 번호
+
+
+def _final(ch: str) -> int:
+    code = ord(ch) - 0xAC00
+    return code % 28 if 0 <= code < 11172 else -1
+
+
+def _past(clause: str) -> bool:
+    """받침 ㅆ 인 음절(했·였·었·았·졌…)이 있으면 과거형이다. 「있」(존재)·「겠」(미래)은 뺀다."""
+    return any(_final(ch) == _FINAL_SS for ch in clause if ch not in "있겠")
+
+
+def _future(clause: str) -> bool:
+    """「~겠」「~싶」「예정」 또는 「~ㄹ 것」「~ㄹ 수 있(었 아님)」."""
+    if _FUTURE.search(clause):
+        return True
+    return any(_final(m.group(1)) == _FINAL_L for m in _ADNOMINAL_THING.finditer(clause))
+
+
+def _outcome_claims(text: str, sources: list[str]) -> list[str]:
+    haystack = " ".join(sources)
+    claims = [words for words, grounds in OUTCOME_CLAIMS.values() if not grounds.search(haystack)]
+    found: list[str] = []
+    for sentence in sentences(text):
+        for clause in sentence.split(","):
+            hits = [w for words in claims for w in words if w in clause]
+            if hits and _past(clause) and not _future(clause):
+                found += hits
+    return found
+
+
+def unsupported_claims(text: str, sources: list[str]) -> list[str]:
+    """답이 말했는데 입력은 같은 범주를 한 번도 말하지 않은 자격·수상·소속·성과 표현 (#29).
+
+    자격·수상·소속: 실측 221개 답에서 3건이 걸렸고 셋 다 진짜였다 — 오탐 0.
+    반응·인정: 299개 답에서 6건, 여섯 다 진짜. 좁은 대신 확실하다.
     """
     haystack = " ".join(sources)
     found: list[str] = []
@@ -239,6 +376,7 @@ def unsupported_claims(text: str, sources: list[str]) -> list[str]:
         if any(w in haystack for w in words):
             continue  # 입력이 같은 범주를 말했다면 답이 말하는 것도 근거가 있다
         found += [w for w in words if w in text]
+    found += _outcome_claims(text, sources)
     return list(dict.fromkeys(found))
 
 
