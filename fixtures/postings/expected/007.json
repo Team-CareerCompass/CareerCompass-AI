@@ -14,6 +14,11 @@
   "preferences": [],
   "formQuestions": [],
   "note": "본문에 접수기간이 없다. dueDate 가 null 인 것이 정답이다 (#8).",
+  "imageExtra": {
+    "note": "텍스트 본문에는 없고 images/007-1.png 에만 있다(10-05 HCX-005 실측·사람이 원본 대조). 위 라벨은 텍스트 기준이다 — 이미지 경로(#33)를 채점할 때는 이 값이 위를 덮는다. 범위의 끝이 마감일이다.",
+    "dueDate": "2026-09-17",
+    "dueDateRaw": "2026.08.24(월) - 09.17(목) 23:59까지"
+  },
   "qualificationYear": null,
   "qualificationGpa": null,
   "qualificationMajor": null,

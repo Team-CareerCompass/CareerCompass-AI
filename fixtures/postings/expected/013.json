@@ -26,6 +26,13 @@
   ],
   "formQuestions": [],
   "note": "상시채용 — dueDate null 이 정답이고 사유는 no_deadline 이다. 우대사항이 줄바꿈 없이 [대괄호] 섹션으로 뭉쳐 있다. 짧은 공고(378자)라 BE 휴리스틱은 키워드 3개 미달로 실패할 가능성.",
+  "imageExtra": {
+    "note": "텍스트 본문에는 없고 images/013-1.png 에만 있다(10-09 원본 대조). 이미지 경로(#33)를 채점할 때는 위 preferences 에 더한다. 마감은 이미지도 「~ 채용 완료 시」라 그대로다. 「'27년 2월 졸업 예정자 지원 가능」은 졸업 시점이라 자격 라벨 기준(09-27)상 학년 제한이 아니다.",
+    "preferences": [
+      "어학능력 우수자 (TOEIC / TEPS / TOEIC Speaking / OPIc)",
+      "국가 보훈 대상자"
+    ]
+  },
   "qualificationYear": null,
   "qualificationGpa": null,
   "qualificationMajor": null,
