@@ -60,6 +60,39 @@ def test_fixtures_have_keyword_labels() -> None:
     assert len(labeled) >= 25
 
 
+# 채점기가 읽는 정답 필드. `imageExtra` 는 이 중에서만 고른다 — 이미지 경로 채점기가 합친다.
+GRADED_KEYS = {
+    "type",
+    "dueDate",
+    "dueDateRaw",
+    "keywords",
+    "keywordsNot",
+    "preferences",
+    "formQuestions",
+    "qualificationYear",
+    "qualificationGpa",
+    "qualificationMajor",
+}
+
+
+def test_image_extra_is_kept_apart_from_text_labels() -> None:
+    """이미지에만 있는 사실은 텍스트 라벨에 섞지 않는다 (#33, 10-09).
+
+    007 은 텍스트에 접수기간이 없어 `dueDate: null` 이 맞는데 이미지에는 마감일이 있다. 섞으면
+    한쪽 경로가 맞는 답으로 틀린다. 이미지가 있는 픽스처에만, 채점기가 아는 키로만, 이유와 함께.
+    """
+    extras = [fx for fx in load_all() if "imageExtra" in fx.expected]
+    assert {fx.id for fx in extras} >= {"007", "013"}
+    for fx in extras:
+        extra = fx.expected["imageExtra"]
+        assert fx.images, f"{fx.id}: 이미지가 없는데 imageExtra 가 있다"
+        assert extra.get("note"), f"{fx.id}: 왜 이미지에만 있는지 note 가 없다"
+        assert set(extra) - {"note"} <= GRADED_KEYS, f"{fx.id}: 채점기가 모르는 키"
+        for key, value in extra.items():
+            if key != "note":
+                assert fx.expected.get(key) != value, f"{fx.id}: {key} 가 텍스트 라벨과 같다"
+
+
 def test_grade_list_counts_overlap_not_exact_match() -> None:
     from app.evaluation import grade_list
 
