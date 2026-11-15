@@ -223,11 +223,14 @@ class Gateway:
         if hit is not None:
             return hit
         if self.budget is not None:
-            # 호출 전에 막는다 — 이 호출이 최대로 쓸 수 있는 돈으로 (#31)
+            # 호출 전에 막는다 — 이 호출이 최대로 쓸 수 있는 돈으로 (#31). 추론 모델은 추론
+            # 토큰 몫(`reserved_completion_tokens`)도 출력 단가로 과금된다
+            reserved = getattr(self.provider, "reserved_completion_tokens", 0)
             estimate = (
-                (len(prompt.system) + len(user)) * TOKENS_PER_CHAR * self.provider.price_in_krw
-                + max_tokens * self.provider.price_out_krw
-            )
+                len(prompt.system) + len(user)
+            ) * TOKENS_PER_CHAR * self.provider.price_in_krw + (
+                max_tokens + reserved
+            ) * self.provider.price_out_krw
             try:
                 self.budget.check(estimate)
             except BudgetExceeded as exc:

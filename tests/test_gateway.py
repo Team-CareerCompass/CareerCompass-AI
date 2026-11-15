@@ -227,6 +227,17 @@ def test_transient_error_recovers_on_retry() -> None:
     assert isinstance(res, ParseResult)
 
 
+def test_timeout_is_503_without_retry() -> None:
+    """읽기 타임아웃은 다시 불러도 같은 시간이 걸린다 — 18초 뒤 또 18초면 BE 20초를 넘긴다."""
+    from app.providers.base import ProviderTimeout
+
+    provider = FakeProvider(ProviderTimeout("read timeout"), PARSE_OK)
+    with pytest.raises(ServiceError) as exc:
+        _run(Gateway(provider).parse_posting(ParseRequest(title="두산", raw_content=POSTING)))
+    assert exc.value.status_code == 503
+    assert len(provider.calls) == 1
+
+
 def test_rate_limited_is_429_without_retry() -> None:
     provider = FakeProvider(RateLimited("429"))
     with pytest.raises(ServiceError) as exc:

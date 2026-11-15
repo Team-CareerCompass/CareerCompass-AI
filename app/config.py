@@ -38,6 +38,10 @@ class Settings(BaseSettings):
     hcx_model_draft: str | None = None
     """기능별 모델 덮어쓰기. 예: 우대 추출이 아쉬우면 `CC_HCX_MODEL_PARSE=HCX-005` 만 올린다."""
 
+    hcx_thinking_effort: Literal["none", "low", "medium", "high"] = "none"
+    """HCX-007 의 추론 강도. **다른 모델에는 보내지 않는다.** 기본은 끔 — 켜면 추론 토큰이
+    출력 단가로 과금되고 지연이 는다. BE 읽기 타임아웃(20초) 안에 드는지 재고 켠다."""
+
     parse_prompt_version: str | None = "v1"
     """`parse_posting` 프롬프트 버전. **최신이 아니라 평가로 고른 버전**을 쓴다.
     근거는 `app/prompts/README.md`. `None` 이면 가장 높은 번호."""

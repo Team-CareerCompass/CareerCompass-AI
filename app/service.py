@@ -75,7 +75,12 @@ def gateway(function: str = "parse") -> Gateway:
         "comments": settings.hcx_model_comments,
         "draft": settings.hcx_model_draft,
     }.get(function) or settings.hcx_model
-    provider = HcxProvider(settings.hcx_api_key, model, timeout_s=settings.llm_timeout_s)
+    provider = HcxProvider(
+        settings.hcx_api_key,
+        model,
+        timeout_s=settings.llm_timeout_s,
+        thinking_effort=settings.hcx_thinking_effort,
+    )
     return Gateway(provider, _replay_cache(), budget())
 
 
