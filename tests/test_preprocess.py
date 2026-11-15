@@ -246,3 +246,49 @@ def test_real_postings_have_no_discriminatory_output() -> None:
             assert not discriminatory_hits(p), (fx.id, p)
         for q in extract_form_questions(pre.text):
             assert not discriminatory_hits(q.question), (fx.id, q.question)
+
+
+# --------------------------------------------------------------------------
+# 재분절 — BE 모양(한 줄)에서 줄이 잘못 서거나 안 서던 자리 (11-15 실측). 문장은 픽스처 원문
+# --------------------------------------------------------------------------
+
+
+def test_resegment_korean_list_markers_are_the_fourteen_not_a_range() -> None:
+    """「(면접 시) 학위」의 「시)」는 목록 기호가 아니다 (017).
+
+    `[가-하]` 는 범위라 한글 음절 거의 전부를 덮는다 — 「(해당 시)」「(필요 시)」마다 줄이 섰다.
+    """
+    flat = "※ 취업자 또는 취업이 결정된 자는 지원이 불가능하며 2차 전형(면접 시) 학위(졸업) 증명서"
+    out, _ = pp.resegment(flat)
+    assert NL + "시)" not in out
+    listed, _ = pp.resegment("지원자격 가. 재학생 나. 직전학기 12학점 이상 이수자")
+    assert NL + "나. 직전학기" in listed
+
+
+def test_resegment_splits_hangul_ieung_bullets_and_question_numbers() -> None:
+    """공공기관 공고의 「ㅇ」 불릿과 사람인의 「문항 N」 (017)."""
+    flat = (
+        "자격요건 상세보기 더보기 ㅇ 우리 연구소에 청년인턴으로 근무한 경력이 없는 자 "
+        "ㅇ 전공 분야 정책학 / 행정학 / 경영학 / 정치학 / 외교학 우대사항 국가유공자 외 2건 "
+        "1. 극지연구소에 지원하게 된 동기와 본인의 경험과 역량 등을 토대로 본인의 장점을 기술해 "
+        "주십시오. (최소 200자, 최대 500자 입력가능) 문항 2 2. 지원한 분야에 대한 직무수행능력을 "
+        "키우기 위해 노력했던 경험에 대해 서술해 주십시오. (최소 200자, 최대 500자 입력가능)"
+    )
+    lines, _ = pp.resegment(flat)
+    rows = lines.split(NL)
+    assert "ㅇ 전공 분야 정책학 / 행정학 / 경영학 / 정치학 / 외교학" in rows
+    assert any(r.endswith("(최소 200자, 최대 500자 입력가능)") and r.startswith("1.") for r in rows)
+
+
+def test_resegment_splits_colonless_section_headings_only() -> None:
+    """「제한없음 우대사항 - …」(040)·「2026.10.07 응시자격 1. …」(038) — 콜론이 없어도 헤딩이다.
+
+    조사가 붙으면 문장이다 — 「우대사항은 아래와 같다」를 자르면 헤딩이 아닌 줄이 헤딩처럼 선다.
+    """
+    flat = "- 연령, 전공, 학력 제한없음 우대사항 - 2년제 이상 대학 졸업자(전공: 동식물학, 생태학)"
+    out, _ = pp.resegment(flat)
+    assert "우대사항" in out.split(NL)
+    sentence, _ = pp.resegment("자세한 우대사항은 아래와 같습니다. 지원 자격 요건을 확인하세요")
+    assert NL + "우대사항은" not in sentence
+    # 「지원 자격 요건」 — 라벨 머리 뒤의 공백은 라벨 안이다
+    assert NL + "자격 요건" not in sentence

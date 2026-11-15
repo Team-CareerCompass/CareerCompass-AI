@@ -18,9 +18,11 @@ from app.guard import discriminatory_hits
 # --------------------------------------------------------------------------
 
 _DATE = re.compile(
-    r"(?:(?P<year>\d{2,4})\s*[.\-/년]\s*)?"
+    # 앞뒤가 숫자면 날짜가 아니다. 한 줄로 접힌 입력에서 목록 번호 「3. 2026년 10월」의
+    # 「3. 20」을 3월 20일로 읽었다 (038, BE 모양 실측 11-15).
+    r"(?<!\d)(?:(?P<year>\d{2,4})\s*[.\-/년]\s*)?"
     r"(?P<month>\d{1,2})\s*[.\-/월]\s*"
-    r"(?P<day>\d{1,2})\s*일?"
+    r"(?P<day>\d{1,2})(?!\d)\s*일?"
 )
 _TIME = re.compile(r"(?P<hour>\d{1,2})\s*(?::\s*(?P<minute>\d{2})|시)")
 
@@ -37,6 +39,7 @@ _DEADLINE_LABELS: tuple[tuple[str, ...], ...] = (
 _WINDOW_END = re.compile(
     r"결과|발표|통보|지급|증명|발급|활동\s?기간|교육\s?기간|오리엔테이션"
     r"|급여|지역|근무지|자격요건|우대|전형|서류\s?심사|면접|임용|공고일|시작일|채용\s?인원|문의"
+    r"|응시\s?자격|지원\s?자격|신청\s?자격"
 )
 
 _NO_DEADLINE = re.compile(r"상시\s?모집|선착순|예산\s?소진|수시\s?모집|충원\s?시")
@@ -190,7 +193,9 @@ SENSITIVE_QUESTION = re.compile(
 #   「궁금한 사항을 메일로 문의해 주세요」 · 「작성한 서류를 구글폼에 업로드하여 제출」
 _QUESTION_EXCLUDE = re.compile(
     r"문의|메일|이메일|연락|전화|홈페이지|링크|다운로드|업로드|첨부|"
-    r"제출\s?(?:방법|서류|처|기한)|접수\s?(?:방법|처|기간)|방문|등기|우편|참고하|확인하"
+    r"제출\s?(?:방법|서류|처|기한)|접수\s?(?:방법|처|기간)|방문|등기|우편|참고하|확인하|"
+    # 공고 맺음말. 한 줄로 접히면 마지막 불릿에 붙어 문항처럼 보인다 (026, BE 모양 실측 11-15)
+    r"(?:참여|지원|관심)\s?(?:부탁|바랍)|많은\s?(?:참여|지원|관심)"
 )
 
 
@@ -338,7 +343,10 @@ _MAJOR_ANY = re.compile(r"전공|계열|학과|학부")
 _PREFERENCE_HEADING = re.compile(
     r"^[^\n]{0,6}(?:우대\s?(?:사항|조건|요건)|가점|우대)[^\n]{0,10}$", re.MULTILINE
 )
-_BULLET = re.compile(r"^\s*(?:[-•*▶·]|\d+[.)]|[가-하][.)])\s*(?P<item>.{4,80})\s*$")
+_KO_LIST = "[가나다라마바사아자차카타파하]"
+"""「가. 나. 다.」 목록 기호. `[가-하]` 는 범위라 한글 음절 거의 전부다 —
+「(면접 시) 학위」의 「시)」가 목록 기호로 읽혔다 (11-15)."""
+_BULLET = re.compile(r"^\s*(?:[-•*▶·]|\d+[.)]|" + _KO_LIST + r"[.)])\s*(?P<item>.{4,80})\s*$")
 
 
 @dataclass
@@ -414,7 +422,15 @@ def _major_in(line: str) -> str | None:
         candidate = m.group().strip()
     if candidate is None or any(stop in candidate for stop in _MAJOR_STOP):
         return None
+    if _MAJOR_GENERIC.match(candidate):
+        return None
     return candidate
+
+
+_MAJOR_GENERIC = re.compile(r"(?:유관|관련|해당|동일|관계)\s?(?:학과|학부|전공|계열)$")
+"""학문 이름이 없는 전공 조건. 「AI 유관 전공(AI, 컴퓨터공학 …)」에서 「유관 전공」만 집었다(013,
+BE 모양 실측 11-15). BE 는 이 값을 사용자 전공과 문자열로 대 보므로, 이름 없는 값은 「전공 미충족」
+오판만 만든다 — 조건 없음(null)이 덜 해롭다."""
 
 
 def extract_preferences(text: str) -> list[str]:

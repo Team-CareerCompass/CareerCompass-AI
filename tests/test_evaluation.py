@@ -131,6 +131,9 @@ def test_flat_shape_due_date_does_not_regress() -> None:
     """실서버 입력은 한 줄이다. 픽스처(줄 있음)만 재면 실서버에서만 깨지는 것을 놓친다."""
     report = evaluate(shape="flat")
     assert report.hallucinated == 0
+    # 자격 날조도 0 이어야 한다 — 11-15 에 BE 모양에서만 2건(013·040)이 나왔다. 줄 있는 입력만
+    # 재면 안 보인다
+    assert report.qualification_hallucinated == 0
     assert report.due_accuracy is not None and report.due_accuracy >= 0.9
     assert report.posting_accuracy is not None and report.posting_accuracy >= 0.9
 
