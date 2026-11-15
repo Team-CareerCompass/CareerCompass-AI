@@ -1,8 +1,9 @@
-"""계약 v0.2 §1~§4 의 엔드포인트.
+"""계약 §1~§5 의 엔드포인트.
 
-엔드포인트는 셋뿐이다. 적합도 산출·문서 분류·텍스트 추출·유사 공고·추천은 BE #51 이 구현했다.
+적합도 산출·문서 분류·텍스트 추출·유사 공고·추천은 BE #51 이 구현했다. §5 분야 유사도는 그
+적합도의 한 축(40%)을 임베딩으로 주는 선택 경로다 — BE 는 실패하면 자기 글자 비교로 대신한다.
 
-이 서비스는 상태를 갖지 않는다 — 큐·캐시·재시도·SSE 는 전부 BE 가 한다.
+이 서비스는 상태를 갖지 않는다 — 큐·재시도·SSE 는 전부 BE 가 한다(임베딩 벡터 캐시만 예외).
 실제 처리는 `app/service.py` → `app/gateway.py`. 여기는 HTTP 모양만 다룬다.
 """
 
@@ -13,7 +14,9 @@ from fastapi import APIRouter, Header, Query
 
 from app import service
 from app.config import settings
-from app.schemas import CommentsRequest, DraftRequest, ParseRequest
+from app.embedding import MODEL as EMBEDDING_MODEL
+from app.field_similarity import CALIBRATION
+from app.schemas import CommentsRequest, DraftRequest, FieldSimilarityRequest, ParseRequest
 
 router = APIRouter(prefix="/v1")
 
@@ -70,6 +73,13 @@ async def draft_answer(
     return _dump(await service.draft_answer(req, x_prompt_version))
 
 
+@router.post("/field-similarity")
+async def field_similarity(req: FieldSimilarityRequest, delay: Delay = 0) -> dict[str, Any]:
+    """§5 분야 유사도 — 적합도 분야 유사도 축 점수(0~100)를 공고마다 낸다. 최대 20건."""
+    await _sleep(delay)
+    return _dump(await service.field_similarity(req))
+
+
 health_router = APIRouter()
 
 
@@ -92,5 +102,6 @@ async def health() -> dict[str, Any]:
         body["parsePromptVersion"] = settings.parse_prompt_version
         if "HCX-007" in body["models"].values():
             body["thinkingEffort"] = settings.hcx_thinking_effort
+        body["fieldSimilarity"] = {"model": EMBEDDING_MODEL, "calibration": CALIBRATION}
         body["budget"] = service.budget().status().as_dict()
     return body

@@ -1,8 +1,8 @@
-"""분야 유사도 비교 (보고서 4.4.4) — BE 부분일치 이식본과 순위 지표.
+"""분야 유사도 비교 (보고서 4.4.4) — 평가 전용. 서비스는 이 파일을 쓰지 않는다.
 
-**BE 이식본**: `SuitabilityCalculator.fieldSimilarity` (BE #51, 로컬 `pr-51` 브랜치에서 읽음).
-BE 저장소는 읽기만 한다. 입력도 BE 가 만드는 모양 그대로다 — `AnalysisService.interestTexts` 는
-관심 직무마다 코드·라벨을 넣고 태그를 뒤에 붙인다.
+BE 글자 비교 이식본은 스텁 응답도 쓰므로 `app/field_similarity.py` 의 `keyword_score` 에 있다.
+여기는 입력 만들기와 순위 지표다. 입력은 BE 가 만드는 모양 그대로다 —
+`AnalysisService.interestTexts` 는 관심 직무마다 코드·라벨을 넣고 태그를 뒤에 붙인다.
 
 **지표는 순위만 본다.** BE 는 0~100 정수(동점이 많다), 임베딩은 코사인이라 눈금이 다르다. 같은
 문턱으로 자를 수 없으니 순위로 비교한다.
@@ -31,26 +31,6 @@ def interest_texts(
             texts.append(job_labels[code])
     texts.extend(tags)
     return texts
-
-
-def _java_round(x: float) -> int:
-    """`Math.round(float)` — 반올림이 0.5 에서 위로 간다 (파이썬 `round` 는 짝수 쪽)."""
-    return math.floor(x + 0.5)
-
-
-def be_field_similarity(keywords: Sequence[str], interests: Sequence[str]) -> tuple[int, list[str]]:
-    """BE 원본 그대로: 키워드가 관심 텍스트 하나와 **어느 쪽으로든 포함 관계**면 맞은 것.
-
-    점수 = 맞은 키워드 수 / min(키워드 수, 5) * 100, 상한 100. 소문자화는 `Locale.ROOT` 라
-    한글은 그대로다. 뜻이 아니라 글자를 본다 — 관심 「행정학」은 키워드 「행정학」은 잡고
-    「기간제 행정원」은 놓친다.
-    """
-    if not keywords or not interests:
-        return 0, []
-    lowered = [i.lower() for i in interests]
-    matched = [kw for kw in keywords if any(i in kw.lower() or kw.lower() in i for i in lowered)]
-    denominator = min(len(keywords), 5)
-    return min(100, _java_round(len(matched) * 100 / denominator)), matched
 
 
 def auc(scores: Sequence[float], labels: Sequence[bool]) -> float | None:

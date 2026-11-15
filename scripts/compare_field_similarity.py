@@ -21,11 +21,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from app.budget import Budget, BudgetExceeded
 from app.config import settings
 from app.embedding import HcxEmbedder, cosine
+from app.field_similarity import keyword_score, posting_text, profile_text
 from app.fixtures import Fixture, load_all
 from app.providers.base import RateLimited, TransientError
 from app.similarity_eval import (
     auc,
-    be_field_similarity,
     bootstrap_macro_auc_diff,
     interest_texts,
     macro_auc,
@@ -132,7 +132,7 @@ def main() -> int:
     def be(keywords: dict[str, list[str]], *, tags: bool) -> Scores:
         return {
             p["id"]: [
-                float(be_field_similarity(keywords[pid], interests(p, tags=tags))[0]) for pid in ids
+                float(keyword_score(keywords[pid], interests(p, tags=tags))[0]) for pid in ids
             ]
             for p in profiles
         }
@@ -153,12 +153,14 @@ def main() -> int:
         )
         embedder = HcxEmbedder(settings.hcx_api_key, budget=budget, cache_dir=CACHE_DIR)
 
-        def profile_text(p: dict[str, Any], *, tags: bool) -> str:
-            return ", ".join(interests(p, tags=tags))
+        # 서비스(`/v1/field-similarity`)와 같은 텍스트 모양 — 여기서 잰 숫자가 그 API 의 숫자다
+        def profile_of(p: dict[str, Any], *, tags: bool) -> str:
+            return profile_text(interests(p, tags=tags))
 
-        def posting_text(pid: str, keywords: dict[str, list[str]], *, title: bool) -> str:
-            kw = ", ".join(keywords[pid])
-            return f"{titles[pid]}\n{kw}" if title else kw
+        def posting_of(pid: str, keywords: dict[str, list[str]], *, title: bool) -> str:
+            if title:
+                return posting_text(titles[pid], keywords[pid])
+            return ", ".join(keywords[pid])
 
         variants: dict[str, tuple[dict[str, list[str]], bool, bool]] = {
             "임베딩 · 정답 키워드": (gold_kw, False, True),
@@ -166,9 +168,9 @@ def main() -> int:
             "임베딩 · 제목+파싱 키워드": (real_kw, True, True),
             "임베딩 · 제목+정답 키워드 · 태그 없음": (gold_kw, True, False),
         }
-        texts = [profile_text(p, tags=t) for p in profiles for t in (True, False)]
+        texts = [profile_of(p, tags=t) for p in profiles for t in (True, False)]
         for keywords, title, _ in variants.values():
-            texts += [posting_text(pid, keywords, title=title) for pid in ids]
+            texts += [posting_of(pid, keywords, title=title) for pid in ids]
         try:
             vectors = asyncio.run(embed_all(embedder, texts))
         except BudgetExceeded as exc:
@@ -179,10 +181,10 @@ def main() -> int:
         def embedding_scores(keywords: dict[str, list[str]], title: bool, tags: bool) -> Scores:
             out: Scores = {}
             for p in profiles:
-                pv = vectors[profile_text(p, tags=tags)]
+                pv = vectors[profile_of(p, tags=tags)]
                 row: list[float] = []
                 for pid in ids:
-                    text = posting_text(pid, keywords, title=title).strip()
+                    text = posting_of(pid, keywords, title=title).strip()
                     row.append(cosine(pv, vectors[text]) if text else -1.0)
                 out[p["id"]] = row
             return out

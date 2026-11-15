@@ -12,10 +12,12 @@ from __future__ import annotations
 import logging
 from functools import cache
 
+from app import field_similarity as field_sim
 from app import stubs
 from app.budget import Budget
 from app.cache import ReplayCache
 from app.config import settings
+from app.embedding import HcxEmbedder
 from app.gateway import Gateway
 from app.providers.hcx import HcxProvider
 from app.schemas import (
@@ -23,6 +25,8 @@ from app.schemas import (
     CommentsResult,
     DraftRequest,
     DraftResult,
+    FieldSimilarityRequest,
+    FieldSimilarityResult,
     ParseFailure,
     ParseRequest,
     ParseResult,
@@ -108,3 +112,20 @@ async def draft_answer(req: DraftRequest, prompt_version: str) -> DraftResult:
     if use_stub():
         return stubs.draft_answer(req, prompt_version)
     return await gateway("draft").draft_answer(req, prompt_version)
+
+
+@cache
+def embedder() -> HcxEmbedder:
+    """생성 호출과 같은 예산 장부를 쓴다 — 상한은 전체 지출에 걸린다."""
+    return HcxEmbedder(
+        settings.hcx_api_key,
+        budget=budget(),
+        cache_dir=settings.embedding_cache_dir,
+        timeout_s=settings.embedding_timeout_s,
+    )
+
+
+async def field_similarity(req: FieldSimilarityRequest) -> FieldSimilarityResult:
+    if use_stub():
+        return field_sim.keyword_result(req)
+    return await field_sim.score(req, embedder(), deadline_s=settings.request_deadline_s)

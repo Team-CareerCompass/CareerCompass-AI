@@ -5,10 +5,10 @@ from pathlib import Path
 
 import pytest
 
+from app.field_similarity import keyword_score
 from app.fixtures import load_all
 from app.similarity_eval import (
     auc,
-    be_field_similarity,
     bootstrap_macro_auc_diff,
     interest_texts,
     macro_auc,
@@ -25,28 +25,26 @@ def test_interest_texts_follow_be_order() -> None:
     assert texts == ["backend", "백엔드 개발", "public", "공공·행정", "Java"]
 
 
-def test_be_field_similarity_matches_either_direction_case_insensitive() -> None:
+def test_keyword_score_matches_either_direction_case_insensitive() -> None:
     interests = ["backend", "백엔드 개발", "Java", "서버"]
     # 키워드 ⊂ 관심(「java」 ⊂ 「java」), 관심 ⊂ 키워드(「서버」 ⊂ 「서버 개발자」), 대소문자 무시
-    score, matched = be_field_similarity(["JAVA", "서버 개발자", "마케팅"], interests)
+    score, matched = keyword_score(["JAVA", "서버 개발자", "마케팅"], interests)
     assert matched == ["JAVA", "서버 개발자"]
     assert score == 67  # 2/3 → 66.67 → Math.round 67
 
 
-def test_be_field_similarity_reads_letters_not_meaning() -> None:
+def test_keyword_score_reads_letters_not_meaning() -> None:
     """원본의 한계 그대로 — 「행정학」 관심은 「기간제 행정원」을 못 잡는다."""
-    score, matched = be_field_similarity(
-        ["기간제 행정원", "세종"], ["public", "공공·행정", "행정학"]
-    )
+    score, matched = keyword_score(["기간제 행정원", "세종"], ["public", "공공·행정", "행정학"])
     assert (score, matched) == (0, [])
 
 
-def test_be_field_similarity_denominator_is_capped_at_five() -> None:
+def test_keyword_score_denominator_is_capped_at_five() -> None:
     keywords = ["Java", "a1", "a2", "a3", "a4", "a5", "a6"]
-    assert be_field_similarity(keywords, ["java"])[0] == 20  # 1 / min(7, 5)
-    assert be_field_similarity(["Java", "Spring"], ["java", "spring"])[0] == 100
-    assert be_field_similarity([], ["java"]) == (0, [])
-    assert be_field_similarity(["Java"], []) == (0, [])
+    assert keyword_score(keywords, ["java"])[0] == 20  # 1 / min(7, 5)
+    assert keyword_score(["Java", "Spring"], ["java", "spring"])[0] == 100
+    assert keyword_score([], ["java"]) == (0, [])
+    assert keyword_score(["Java"], []) == (0, [])
 
 
 def test_auc_counts_ties_as_half() -> None:

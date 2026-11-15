@@ -86,5 +86,14 @@ class Settings(BaseSettings):
     llm_cache: Literal["off", "record", "replay"] = "off"
     llm_cache_dir: Path = Path(".cache/llm")
 
+    # ---- 분야 유사도 (계약 §5) --------------------------------------------------
+
+    embedding_cache_dir: Path = Path(".cache/embeddings")
+    """임베딩 벡터 캐시. 같은 공고·같은 관심 분야는 다시 부르지 않는다. 파일 이름은 텍스트의
+    해시이고 원문은 남지 않는다."""
+
+    embedding_timeout_s: float = 10.0
+    """임베딩 HTTP 요청 하나당 상한. 엔드포인트 전체 상한은 `request_deadline_s` 다."""
+
 
 settings = Settings()
