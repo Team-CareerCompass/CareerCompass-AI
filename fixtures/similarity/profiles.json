@@ -1,0 +1,108 @@
+{
+  "note": "분야 유사도 정답 (보고서 4.4.4). 관심 분야 프로필 12개 × 공고 35건. 2 = 그 분야가 공고의 핵심 직무·활동, 1 = 일부 직무·활동이 그 분야, 적지 않은 공고는 0. 점수를 하나도 계산하기 전에 붙였다 (11-15, Claude). 기준은 README.",
+  "jobLabels": {
+    "backend": "백엔드 개발",
+    "frontend": "프론트엔드 개발",
+    "mobile": "모바일 앱 개발",
+    "ai_ml": "AI·머신러닝",
+    "data": "데이터 엔지니어링·분석",
+    "devops": "DevOps·인프라",
+    "security": "정보보안",
+    "game": "게임 개발",
+    "embedded": "임베디드·IoT",
+    "qa": "QA·테스트",
+    "pm": "서비스 기획·PM",
+    "design": "UX·UI 디자인",
+    "research": "연구·R&D",
+    "marketing": "마케팅",
+    "sales": "영업·세일즈",
+    "finance": "금융·회계",
+    "hr": "인사·노무",
+    "education": "교육",
+    "media": "미디어·콘텐츠",
+    "public": "공공·행정"
+  },
+  "excluded": {
+    "015": "008 에 주입 문구만 심은 복제본",
+    "043": "034 에 주입 문구만 심은 복제본"
+  },
+  "profiles": [
+    {
+      "id": "backend",
+      "jobCodes": ["backend"],
+      "tags": ["Java", "Spring", "서버"],
+      "relevant": {"004": 1, "006": 1, "009": 1}
+    },
+    {
+      "id": "ai_ml",
+      "jobCodes": ["ai_ml"],
+      "tags": ["딥러닝", "Python", "PyTorch"],
+      "relevant": {"004": 1, "006": 2, "007": 2, "009": 2, "013": 2, "035": 1, "037": 1}
+    },
+    {
+      "id": "data",
+      "jobCodes": ["data"],
+      "tags": ["SQL", "Python", "시각화"],
+      "relevant": {"006": 1, "007": 2, "037": 2}
+    },
+    {
+      "id": "security",
+      "jobCodes": ["security"],
+      "tags": ["모의해킹", "네트워크", "리버싱"],
+      "relevant": {"016": 2}
+    },
+    {
+      "id": "embedded",
+      "jobCodes": ["embedded"],
+      "tags": ["C/C++", "펌웨어", "자동차"],
+      "relevant": {"004": 2, "009": 1, "013": 1, "016": 1}
+    },
+    {
+      "id": "design",
+      "jobCodes": ["design"],
+      "tags": ["Figma", "포토샵", "프로토타이핑"],
+      "relevant": {"004": 1, "032": 1}
+    },
+    {
+      "id": "marketing",
+      "jobCodes": ["marketing"],
+      "tags": ["SNS", "브랜딩", "광고"],
+      "relevant": {
+        "008": 2, "011": 1, "025": 2, "026": 2, "027": 1, "032": 2, "034": 1, "042": 2
+      }
+    },
+    {
+      "id": "media",
+      "jobCodes": ["media"],
+      "tags": ["영상 편집", "숏폼", "글쓰기"],
+      "relevant": {
+        "008": 2, "011": 2, "025": 2, "026": 2, "027": 1, "031": 2, "032": 2, "034": 2,
+        "036": 1
+      }
+    },
+    {
+      "id": "research",
+      "jobCodes": ["research"],
+      "tags": ["실험", "논문"],
+      "relevant": {"004": 2, "009": 2, "013": 2, "018": 2, "028": 1}
+    },
+    {
+      "id": "public",
+      "jobCodes": ["public"],
+      "tags": ["행정학", "정책"],
+      "relevant": {"017": 2, "028": 1, "038": 2, "039": 1}
+    },
+    {
+      "id": "finance",
+      "jobCodes": ["finance"],
+      "tags": ["재무", "회계", "투자"],
+      "relevant": {"033": 1, "041": 2}
+    },
+    {
+      "id": "education",
+      "jobCodes": ["education"],
+      "tags": ["멘토링", "교육봉사"],
+      "relevant": {"027": 1, "040": 1}
+    }
+  ]
+}
