@@ -87,5 +87,10 @@ async def health() -> dict[str, Any]:
         "callTimeoutS": settings.llm_timeout_s,
     }
     if not stub:
+        # 기능별로 모델을 덮어쓸 수 있다 — 위 `provider` 는 기본 모델이라 그것만 보면 속는다
+        body["models"] = {fn: service.model_for(fn) for fn in service.FUNCTIONS}
+        body["parsePromptVersion"] = settings.parse_prompt_version
+        if "HCX-007" in body["models"].values():
+            body["thinkingEffort"] = settings.hcx_thinking_effort
         body["budget"] = service.budget().status().as_dict()
     return body

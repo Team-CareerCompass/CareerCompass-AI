@@ -38,6 +38,17 @@ class Settings(BaseSettings):
     hcx_model_draft: str | None = None
     """기능별 모델 덮어쓰기. 예: 우대 추출이 아쉬우면 `CC_HCX_MODEL_PARSE=HCX-005` 만 올린다."""
 
+    hcx_thinking_effort: Literal["none", "low", "medium", "high"] = "none"
+    """HCX-007 의 추론 강도. **다른 모델에는 보내지 않는다.** 기본은 끔 — 켜면 추론 토큰이
+    출력 단가로 과금되고 지연이 는다. BE 읽기 타임아웃(20초) 안에 드는지 재고 켠다."""
+
+    hcx_structured_output: bool = False
+    """HCX-007(추론 끔) 초안에 구조화 출력(`responseFormat`)을 쓴다. **기본은 끔.**
+
+    11-15 실측(18건): 켜면 형식 위반 5 → 0, 지연 p95 10.4 → 7.8초, 답 하나 2.59 → 2.11원.
+    대신 **답이 짧아진다** — 상한의 70% 이상 채운 답 59% → 37%. 길이가 HCX-007 을 고른 이유라
+    끈다. 형식 위반이 문제가 되면 켠다."""
+
     parse_prompt_version: str | None = "v1"
     """`parse_posting` 프롬프트 버전. **최신이 아니라 평가로 고른 버전**을 쓴다.
     근거는 `app/prompts/README.md`. `None` 이면 가장 높은 번호."""

@@ -227,6 +227,17 @@ def test_transient_error_recovers_on_retry() -> None:
     assert isinstance(res, ParseResult)
 
 
+def test_timeout_is_503_without_retry() -> None:
+    """읽기 타임아웃은 다시 불러도 같은 시간이 걸린다 — 18초 뒤 또 18초면 BE 20초를 넘긴다."""
+    from app.providers.base import ProviderTimeout
+
+    provider = FakeProvider(ProviderTimeout("read timeout"), PARSE_OK)
+    with pytest.raises(ServiceError) as exc:
+        _run(Gateway(provider).parse_posting(ParseRequest(title="두산", raw_content=POSTING)))
+    assert exc.value.status_code == 503
+    assert len(provider.calls) == 1
+
+
 def test_rate_limited_is_429_without_retry() -> None:
     provider = FakeProvider(RateLimited("429"))
     with pytest.raises(ServiceError) as exc:
@@ -625,6 +636,44 @@ def test_draft_counts_chars_and_indexes() -> None:
     assert res.char_count == len(answer)
     assert res.used_indexes == [0]  # 범위 밖은 버린다
     assert res.fact_check is not None and res.fact_check.passed
+
+
+class SchemaProvider(FakeProvider):
+    """구조화 출력을 받는 프로바이더 대역 — 넘어온 스키마를 기록한다."""
+
+    supports_json_schema = True
+
+    def __init__(self, *responses: str | Exception) -> None:
+        super().__init__(*responses)
+        self.schemas: list[dict[str, Any] | None] = []
+
+    async def complete(
+        self,
+        system: str,
+        user: str,
+        *,
+        max_tokens: int,
+        temperature: float,
+        json_schema: dict[str, Any] | None = None,
+    ) -> Completion:
+        self.schemas.append(json_schema)
+        return await super().complete(system, user, max_tokens=max_tokens, temperature=temperature)
+
+
+def test_draft_asks_for_structured_output_when_the_provider_can() -> None:
+    """HCX-007 초안 59호출에서 형식 위반 5번이 재요청을 불렀다(11-15). 받는 쪽엔 스키마를 준다"""
+    answer = "CareerCompass 에서 Spring 백엔드를 맡아 공고 분석 서비스를 만들었습니다."
+    provider = SchemaProvider(_j(answer=answer, usedIndexes=[0]))
+    _run(Gateway(provider).draft_answer(_draft_req()))
+    schema = provider.schemas[0]
+    assert schema is not None and set(schema["required"]) == {"answer", "usedIndexes"}
+
+
+def test_parse_never_sends_a_schema() -> None:
+    """파싱·코멘트엔 스키마를 안 준다 — 코멘트는 null 이 정답일 때가 있는데 스키마엔 null 이 없다"""
+    provider = SchemaProvider(PARSE_OK)
+    _run(Gateway(provider).parse_posting(ParseRequest(title="두산", raw_content=POSTING)))
+    assert provider.schemas == [None]
 
 
 def test_draft_unverified_sentence_is_dropped_and_rest_kept() -> None:
@@ -1222,3 +1271,25 @@ def test_router_falls_back_to_stub_without_api_key(monkeypatch: pytest.MonkeyPat
     monkeypatch.setattr(service.settings, "hcx_api_key", "")
     health = TestClient(app).get("/health").json()
     assert health["stubMode"] is True and health["providerKeyPresent"] is False
+
+
+def test_health_shows_the_model_each_function_really_uses(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """`provider` 는 기본 모델이다. 기능별로 덮어쓰면 그것만 봐서는 무엇으로 도는지 모른다."""
+    from fastapi.testclient import TestClient
+
+    from app.main import app
+
+    monkeypatch.setattr(service.settings, "stub_mode", False)
+    monkeypatch.setattr(service.settings, "hcx_api_key", "nv-test")
+    monkeypatch.setattr(service.settings, "hcx_model_parse", "HCX-005")
+    monkeypatch.setattr(service.settings, "hcx_model_draft", "HCX-007")
+    monkeypatch.setattr(service.settings, "budget_ledger", tmp_path / "budget.json")
+    service.budget.cache_clear()
+    try:
+        health = TestClient(app).get("/health").json()
+    finally:
+        service.budget.cache_clear()
+    assert health["models"] == {"parse": "HCX-005", "comments": "HCX-DASH-002", "draft": "HCX-007"}
+    assert health["thinkingEffort"] == "none"

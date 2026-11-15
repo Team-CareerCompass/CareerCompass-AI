@@ -4,7 +4,8 @@
 
 | 유형 | 예 | 처리 |
 | --- | --- | --- |
-| `TransientError` | 타임아웃·5xx·네트워크 | 1회 재시도 → 그래도 안 되면 BE 에 503 |
+| `TransientError` | 5xx·네트워크 | 1회 재시도 → 그래도 안 되면 BE 에 503 |
+| `ProviderTimeout` | 읽기 타임아웃 | **재시도 안 함** — 다시 불러도 같은 시간, BE 20초를 넘긴다 |
 | `RateLimited` | 429 | 재시도하지 않고 BE 에 429 — BE 가 백오프한다 |
 | `InputError` | 401·400 | 키나 요청이 잘못됐다. 재시도해도 같다. BE 에 503 |
 | `SchemaViolation` | JSON 이 아니거나 필드가 틀림 | 게이트웨이가 1회 재요청 (#4) |
@@ -16,7 +17,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
-from typing import Protocol
+from typing import Any, Protocol
 
 
 @dataclass(frozen=True)
@@ -44,6 +45,14 @@ class RateLimited(TransientError):
     """429. BE 가 백오프하므로 이쪽은 재시도하지 않는다."""
 
 
+class ProviderTimeout(TransientError):
+    """읽기 타임아웃(`CC_LLM_TIMEOUT_S`). **재시도하지 않는다.**
+
+    느린 모델(HCX-007 이 긴 초안에 11초, 11-15 실측)에서 18초 타임아웃 뒤 한 번 더 부르면 36초다.
+    BE 는 20초에 끊고 같은 요청을 다시 보내므로, 이쪽 재시도는 비용만 두 배로 만들고 답은 못 준다.
+    """
+
+
 class InputError(ProviderError):
     """키·요청이 틀렸다. 재시도해도 같은 결과다."""
 
@@ -60,8 +69,16 @@ class Provider(Protocol):
     price_out_krw: float
 
     async def complete(
-        self, system: str, user: str, *, max_tokens: int, temperature: float
-    ) -> Completion: ...
+        self,
+        system: str,
+        user: str,
+        *,
+        max_tokens: int,
+        temperature: float,
+        json_schema: dict[str, Any] | None = None,
+    ) -> Completion:
+        """`json_schema` 는 `supports_json_schema` 가 참인 프로바이더에만 넘어온다."""
+        ...
 
 
 async def complete_with_retry(
@@ -72,15 +89,22 @@ async def complete_with_retry(
     max_tokens: int,
     temperature: float,
     backoff_s: float = 0.5,
+    json_schema: dict[str, Any] | None = None,
 ) -> Completion:
-    """`TransientError` 만 1회 재시도. `RateLimited` 는 재시도하지 않는다."""
+    """`TransientError` 만 1회 재시도. `RateLimited` 와 `ProviderTimeout` 은 재시도하지 않는다."""
+    # 스키마는 있을 때만 넘긴다 — 구조화 출력을 모르는 프로바이더(테스트 대역)는 인자를 안 받는다
+    extra: dict[str, Any] = {} if json_schema is None else {"json_schema": json_schema}
     try:
-        return await provider.complete(system, user, max_tokens=max_tokens, temperature=temperature)
-    except RateLimited:
+        return await provider.complete(
+            system, user, max_tokens=max_tokens, temperature=temperature, **extra
+        )
+    except (RateLimited, ProviderTimeout):
         raise
     except TransientError:
         await asyncio.sleep(backoff_s)
-        return await provider.complete(system, user, max_tokens=max_tokens, temperature=temperature)
+        return await provider.complete(
+            system, user, max_tokens=max_tokens, temperature=temperature, **extra
+        )
 
 
 def cost_krw(provider: Provider, completion: Completion) -> float:

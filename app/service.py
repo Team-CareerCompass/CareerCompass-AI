@@ -68,14 +68,27 @@ def _replay_cache() -> ReplayCache:
     return ReplayCache(settings.llm_cache_dir, settings.llm_cache)
 
 
-@cache
-def gateway(function: str = "parse") -> Gateway:
-    model = {
+FUNCTIONS = ("parse", "comments", "draft")
+
+
+def model_for(function: str) -> str:
+    """기능이 실제로 쓰는 모델. `/health` 도 이것을 보여 준다 — 덮어쓴 설정이 먹었는지 확인하게."""
+    return {
         "parse": settings.hcx_model_parse,
         "comments": settings.hcx_model_comments,
         "draft": settings.hcx_model_draft,
     }.get(function) or settings.hcx_model
-    provider = HcxProvider(settings.hcx_api_key, model, timeout_s=settings.llm_timeout_s)
+
+
+@cache
+def gateway(function: str = "parse") -> Gateway:
+    provider = HcxProvider(
+        settings.hcx_api_key,
+        model_for(function),
+        timeout_s=settings.llm_timeout_s,
+        thinking_effort=settings.hcx_thinking_effort,
+        structured_output=settings.hcx_structured_output,
+    )
     return Gateway(provider, _replay_cache(), budget())
 
 
