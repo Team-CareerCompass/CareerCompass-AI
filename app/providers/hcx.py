@@ -46,7 +46,8 @@ THINKING_MODELS = frozenset({"HCX-007"})
 
 STRUCTURED_MODELS = frozenset({"HCX-007"})
 """구조화 출력(`responseFormat`)을 받는 모델 — **추론을 끈 경우에만** 된다(공식 문서). JSON 이
-스키마대로 온다는 보장이라 형식 재요청(호출 하나 = 지연 5~10초)이 없어진다."""
+스키마대로 온다는 보장이라 형식 재요청(호출 하나 = 지연 5~10초)이 없어진다. 대신 답이 짧아져서
+기본은 끈다 (`CC_HCX_STRUCTURED_OUTPUT`, 11-15 실측은 config 참고)."""
 
 THINKING_RESERVE: dict[str, int] = {"none": 0, "low": 4096, "medium": 8192, "high": 16384}
 """추론 토큰 몫으로 `maxCompletionTokens` 에 더 주는 양. 안 주면 추론이 한도를 먹고 답이 빈다.
@@ -67,6 +68,7 @@ class HcxProvider:
         base_url: str = BASE_URL,
         client: httpx.AsyncClient | None = None,
         thinking_effort: str = "none",
+        structured_output: bool = False,
     ) -> None:
         if not api_key:
             raise InputError("CC_HCX_API_KEY 가 비어 있다")
@@ -79,7 +81,9 @@ class HcxProvider:
         self.thinking_effort = thinking_effort if model in THINKING_MODELS else None
         self.reserved_completion_tokens = THINKING_RESERVE.get(self.thinking_effort or "none", 0)
         """예산 추정이 「이 호출 최대 비용」을 셀 때 더한다 — 추론 토큰도 출력 단가로 과금된다."""
-        self.supports_json_schema = model in STRUCTURED_MODELS and self.thinking_effort == "none"
+        self.supports_json_schema = (
+            structured_output and model in STRUCTURED_MODELS and self.thinking_effort == "none"
+        )
         """게이트웨이가 이것을 보고 응답 스키마를 넘긴다. 아니면 프롬프트 지시 + 재요청으로 간다."""
         self._url = f"{base_url}/v3/chat-completions/{model}"
         self._headers = {

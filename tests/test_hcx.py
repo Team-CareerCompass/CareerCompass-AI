@@ -70,11 +70,19 @@ def test_other_models_never_get_thinking(model: str) -> None:
 
 def test_structured_output_only_where_the_api_accepts_it() -> None:
     """구조화 출력은 HCX-007 · 추론 끔에서만 된다(공식 문서). 다른 조합에 보내면 요청이 깨진다."""
-    body = _send("HCX-007", json_schema=SCHEMA)
+    on = {"structured_output": True}
+    body = _send("HCX-007", json_schema=SCHEMA, **on)
     assert body["responseFormat"] == {"type": "json", "schema": SCHEMA}
-    assert "responseFormat" not in _send("HCX-007", json_schema=SCHEMA, thinking_effort="low")
-    assert "responseFormat" not in _send("HCX-005", json_schema=SCHEMA)
-    assert "responseFormat" not in _send("HCX-007")  # 스키마를 안 주면 안 보낸다
+    low = _send("HCX-007", json_schema=SCHEMA, thinking_effort="low", **on)
+    assert "responseFormat" not in low
+    assert "responseFormat" not in _send("HCX-005", json_schema=SCHEMA, **on)
+    assert "responseFormat" not in _send("HCX-007", **on)  # 스키마를 안 주면 안 보낸다
+
+
+def test_structured_output_is_off_by_default() -> None:
+    """켜면 답이 짧아진다 — 상한 70% 이상 채운 답 59% → 37% (11-15). 길이 때문에 고른 모델이다"""
+    assert "responseFormat" not in _send("HCX-007", json_schema=SCHEMA)
+    assert HcxProvider("nv-test", "HCX-007").supports_json_schema is False
 
 
 def test_unknown_thinking_effort_is_rejected() -> None:

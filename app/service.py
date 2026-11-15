@@ -87,6 +87,7 @@ def gateway(function: str = "parse") -> Gateway:
         model_for(function),
         timeout_s=settings.llm_timeout_s,
         thinking_effort=settings.hcx_thinking_effort,
+        structured_output=settings.hcx_structured_output,
     )
     return Gateway(provider, _replay_cache(), budget())
 
