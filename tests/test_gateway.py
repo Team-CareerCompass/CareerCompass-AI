@@ -1233,3 +1233,25 @@ def test_router_falls_back_to_stub_without_api_key(monkeypatch: pytest.MonkeyPat
     monkeypatch.setattr(service.settings, "hcx_api_key", "")
     health = TestClient(app).get("/health").json()
     assert health["stubMode"] is True and health["providerKeyPresent"] is False
+
+
+def test_health_shows_the_model_each_function_really_uses(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """`provider` 는 기본 모델이다. 기능별로 덮어쓰면 그것만 봐서는 무엇으로 도는지 모른다."""
+    from fastapi.testclient import TestClient
+
+    from app.main import app
+
+    monkeypatch.setattr(service.settings, "stub_mode", False)
+    monkeypatch.setattr(service.settings, "hcx_api_key", "nv-test")
+    monkeypatch.setattr(service.settings, "hcx_model_parse", "HCX-005")
+    monkeypatch.setattr(service.settings, "hcx_model_draft", "HCX-007")
+    monkeypatch.setattr(service.settings, "budget_ledger", tmp_path / "budget.json")
+    service.budget.cache_clear()
+    try:
+        health = TestClient(app).get("/health").json()
+    finally:
+        service.budget.cache_clear()
+    assert health["models"] == {"parse": "HCX-005", "comments": "HCX-DASH-002", "draft": "HCX-007"}
+    assert health["thinkingEffort"] == "none"
