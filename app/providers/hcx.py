@@ -44,6 +44,10 @@ PRICES_KRW: dict[str, tuple[float, float]] = {
 THINKING_MODELS = frozenset({"HCX-007"})
 """`thinking` 을 받는 모델. 다른 모델에 보내면 40001 이다."""
 
+STRUCTURED_MODELS = frozenset({"HCX-007"})
+"""구조화 출력(`responseFormat`)을 받는 모델 — **추론을 끈 경우에만** 된다(공식 문서). JSON 이
+스키마대로 온다는 보장이라 형식 재요청(호출 하나 = 지연 5~10초)이 없어진다."""
+
 THINKING_RESERVE: dict[str, int] = {"none": 0, "low": 4096, "medium": 8192, "high": 16384}
 """추론 토큰 몫으로 `maxCompletionTokens` 에 더 주는 양. 안 주면 추론이 한도를 먹고 답이 빈다.
 값은 공식 기본 한도(low 5120 · medium 10240 · high 20480)에서 답 몫을 뺀 근사치다."""
@@ -75,6 +79,8 @@ class HcxProvider:
         self.thinking_effort = thinking_effort if model in THINKING_MODELS else None
         self.reserved_completion_tokens = THINKING_RESERVE.get(self.thinking_effort or "none", 0)
         """예산 추정이 「이 호출 최대 비용」을 셀 때 더한다 — 추론 토큰도 출력 단가로 과금된다."""
+        self.supports_json_schema = model in STRUCTURED_MODELS and self.thinking_effort == "none"
+        """게이트웨이가 이것을 보고 응답 스키마를 넘긴다. 아니면 프롬프트 지시 + 재요청으로 간다."""
         self._url = f"{base_url}/v3/chat-completions/{model}"
         self._headers = {
             "Authorization": f"Bearer {api_key}",
@@ -84,7 +90,13 @@ class HcxProvider:
         self._timeout_s = timeout_s
 
     async def complete(
-        self, system: str, user: str, *, max_tokens: int, temperature: float
+        self,
+        system: str,
+        user: str,
+        *,
+        max_tokens: int,
+        temperature: float,
+        json_schema: dict[str, Any] | None = None,
     ) -> Completion:
         payload: dict[str, Any] = {
             "messages": [
@@ -96,6 +108,8 @@ class HcxProvider:
         }
         if self.thinking_effort is not None:
             payload["thinking"] = {"effort": self.thinking_effort}
+        if json_schema is not None and self.supports_json_schema:
+            payload["responseFormat"] = {"type": "json", "schema": json_schema}
         started = time.perf_counter()
         try:
             if self._client is not None:

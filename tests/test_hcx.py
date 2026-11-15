@@ -19,7 +19,10 @@ OK_BODY = {
 }
 
 
-def _send(model: str, **kwargs: Any) -> dict[str, Any]:
+SCHEMA = {"type": "object", "properties": {"answer": {"type": "string"}}, "required": ["answer"]}
+
+
+def _send(model: str, json_schema: dict[str, Any] | None = None, **kwargs: Any) -> dict[str, Any]:
     """요청 본문을 잡아 돌려준다."""
     seen: dict[str, Any] = {}
 
@@ -30,7 +33,9 @@ def _send(model: str, **kwargs: Any) -> dict[str, Any]:
     async def run() -> None:
         async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             provider = HcxProvider("nv-test", model, client=client, **kwargs)
-            await provider.complete("s", "u", max_tokens=300, temperature=0.1)
+            await provider.complete(
+                "s", "u", max_tokens=300, temperature=0.1, json_schema=json_schema
+            )
 
     asyncio.run(run())
     return seen
@@ -61,6 +66,15 @@ def test_other_models_never_get_thinking(model: str) -> None:
     body = _send(model, thinking_effort="high")
     assert "thinking" not in body
     assert body["maxCompletionTokens"] == 300
+
+
+def test_structured_output_only_where_the_api_accepts_it() -> None:
+    """구조화 출력은 HCX-007 · 추론 끔에서만 된다(공식 문서). 다른 조합에 보내면 요청이 깨진다."""
+    body = _send("HCX-007", json_schema=SCHEMA)
+    assert body["responseFormat"] == {"type": "json", "schema": SCHEMA}
+    assert "responseFormat" not in _send("HCX-007", json_schema=SCHEMA, thinking_effort="low")
+    assert "responseFormat" not in _send("HCX-005", json_schema=SCHEMA)
+    assert "responseFormat" not in _send("HCX-007")  # 스키마를 안 주면 안 보낸다
 
 
 def test_unknown_thinking_effort_is_rejected() -> None:

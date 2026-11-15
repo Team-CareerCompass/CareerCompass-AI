@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
-from typing import Protocol
+from typing import Any, Protocol
 
 
 @dataclass(frozen=True)
@@ -69,8 +69,16 @@ class Provider(Protocol):
     price_out_krw: float
 
     async def complete(
-        self, system: str, user: str, *, max_tokens: int, temperature: float
-    ) -> Completion: ...
+        self,
+        system: str,
+        user: str,
+        *,
+        max_tokens: int,
+        temperature: float,
+        json_schema: dict[str, Any] | None = None,
+    ) -> Completion:
+        """`json_schema` 는 `supports_json_schema` 가 참인 프로바이더에만 넘어온다."""
+        ...
 
 
 async def complete_with_retry(
@@ -81,15 +89,22 @@ async def complete_with_retry(
     max_tokens: int,
     temperature: float,
     backoff_s: float = 0.5,
+    json_schema: dict[str, Any] | None = None,
 ) -> Completion:
     """`TransientError` 만 1회 재시도. `RateLimited` 와 `ProviderTimeout` 은 재시도하지 않는다."""
+    # 스키마는 있을 때만 넘긴다 — 구조화 출력을 모르는 프로바이더(테스트 대역)는 인자를 안 받는다
+    extra: dict[str, Any] = {} if json_schema is None else {"json_schema": json_schema}
     try:
-        return await provider.complete(system, user, max_tokens=max_tokens, temperature=temperature)
+        return await provider.complete(
+            system, user, max_tokens=max_tokens, temperature=temperature, **extra
+        )
     except (RateLimited, ProviderTimeout):
         raise
     except TransientError:
         await asyncio.sleep(backoff_s)
-        return await provider.complete(system, user, max_tokens=max_tokens, temperature=temperature)
+        return await provider.complete(
+            system, user, max_tokens=max_tokens, temperature=temperature, **extra
+        )
 
 
 def cost_krw(provider: Provider, completion: Completion) -> float:

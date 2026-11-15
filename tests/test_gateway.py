@@ -638,6 +638,44 @@ def test_draft_counts_chars_and_indexes() -> None:
     assert res.fact_check is not None and res.fact_check.passed
 
 
+class SchemaProvider(FakeProvider):
+    """구조화 출력을 받는 프로바이더 대역 — 넘어온 스키마를 기록한다."""
+
+    supports_json_schema = True
+
+    def __init__(self, *responses: str | Exception) -> None:
+        super().__init__(*responses)
+        self.schemas: list[dict[str, Any] | None] = []
+
+    async def complete(
+        self,
+        system: str,
+        user: str,
+        *,
+        max_tokens: int,
+        temperature: float,
+        json_schema: dict[str, Any] | None = None,
+    ) -> Completion:
+        self.schemas.append(json_schema)
+        return await super().complete(system, user, max_tokens=max_tokens, temperature=temperature)
+
+
+def test_draft_asks_for_structured_output_when_the_provider_can() -> None:
+    """HCX-007 초안 59호출에서 형식 위반 5번이 재요청을 불렀다(11-15). 받는 쪽엔 스키마를 준다"""
+    answer = "CareerCompass 에서 Spring 백엔드를 맡아 공고 분석 서비스를 만들었습니다."
+    provider = SchemaProvider(_j(answer=answer, usedIndexes=[0]))
+    _run(Gateway(provider).draft_answer(_draft_req()))
+    schema = provider.schemas[0]
+    assert schema is not None and set(schema["required"]) == {"answer", "usedIndexes"}
+
+
+def test_parse_never_sends_a_schema() -> None:
+    """파싱·코멘트엔 스키마를 안 준다 — 코멘트는 null 이 정답일 때가 있는데 스키마엔 null 이 없다"""
+    provider = SchemaProvider(PARSE_OK)
+    _run(Gateway(provider).parse_posting(ParseRequest(title="두산", raw_content=POSTING)))
+    assert provider.schemas == [None]
+
+
 def test_draft_unverified_sentence_is_dropped_and_rest_kept() -> None:
     """근거에 없는 수치가 든 문장만 빠지고 나머지는 살아남는다 — fallback 이 아니다."""
     answer = (

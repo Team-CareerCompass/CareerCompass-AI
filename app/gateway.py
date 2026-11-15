@@ -182,6 +182,23 @@ class _LlmDraft(BaseModel):
     usedIndexes: list[int] = Field(default_factory=list)
 
 
+_RESPONSE_SCHEMAS: dict[type[BaseModel], dict[str, Any]] = {
+    _LlmDraft: {
+        "type": "object",
+        "properties": {
+            "answer": {"type": "string"},
+            "usedIndexes": {"type": "array", "items": {"type": "integer"}},
+        },
+        "required": ["answer", "usedIndexes"],
+    },
+}
+"""구조화 출력을 받는 프로바이더(`supports_json_schema`)에 넘기는 응답 스키마.
+
+**초안만** 둔다. 코멘트는 `null` 이 정답일 때가 있는데 구조화 출력 스키마에 null 형이 없고,
+파싱은 HCX-005 로 돈다(구조화 출력은 HCX-007 만). HCX-007 초안 59호출에서 형식 위반 5번이
+재요청을 불렀다(11-15) — 호출 하나가 5~10초라 시연 중에 그대로 보인다."""
+
+
 # --------------------------------------------------------------------------
 
 
@@ -203,14 +220,21 @@ class Gateway:
     # ---- 공통 ------------------------------------------------------------
 
     async def _complete(
-        self, prompt: Prompt, user: str, *, max_tokens: int, temperature: float
+        self,
+        prompt: Prompt,
+        user: str,
+        *,
+        max_tokens: int,
+        temperature: float,
+        json_schema: dict[str, Any] | None = None,
     ) -> Completion:
         key = ReplayCache.key(
             self.provider.name,
             self.provider.model,
             prompt.version,
             prompt.system,
-            user,
+            # 구조화 출력은 같은 프롬프트에도 다른 답을 낸다 — 녹화본이 섞이지 않게
+            user if json_schema is None else f"{user}\n<responseFormat/>",
             max_tokens=max_tokens,
             temperature=temperature,
         )
@@ -238,7 +262,12 @@ class Gateway:
                 raise ServiceError(ErrorCode.LLM_UNAVAILABLE, str(exc)) from exc
         try:
             completion = await complete_with_retry(
-                self.provider, prompt.system, user, max_tokens=max_tokens, temperature=temperature
+                self.provider,
+                prompt.system,
+                user,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                json_schema=json_schema,
             )
         except RateLimited as exc:
             raise ServiceError(ErrorCode.RATE_LIMITED, str(exc)) from exc
@@ -291,11 +320,20 @@ class Gateway:
         completions: list[Completion] = []
         attempt_user = user
         last_error = ""
+        schema = (
+            _RESPONSE_SCHEMAS.get(model)
+            if getattr(self.provider, "supports_json_schema", False)
+            else None
+        )
         for attempt in range(2):
             if attempt and not self._can_retry(deadline, completions, f"{prompt.name} 스키마"):
                 break
             completion = await self._complete(
-                prompt, attempt_user, max_tokens=max_tokens, temperature=temperature
+                prompt,
+                attempt_user,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                json_schema=schema,
             )
             completions.append(completion)
             try:
