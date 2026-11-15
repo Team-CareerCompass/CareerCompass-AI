@@ -142,3 +142,46 @@ class DraftResult(Base):
 
     fact_check: FactCheck | None = None
     usage: Usage | None = None
+
+
+# --------------------------------------------------------------------------
+# §5 분야 유사도
+# --------------------------------------------------------------------------
+
+MAX_SIMILARITY_POSTINGS = 20
+"""요청 하나에 공고 몇 건까지. 캐시가 비었을 때도 엔드포인트 시한(16초) 안에 끝나게."""
+
+
+class SimilarityPosting(Base):
+    id: int | str
+    """BE 의 postingId 그대로. 응답에 같은 값으로 돌려준다."""
+
+    title: str = Field(default="", max_length=500)
+    keywords: list[str] = Field(default_factory=list, max_length=50)
+    """파싱 결과 `keywords` 그대로."""
+
+
+class FieldSimilarityRequest(Base):
+    interest_texts: list[str] = Field(min_length=1, max_length=60)
+    """BE `AnalysisService.interestTexts` 그대로 — 관심 직무마다 코드·라벨, 그다음 태그."""
+
+    postings: list[SimilarityPosting] = Field(min_length=1, max_length=MAX_SIMILARITY_POSTINGS)
+
+
+class FieldSimilarityScore(Base):
+    id: int | str
+    score: int
+    """적합도 분야 유사도 축 점수 0~100. BE `fieldSimilarity` 반환값 자리에 그대로 넣는다."""
+
+    similarity: float | None = None
+    """눈금 보정 전 코사인. 제목·키워드가 둘 다 비어 계산하지 못했으면 null(점수 0)."""
+
+
+class FieldSimilarityResult(Base):
+    scores: list[FieldSimilarityScore]
+    """요청 `postings` 와 같은 순서."""
+
+    method: str
+    """`embedding` 또는 `keyword`(스텁 모드 — BE 와 같은 글자 비교)."""
+
+    usage: Usage | None = None
