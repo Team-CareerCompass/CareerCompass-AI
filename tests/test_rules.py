@@ -388,3 +388,59 @@ def test_qualification_is_none_when_unrestricted() -> None:
     text = "지원자격\n공통 요건으로 학력, 전공, 학점, 성별, 연령 제한 없음"
     q = extract_qualifications(text)
     assert (q.year, q.gpa) == (None, None)
+
+
+# --------------------------------------------------------------------------
+# BE 모양(한 줄) — 규칙만 돌려도 줄 있는 입력보다 나빴던 것 (11-15 실측)
+#   마감일 97% (038 틀림) · 자격 96% (날조 2: 013·040, 못읽음 2: 017·018)
+#   문항 89% (017 0개, 026 오인)
+# --------------------------------------------------------------------------
+
+
+def _flat(fid: str) -> tuple[str, date | None]:
+    """BE 가 보내는 모양(Jsoup `body().text()`)으로 접어 전처리한 본문."""
+    from app.evaluation import flatten
+    from app.fixtures import load_all
+    from app.preprocess import preprocess
+
+    fx = next(f for f in load_all() if f.id == fid)
+    return preprocess(flatten(fx).body).text, fx.collected_at
+
+
+def test_list_number_before_a_year_is_not_a_date() -> None:
+    """038 「3. 2026년 10월 중 입사 가능자」의 「3. 20」을 3월 20일로 읽었다.
+
+    줄이 접히면 빈 줄이 없어 마감일 창이 응시자격 목록까지 간다. 날짜 앞뒤가 숫자면 날짜가 아니다.
+    """
+    text = "접수기간: 2026.09.23 ~ 2026.10.07\n3. 2026년 10월 중 입사 가능자"
+    assert rules.extract_due_date(text, COLLECTED).iso == "2026-10-07"
+    flat, collected = _flat("038")
+    assert rules.extract_due_date(flat, collected).iso == "2026-10-07"
+
+
+@pytest.mark.parametrize(
+    ("fid", "major"),
+    [
+        ("040", None),  # 우대 절의 「(전공: 동식물학, 생태학, 환경공학과 등)」 — 조건이 아니다
+        ("013", None),  # 「AI 유관 전공(…) 석사 또는 경력 2년」에서 「유관 전공」만 집었다
+        ("017", "정책학 / 행정학 / 경영학 / 정치학 / 외교학"),  # 「ㅇ」 불릿이라 줄이 안 섰다
+        ("018", "공학계열"),
+    ],
+)
+def test_flat_shape_qualification_major(fid: str, major: str | None) -> None:
+    flat, _ = _flat(fid)
+    assert rules.extract_qualifications(flat).major == major
+
+
+def test_generic_major_is_not_a_condition() -> None:
+    """「유관 전공」은 학문 이름이 없다. BE 가 사용자 전공과 문자열로 대 보면 「미충족」만 나온다"""
+    assert rules.extract_qualifications("[자격요건]\n-AI 유관 전공 석사 이상").major is None
+    assert rules.extract_qualifications("지원자격\n- 컴퓨터공학 관련 전공자").major is not None
+
+
+def test_flat_shape_form_questions() -> None:
+    """017 은 「문항 2」가 앞 문항 끝에 붙어 0개, 026 은 맺음말이 마지막 불릿에 붙어 문항이 됐다."""
+    flat, _ = _flat("017")
+    assert len(rules.extract_form_questions(flat)) == 2
+    flat, _ = _flat("026")
+    assert rules.extract_form_questions(flat) == []
